@@ -14,7 +14,14 @@
 ## 🎨 프론트엔드
 - **React**  
   - 예측 결과 시각화 및 UI 구현  
-  - 사용자 친화적인 대시보드 제공  
+  - 사용자 친화적인 대시보드 제공
+ 
+  - **파일 위치**
+    - DataTide_front
+  - **실행 방법**
+    - cd DataTide_front
+    - *(처음 실행할 시)* npm install
+    - npm run dev
 
 ---
 
@@ -22,7 +29,13 @@
 - **FastAPI**  
   - 데이터 수집 및 전처리  
   - 예측형 AI 모델 실행  
-  - 프론트엔드와의 API 연동  
+  - 프론트엔드와의 API 연동
+ 
+  - **파일 위치**
+    - DataTide_back
+  - **실행 방법**
+    - cd DataTide_back
+    - python -m uvicorn main:app --reload
 
 ---
 
@@ -31,7 +44,13 @@
   - 수산물 리테일 생산량 / 판매량 / 수입량 예측
 - **LLM (RAG)**  
   - 예측 결과를 자연스럽고 보기 좋은 문장으로 변환  
-  - 사용자 질의응답(Q&A) 기능 제공  
+  - 사용자 질의응답(Q&A) 기능 제공
+ 
+  - **파일 위치**
+    - DataTide_ai
+  - **실행 방법**
+    - cd DataTide_ai
+    - python 파일이름.py
 
 ---
 

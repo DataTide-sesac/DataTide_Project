@@ -1,0 +1,191 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import pickle as pk
+class PublicFunc():
+
+    #상대경로/파일이름.확장자
+    #csv파일 읽기, encoding이 utf-8이 아닐경우 지정해 줄것. 한국어는 cp949가 많다고 함.
+    @staticmethod
+    def ReadCSV(filePath, fileName, encoding='utf-8-sig'):
+        try:
+            df = pd.read_csv(f"{filePath}/{fileName}", encoding=encoding)
+            print(df.head())
+            print(df.columns)
+            print(df.shape)
+            print(df.info())
+        except FileNotFoundError as e:
+            print(f"{e}, 파일 못찾음")
+            return None
+        except ValueError as e:
+            print(f"{e}, ValueError")
+            return None
+        return df
+    
+    #Excel 파일 읽기, encoding이 utf-8이 아닐경우 지정해 줄것. 한국어는 cp949가 많다고 함.
+    @staticmethod
+    def ReadExcel(filePath, fileName,sheetname=0 ,skiprows=0):
+        try:
+            df = pd.read_excel(f"{filePath}/{fileName}", sheet_name=sheetname, skiprows=skiprows)
+            print(df.head())
+            print(df.columns)
+            print(df.shape)
+            print(df.info())
+        except FileNotFoundError as e:
+            print(f"{e}, 파일 못찾음")
+            return None
+        except ValueError as e:
+            print(f"{e}, ValueError")
+            return None
+        except TypeError as e:
+            print(f"{e}, TypeError")
+            return pd.DataFrame
+        return df
+
+    #라벨 달기
+    # data : csv,xlsx파일
+    # colList : List 형태로 올 것
+    @staticmethod
+    def AddColumns(data,colList):
+        try:
+            data.columns = colList
+        except TypeError as e:
+            print(f"{e}, TypeError")
+            return data
+        except IndexError as e:
+            print(f"{e}, Index Error")
+            return data
+        except ValueError as e:
+            print(f"{e}, ValueError")
+            return data
+        return data
+
+    #결측치 제거
+    #0으로 바꾸는 것이 아닌 NaN값 삭제함.
+    @staticmethod
+    def IsNullDel(df, thresh, axis=0):
+        try:
+            df = df.dropna(thresh=thresh,axis=axis)
+            df.shape
+        except IndexError as e:
+            print(f"{e}, Index Error")
+            return df
+        except TypeError as e:
+            print(f"{e}, TypeError")
+            return df
+        
+        return df
+
+    #None값 대체
+    #data 에는 None값을 대체할 열을 대입(ex: 3번째 열 대체 -> a[a['열이름']] )
+    @staticmethod
+    def ChangeNull(data,value):
+        try:
+            data[data.isna()] = value
+        except TypeError as e:
+            print(f"{e}, TypeError")
+            return data
+        except IndexError as e:
+            print(f"{e}, Index Error")
+            return data
+        except ValueError as e:
+            print(f"{e}, ValueError")
+            return data
+        return data
+
+    #concat data / list
+    #반드시 리스트 형태로 넣어 줄 것
+    @staticmethod
+    def MixData(data):
+        try:
+            if not data:
+                return pd.DataFrame()
+            df_list = []
+            for item in data:
+                if isinstance(item, dict):
+                    df_list.append(pd.DataFrame([item]))
+                elif isinstance(item, pd.DataFrame):
+                    df_list.append(item)
+                else:
+                    df_list.append(pd.DataFrame(item))
+
+            
+            print("------ 구조확인 -----")
+            for i, item in enumerate(df_list):
+                print(f"Index {i}: Type: {type(item)}, {item.shape}")
+
+            print("------ 구조확인 -----")
+            # temp = None
+            # temp = pd.DataFrame()
+            # for item in data:
+            #     item = pd.DataFrame([item]) if isinstance(item, dict) else pd.DataFrame(item) 
+            #     temp = pd.concat([temp,item], ignore_index=True)
+            return pd.concat(df_list, ignore_index=True)
+            
+        except TypeError as e:
+            print(f"{e}, TypeError")
+            return pd.DataFrame()
+        except ValueError as e:
+            print(f"{e}, ValueError")
+            return pd.DataFrame()
+
+        return temp
+    
+    #boxplot, figsize : 튜플, vert : 방향
+    @staticmethod
+    def ShowBoxplot(data,figsize=(8,6),vert=True):
+        try:
+            plt.figure(figsize=figsize)
+            plt.boxplot(data, vert=vert)
+            plt.show()
+
+        except TypeError as e:
+            print(f"{e}, TypeError")
+        except IndexError as e:
+            print(f"{e}, Index Error")
+        except ValueError as e:
+            print(f"{e}, ValueError")
+
+    #이상치의 하한과 상한 반환
+    @staticmethod
+    def OutFiliersIqr(data):
+        try:
+            q1, q3 = np.percentile(data, [25,75])
+            iqr = q3 - q1
+            lower_bound = q1 - iqr*1.5
+            upper_bound = q1 + iqr*1.5
+        except TypeError as e:
+            print(f"{e}, TypeError")
+        except IndexError as e:
+            print(f"{e}, Index Error")
+        except ValueError as e:
+            print(f"{e}, ValueError")
+
+        return lower_bound, upper_bound
+
+    #이상치 대체
+    @staticmethod
+    def ChangeIqr(data,lb,ub):
+        data = data.copy()
+        try:
+            data[data<lb] = lb
+            data[data>ub] = ub
+        except TypeError as e:
+            print(f"{e}, TypeError")
+            return data
+        except IndexError as e:
+            print(f"{e}, Index Error")
+            return data
+        except ValueError as e:
+            print(f"{e}, ValueError")
+            return data
+        return data
+
+    #저장
+    @staticmethod
+    def SaveCSV(df,fileName,encoding='utf-8-sig'):
+        try:
+            df.to_csv(fileName, index=False, encoding=encoding)
+            print('save 완료')
+        except FileNotFoundError as e:
+            print(f"{e}, File 못찾음")

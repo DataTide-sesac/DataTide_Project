@@ -84,7 +84,7 @@
 ---
 
 ## 🖥️ 화면 레이아웃
-![00_화면레이아웃_1](https://github.com/user-attachments/assets/54d3b725-12f9-4d07-b297-5302553959b1)
+![00_화면레이아웃_2](https://github.com/user-attachments/assets/f026f4e9-8bd2-4f42-9afb-7d1cf97ab95c)
 
 ---
 
@@ -94,7 +94,39 @@
 ---
 
 ## 🗂️ ERD (Entity Relationship Diagram)
-![00_ERD_1](https://github.com/user-attachments/assets/e9459ce4-a720-4a25-ba05-77eeeb291f6e)
+![00_ERD_3](https://github.com/user-attachments/assets/5113077e-865b-49d9-8f67-3069ea2ea4f8)
+
+
+---
+
+## ⚙️ 개발 환경
+
+- **파이썬 버전** : 3.10.18
+  - **데이터 관련 라이브러리** : sqlalchemy pymysql numpy pandas matplotlib seaborn tqdm
+  - **AI 관련 라이브러리** : torch torchvision torchaudio scikit-learn
+  - **웹 관련 라이브러리** : fastapi
+
+- **리액트 버전** : 19.1.1
+  - **axios** : 1.11.0
+  - **bootstrap** : 5.3.8
+  - **react-bootstrap** : 2.10.10
+  - **react-router-dom** : 7.8.2
+ 
+
+---
+
+## 🐍 가상환경 설정
+
+### 1️⃣ 가상환경 생성 및 활성화
+```bash
+conda create -n DataTide python=3.10.18 -y
+conda activate DataTide
+```
+### 2️⃣ 라이브러리 다운로드
+```bash
+cd DataTide_Project
+pip install -r requirements.txt
+```
 
 
 ---

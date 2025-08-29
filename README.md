@@ -99,6 +99,38 @@
 
 ---
 
+## ⚙️ 개발 환경
+
+- **파이썬 버전** : 3.10.18
+  - **데이터 관련 라이브러리** : sqlalchemy pymysql numpy pandas matplotlib seaborn tqdm
+  - **AI 관련 라이브러리** : torch torchvision torchaudio scikit-learn
+  - **웹 관련 라이브러리** : fastapi
+
+- **리액트 버전** : 19.1.1
+  - **axios** : 1.11.0
+  - **bootstrap** : 5.3.8
+  - **react-bootstrap** : 2.10.10
+  - **react-router-dom** : 7.8.2
+ 
+
+---
+
+## 🐍 가상환경 설정
+
+### 1️⃣ 가상환경 생성 및 활성화
+```bash
+conda create -n DataTide python=3.10.18 -y
+conda activate DataTide
+```
+### 2️⃣ 라이브러리 다운로드
+```bash
+cd DataTide_Project
+pip install -r requirements.txt
+```
+
+
+---
+
 ## 👤 팀 역할 분담
 
 - **데이터 전처리 / 분석** : 이형주, 임정훈  

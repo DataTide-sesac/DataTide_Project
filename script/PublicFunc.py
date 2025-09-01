@@ -2,10 +2,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import pickle as pk
-
-import pdfplumber as pdf
 import tabula as tbl
-
+import os
 class PublicFunc():
 
     #상대경로/파일이름.확장자
@@ -26,6 +24,16 @@ class PublicFunc():
             return None
         return df
     
+    #폴더 읽기
+    @staticmethod
+    def ReadFold(filePath):
+        folder_path = filePath
+        items = os.listdir(folder_path)
+
+        files = [f for f in items if os.path.isfile(os.path.join(folder_path,f))]
+
+        return files
+
     #Excel 파일 읽기, encoding이 utf-8이 아닐경우 지정해 줄것. 한국어는 cp949가 많다고 함.
     @staticmethod
     def ReadExcel(filePath, fileName,sheetname=0 ,skiprows=0):

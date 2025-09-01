@@ -2,6 +2,10 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import pickle as pk
+
+import pdfplumber as pdf
+import tabula as tbl
+
 class PublicFunc():
 
     #상대경로/파일이름.확장자
@@ -42,6 +46,59 @@ class PublicFunc():
             return pd.DataFrame
         return df
 
+    #pdf 추출 / 월간보고서
+    @staticmethod
+    def ReadMonthPDF(filePath, fileName):
+        try:
+            with pdf.open(f'{filePath}/{fileName}') as pdfFile:
+                for i, page in enumerate(pdfFile.pages):
+                    tables = page.extract_tables()
+
+                    if tables:
+                        for table_num, table in enumerate(tables):
+                            df = pd.DataFrame(table)
+                        else:
+                            print('못찾음')
+            return df
+        except FileNotFoundError as e:
+            print(f'{e}, 파일 못찾음')
+        except Exception as e:
+            print(f"오류가 발생했습니다: {e}")
+    
+    #pdf 추출 / 연간보고서
+    @staticmethod
+    def ReadYearPDF(filePath, fileName):
+        try:
+            tables = tbl.read_pdf(f'{filePath}/{fileName}',pages='all',stream=True,pandas_options={'header':None})
+
+            total_df_raw = None
+            for df in tables:
+                if df[0].astype(str).str.contains('평균').any():
+                    total_df_raw = df
+                break
+            
+            if total_df_raw is not None:
+                start_index = total_df_raw[total_df_raw[0].astype(str).str.contains('TOTAL')].index[0]
+
+                result_df = total_df_raw.iloc[start_index : start_index + 3].copy()
+
+                result_df.set_index(result_df.columns[1], inplace=True)
+
+                result_df = result_df.drop(columns=result_df.columns[0])
+
+                months = [f'{i}월' for i in range(1,13)]
+                result_df.columns = months
+
+                print("완료")
+                return result_df
+            else:
+                print("못찾음")
+        except FileNotFoundError as e:
+            print(f'{e}, 파일 못찾음')
+        except Exception as e:
+            print(f"오류가 발생했습니다: {e}")
+        
+        
     #라벨 달기
     # data : csv,xlsx파일
     # colList : List 형태로 올 것
@@ -180,6 +237,7 @@ class PublicFunc():
             print(f"{e}, ValueError")
             return data
         return data
+
 
     #저장
     @staticmethod

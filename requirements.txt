@@ -1,0 +1,21 @@
+# Python 환경: 3.10.18
+torch
+torchvision
+torchaudio
+
+# 데이터 처리
+numpy
+pandas
+scikit-learn
+
+# 시각화
+matplotlib
+seaborn
+
+# 실험 편의
+tqdm
+
+# 웹 백엔드
+fastapi
+sqlalchemy
+pymysql

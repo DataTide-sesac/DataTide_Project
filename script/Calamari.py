@@ -27,7 +27,7 @@ for item in fileName:
 
 df = func.MixData(tempList)
 listCalamariLabel = ['날짜','생산','수입','전기재고','소비','수출','당기재고']
-func.AddColumns(df,listCalamariLabel)
+func.AddLabels(df,listCalamariLabel)
 
 
 print(df.shape)

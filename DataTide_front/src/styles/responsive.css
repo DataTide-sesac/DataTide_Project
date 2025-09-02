@@ -1,0 +1,15 @@
+/* 모바일 반응형 */
+@media (max-width: 768px) {
+  .header-content { flex-direction: column; gap: 12px; text-align: center;}
+  .filter-row { flex-direction: column; align-items: stretch; gap: 8px;}
+  .filter-label { min-width: auto; padding-top: 0; }
+  .period-controls { flex-direction: column; gap: 12px;}
+  .results-header {flex-direction: column; align-items: stretch;}
+  .download-buttons { justify-content: center; }
+}
+@media (max-width: 480px) {
+  .kmi-filter-section,
+  .results-section { margin: 0 12px 12px; padding: 16px; }
+  .filter-options { gap: 8px;}
+  .option-button { font-size: 13px; padding: 6px 12px;}
+}

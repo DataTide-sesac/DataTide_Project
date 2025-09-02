@@ -9,9 +9,9 @@ class PublicFunc():
     #상대경로/파일이름.확장자
     #csv파일 읽기, encoding이 utf-8이 아닐경우 지정해 줄것. 한국어는 cp949가 많다고 함.
     @staticmethod
-    def ReadCSV(filePath, fileName, encoding='utf-8-sig'):
+    def ReadCSV(filePath, fileName, skiprows=0, encoding='utf-8-sig'):
         try:
-            df = pd.read_csv(f"{filePath}/{fileName}", encoding=encoding)
+            df = pd.read_csv(f"{filePath}/{fileName}",skiprows=skiprows , encoding=encoding)
             print(df.head())
             print(df.columns)
             print(df.shape)
@@ -100,7 +100,7 @@ class PublicFunc():
     # data : csv,xlsx파일
     # colList : List 형태로 올 것
     @staticmethod
-    def AddColumns(data,colList):
+    def AddLabels(data,colList):
         try:
             data.columns = colList
         except TypeError as e:
@@ -117,7 +117,7 @@ class PublicFunc():
     #결측치 제거
     #0으로 바꾸는 것이 아닌 NaN값 삭제함.
     @staticmethod
-    def IsNullDel(df, thresh, axis=0):
+    def IsNullDel(df, thresh=1, axis=0):
         try:
             df = df.dropna(thresh=thresh,axis=axis)
             df.shape
@@ -150,7 +150,7 @@ class PublicFunc():
     #concat data / list
     #반드시 리스트 형태로 넣어 줄 것
     @staticmethod
-    def MixData(data):
+    def MixData(data,axis=0):
         try:
             if not data:
                 return pd.DataFrame()
@@ -174,7 +174,7 @@ class PublicFunc():
             # for item in data:
             #     item = pd.DataFrame([item]) if isinstance(item, dict) else pd.DataFrame(item) 
             #     temp = pd.concat([temp,item], ignore_index=True)
-            return pd.concat(df_list, ignore_index=True)
+            return pd.concat(df_list, ignore_index=True, axis=axis)
             
         except TypeError as e:
             print(f"{e}, TypeError")
@@ -182,8 +182,6 @@ class PublicFunc():
         except ValueError as e:
             print(f"{e}, ValueError")
             return pd.DataFrame()
-
-        return temp
     
     #boxplot, figsize : 튜플, vert : 방향
     @staticmethod
@@ -235,6 +233,13 @@ class PublicFunc():
             return data
         return data
 
+    #열 추가
+    @staticmethod
+    def AddColumns(df,index=0,before='',after=''):
+        try:
+            df.insert(index,before,after)
+        except TypeError as e:
+            print(f'{e}, TyperError')
 
     #저장
     @staticmethod

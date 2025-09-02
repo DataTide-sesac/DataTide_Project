@@ -1,0 +1,48 @@
+# Python 환경: 3.10.18
+torch
+torchvision
+torchaudio
+
+# 데이터 처리
+numpy
+pandas
+scikit-learn
+
+# 시각화
+matplotlib
+seaborn
+
+# 실험 편의
+tqdm
+
+# 웹 백엔드
+fastapi
+
+# SQL
+sqlalchemy
+pymysql
+mysql-connector-python
+
+# LLM
+langchain
+openai
+langchain-community
+langchain-huggingface
+
+# 토큰화
+tiktoken
+sentence-transformers
+
+# 벡터 간의 유사도 검색 알고리즘
+rank_bm25
+
+# 벡터 DB 라이브러리
+chromadb
+faiss-cpu
+
+# PDF 의 데이터를 추출하는 라이브러리
+PyPDF2
+tabula-py
+
+# 환경변수 불러오기
+python-dotenv

@@ -171,7 +171,7 @@ if __name__ == '__main__':
     #완성본 아님
     #fileName은 하드코딩 되어있음. 나중에 수정해야됨
     #아직 테스트 용도
-    filePath='C:/project_data/testData/테스트_완성'
+    filePath='테스트_완성'
     GroundWeatherAdd(filePath)
     LocationAdd(filePath)
     SeaWeatherAdd(filePath)

@@ -42,6 +42,7 @@ faiss-cpu
 
 # PDF 의 데이터를 추출하는 라이브러리
 PyPDF2
+tabula-py
 
 # 환경변수 불러오기
 python-dotenv

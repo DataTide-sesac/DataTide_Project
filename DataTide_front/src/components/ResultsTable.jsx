@@ -10,7 +10,55 @@ export default function ResultsTable({
   downloadExcel,
   apiBaseUrl,
   yearRange,
+  selectedCategories, // Add selectedCategories prop
 }) {
+  // Define column configurations for '통계' analysis
+  const statisticColumns = {
+    '생산': {
+      header: '생산량',
+      prevHeader: '전년생산량',
+      changeHeader: '생산증감률(%)',
+      dataKey: 'production',
+      prevDataKey: 'prevProduction',
+      changeDataKey: 'productionChange',
+    },
+    '판매': {
+      header: '판매량',
+      prevHeader: '전년판매량',
+      changeHeader: '판매증감률',
+      dataKey: 'sales',
+      prevDataKey: 'prevSales',
+      changeDataKey: 'salesChange',
+    },
+    '수입': {
+      header: '수입량(톤)',
+      prevHeader: '전년수입량',
+      changeHeader: '수입증감률',
+      dataKey: 'imports',
+      prevDataKey: 'prevImports',
+      changeDataKey: 'importsChange',
+    },
+  };
+
+  // Determine which columns to display based on selectedCategories
+  const getDisplayedColumns = () => {
+    if (selectedAnalysis !== '통계' || !selectedCategories || selectedCategories.length === 0) {
+      return [];
+    }
+
+    const columns = [];
+    selectedCategories.forEach(category => {
+      const colConfig = statisticColumns[category];
+      if (colConfig) {
+        columns.push(colConfig);
+      }
+    });
+    return columns;
+  };
+
+  const displayedColumns = getDisplayedColumns();
+  const colSpanValue = selectedAnalysis === '통계' ? (2 + (displayedColumns.length * 3)) : 7; // 2 for 년도, 품목 + (selected * 3)
+
   return (
     <section className="results-section">
       <div className="results-header">
@@ -33,15 +81,15 @@ export default function ResultsTable({
                 <>
                   <th>년도</th>
                   <th>품목</th>
-                  <th>생산량</th>
-                  <th>판매량</th>
-                  <th>수입량(톤)</th>
-                  <th>전년생산량</th>
-                  <th>전년판매량</th>
-                  <th>전년수입량</th>
-                  <th>생산증감률(%)</th>
-                  <th>판매증감률</th>
-                  <th>수입증감률</th>
+                  {displayedColumns.map(col => (
+                    <th key={col.dataKey}>{col.header}</th>
+                  ))}
+                  {displayedColumns.map(col => (
+                    <th key={col.prevDataKey}>{col.prevHeader}</th>
+                  ))}
+                  {displayedColumns.map(col => (
+                    <th key={col.changeDataKey}>{col.changeHeader}</th>
+                  ))}
                 </>
               ) : (
                 <>
@@ -59,27 +107,30 @@ export default function ResultsTable({
           <tbody>
             {tableData.length === 0 ? (
               <tr>
-                <td colSpan={11}>{loading ? '데이터를 불러오는 중...' : '품목과 동향을 선택하고 검색하세요'}</td>
+                <td colSpan={colSpanValue}>{loading ? '데이터를 불러오는 중...' : '품목과 동향을 선택하고 검색하세요'}</td>
               </tr>
             ) : (
               tableData.map((row, idx) => (
                 <tr key={idx}>
                   <td>{row.period}</td>
                   <td>{selectedItem}</td>
-                  <td>{formatNumber(row.production)}</td>
-                  <td>{formatNumber(row.sales)}</td>
-                  <td>{formatNumber(row.imports)}</td>
                   {selectedAnalysis === '통계' ? (
                     <>
-                      <td>{formatNumber(row.prevProduction)}</td>
-                      <td>{formatNumber(row.prevSales)}</td>
-                      <td>{formatNumber(row.prevImports)}</td>
-                      <td>{formatPercent(row.productionChange)}</td>
-                      <td>{formatPercent(row.salesChange)}</td>
-                      <td>{formatPercent(row.importsChange)}</td>
+                      {displayedColumns.map(col => (
+                        <td key={col.dataKey}>{formatNumber(row[col.dataKey])}</td>
+                      ))}
+                      {displayedColumns.map(col => (
+                        <td key={col.prevDataKey}>{formatNumber(row[col.prevDataKey])}</td>
+                      ))}
+                      {displayedColumns.map(col => (
+                        <td key={col.changeDataKey}>{formatPercent(row[col.changeDataKey])}</td>
+                      ))}
                     </>
                   ) : (
                     <>
+                      <td>{formatNumber(row.production)}</td>
+                      <td>{formatNumber(row.sales)}</td>
+                      <td>{formatNumber(row.imports)}</td>
                       <td>{row.dataType}</td>
                       <td>{row.confidence ? `${row.confidence}%` : '-' }</td>
                     </>

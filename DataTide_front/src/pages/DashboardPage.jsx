@@ -129,7 +129,7 @@ export default function DashboardPage() {
           </h3>
           <div className="chart-description">
             {selectedAnalysis === '통계' ? 
-              '• 올해 데이터: 선 그래프 (카테고리별 색상) • 전년 데이터: 막대 그래프 (카테고리별 색상)' :
+              '• 올해 데이터: 선 그래프  • 전년 데이터: 막대 그래프 ' :
               '• 실제 데이터: 실선 • 예측 데이터: 점선 + 신뢰구간'
             }
           </div>
@@ -149,6 +149,7 @@ export default function DashboardPage() {
         downloadCSV={downloadCSV}
         downloadExcel={downloadExcel}
         apiBaseUrl={API_BASE}
+        selectedCategories={selectedCategories}
       />
     </div>
   );

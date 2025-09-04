@@ -1,86 +1,119 @@
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Plot from 'react-plotly.js';
 
+export default function ChartComponent({ data, analysisType, selectedCategories, period }) {
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
-export default function ChartComponent({ data, analysisType, selectedCategories }) {
-  // Mock data for comparison chart
-  const rawComparisonData = [
-    {
-      x: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
-      y: [22, 16, 25, 40, 30, 47, 32, 37, 42, 34, 40, 44],
-      name: '2025(생산)',
-      type: 'scatter',
-      mode: 'lines+markers',
-      marker: { color: '#1565C0' },
-    },
-    {
-      x: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
-      y: [18, 13, 22, 35, 26, 42, 28, 33, 38, 30, 36, 40],
-      name: '2025(판매)',
-      type: 'scatter',
-      mode: 'lines+markers',
-      marker: { color: '#388E3C' },
-    },
-    {
-      x: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
-      y: [10, 8, 14, 22, 18, 28, 20, 24, 27, 21, 26, 29],
-      name: '2025(수입)',
-      type: 'scatter',
-      mode: 'lines+markers',
-      marker: { color: '#F57C00' }, 
-    },
-    {
-      x: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
-      y: [18, 12, 20, 30, 25, 40, 28, 32, 35, 28, 35, 38],
-      name: '2024(생산)',
-      type: 'bar',
-      marker: { color: '#64B5F6' },
-    },
-    {
-      x: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
-      y: [15, 10, 18, 25, 20, 35, 25, 28, 30, 25, 30, 33],
-      name: '2024(판매)',
-      type: 'bar',
-      marker: { color: '#81C784' },
-    },
-    {
-      x: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
-      y: [12, 8, 15, 20, 18, 30, 22, 25, 28, 22, 28, 30],
-      name: '2024(수입)',
-      type: 'bar',
-      marker: { color: '#FFB74D' },
-    },
-  ];
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
-  const comparisonData = rawComparisonData.filter(trace => {
-    // trace.name에서 괄호 안의 텍스트(카테고리)를 추출합니다. 예: "올해 데이터(생산)" -> "생산"
-    const categoryMatch = trace.name.match(/\(([^)]+)\)/);
+  const rawComparisonData = useMemo(() => {
+    if (analysisType !== '통계' || !period) {
+      return [];
+    }
+    const currentYear = period.endYear;
+    const previousYear = period.endYear - 1;
+    const { startYear, endYear, startMonth, endMonth } = period;
 
-    // 매치되는 카테고리가 있고, 그 카테고리가 selectedCategories 배열에 포함되어 있는지 확인합니다.
-    if (categoryMatch && selectedCategories.includes(categoryMatch[1])) {
-      return true;
+    const allMonths = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+    
+    const fullYData = {
+      current: {
+        '생산': [25, 18, 27, 38, 33, 49, 36, 40, 43, 37, 44, 47],
+        '판매': [21, 16, 25, 33, 28, 43, 32, 35, 38, 31, 39, 41],
+        '수입': [18, 13, 22, 27, 24, 38, 29, 33, 35, 28, 36, 39]
+      },
+      previous: {
+        '생산': [18, 12, 20, 30, 25, 40, 28, 32, 35, 28, 35, 38],
+        '판매': [15, 10, 18, 25, 20, 35, 25, 28, 30, 25, 30, 33],
+        '수입': [12, 8, 15, 20, 18, 30, 22, 25, 28, 22, 28, 30]
+      }
+    };
+
+    let monthLabels = allMonths;
+    let yData = fullYData;
+
+    if (startYear === endYear && startMonth >= 1 && endMonth <= 12 && startMonth <= endMonth) {
+      monthLabels = allMonths.slice(startMonth - 1, endMonth);
+      const sliceData = (data) => data.slice(startMonth - 1, endMonth);
+      yData = {
+        current: {
+          '생산': sliceData(fullYData.current['생산']),
+          '판매': sliceData(fullYData.current['판매']),
+          '수입': sliceData(fullYData.current['수입']),
+        },
+        previous: {
+          '생산': sliceData(fullYData.previous['생산']),
+          '판매': sliceData(fullYData.previous['판매']),
+          '수입': sliceData(fullYData.previous['수입']),
+        }
+      };
     }
 
+    return [
+      {
+        x: monthLabels,
+        y: yData.current['생산'],
+        name: `${currentYear}(생산)`,
+        type: 'scatter',
+        mode: 'lines+markers',
+        marker: { color: '#1565C0' },
+      },
+      {
+        x: monthLabels,
+        y: yData.current['판매'],
+        name: `${currentYear}(판매)`,
+        type: 'scatter',
+        mode: 'lines+markers',
+        marker: { color: '#388E3C' },
+      },
+      {
+        x: monthLabels,
+        y: yData.current['수입'],
+        name: `${currentYear}(수입)`,
+        type: 'scatter',
+        mode: 'lines+markers',
+        marker: { color: '#F57C00' },
+      },
+      {
+        x: monthLabels,
+        y: yData.previous['생산'],
+        name: `${previousYear}(생산)`,
+        type: 'bar',
+        marker: { color: 'rgba(100, 181, 246, 0.65)' },
+      },
+      {
+        x: monthLabels,
+        y: yData.previous['판매'],
+        name: `${previousYear}(판매)`,
+        type: 'bar',
+        marker: { color: 'rgba(129, 199, 132, 0.65)' },
+      },
+      {
+        x: monthLabels,
+        y: yData.previous['수입'],
+        name: `${previousYear}(수입)`,
+        type: 'bar',
+        marker: { color: 'rgba(255, 183, 77, 0.65)' },
+      },
+    ];
+  }, [period, analysisType]);
+
+  const comparisonData = rawComparisonData.filter(trace => {
+    const categoryMatch = trace.name.match(/\(([^)]+)\)/);
+    if (categoryMatch && selectedCategories.includes(categoryMatch[1].trim())) {
+      return true;
+    }
     return false;
   });
 
-  const comparisonLayout = {
-    title: '전년 대비 통계 차트',
+  const baseComparisonLayout = {
     xaxis: { title: '월' },
     yaxis: { title: { text: '' } }, // Y축 제목을 비워서 보이지 않게 처리
     barmode: 'stack',
-    legend: {
-      x: 1,
-      y: 1,
-      xanchor: 'left',
-      yanchor: 'top',
-      bgcolor: 'rgba(255, 255, 255, 0.7)',
-      bordercolor: '#E2E2E2',
-      borderwidth: 1,
-      font: {
-        size: 14
-      }
-    },
     annotations: [
       {
         text: '단위(톤)', // 어노테이션으로 Y축 제목 추가
@@ -88,14 +121,57 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
         showarrow: false,
         xref: 'paper',
         yref: 'paper',
-        x: 0, // 왼쪽 끝
-        y: 1.05, // 상단에서 약간 위
+        x: -0.03,
+        y: 1.05,
         xanchor: 'left',
-        yanchor: 'bottom'
+        yanchor: 'bottom',
+        font: {
+          size: 14
+        }
+      },
+      {
+        text: '<b>통계</b>',
+        align: 'left',
+        showarrow: false,
+        xref: 'paper',
+        yref: 'paper',
+        x: -0.04,
+        y: 1.33,
+        xanchor: 'left',
+        yanchor: 'top',
+        font: {
+          size: 30
+        },
       }
     ],
-    margin: { r: 200 } // Add right margin for legend
   };
+
+  const comparisonLayout = {
+    ...baseComparisonLayout,
+    legend: {
+      bgcolor: 'rgba(255, 255, 255, 0.7)',
+      bordercolor: '#E2E2E2',
+      borderwidth: 1,
+      font: {
+        size: 14
+      },
+      ...(windowWidth < 768
+        ? { // Mobile
+            orientation: 'h',
+            x: 0.5,
+            xanchor: 'center',
+            y: -0.2
+          }
+        : { // Desktop
+            x: 1,
+            y: 1,
+            xanchor: 'left',
+            yanchor: 'top'
+          })
+    },
+    margin: windowWidth < 768 ? { b: 100 } : { r: 170 }
+  };
+
 
   // Mock data for prediction chart
   const pastX = ['2023년 01월', '2023년 02월', '2023년 03월', '2023년 04월', '2023년 05월', '2023년 06월', '2023년 07월', '2023년 08월', '2023년 09월', '2023년 10월', '2023년 11월', '2023년 12월'];
@@ -124,7 +200,8 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
 
   const predictionData = [];
   selectedCategories.forEach(category => {
-    const categoryData = predictionMockData[category];
+    const trimmedCategory = category.trim();
+    const categoryData = predictionMockData[trimmedCategory];
     if (categoryData) {
       const { pastY, predictedY, color, fill } = categoryData;
       const pastXConnected = [...pastX, predictedX[0]];
@@ -177,7 +254,6 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
   });
 
   const predictionLayout = {
-    title: 'AI 예측 차트',
     xaxis: {
       title: '날짜',
       tickvals: allX,
@@ -198,10 +274,27 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
         showarrow: false,
         xref: 'paper',
         yref: 'paper',
-        x: 0, // 왼쪽 끝
-        y: 1.05, // 상단에서 약간 위
+        x: 0,
+        y: 1.05,
         xanchor: 'left',
-        yanchor: 'bottom'
+        yanchor: 'bottom',
+        font: {
+          size: 14
+        }
+      },
+      {
+        text: '<b>예측</b>',
+        align: 'left',
+        showarrow: false,
+        xref: 'paper',
+        yref: 'paper',
+        x: -0.04,
+        y: 1.33,
+        xanchor: 'left',
+        yanchor: 'top',
+        font: {
+          size: 30
+        },
       }
     ]
   };
@@ -219,6 +312,7 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
             <p>• 작년 데이터(판매): 막대 그래프 (#81C784)</p>
             <p>• 작년 데이터(수입): 막대 그래프 (#FFB74D)</p>
             <Plot
+              key={JSON.stringify(rawComparisonData)}
               data={comparisonData}
               layout={comparisonLayout}
               style={{ width: '100%', height: '100%' }}
@@ -231,6 +325,7 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
             <p>• 실제 데이터: 실선</p>
             <p>• 예측 데이터: 점선 + 신뢰구간</p>
             <Plot
+              key={JSON.stringify(predictionMockData)}
               data={predictionData}
               layout={predictionLayout}
               style={{ width: '100%', height: '100%' }}

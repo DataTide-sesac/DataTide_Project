@@ -12,6 +12,7 @@ import '../components/Filter.css';
 import '../components/Table.css';
 import '../components/Chart.css';
 import '../styles/responsive.css';
+import '../components/ChatbotIcon.css';
 
 // 환경변수에서 API 베이스 URL 가져오기
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000'
@@ -48,6 +49,15 @@ export default function DashboardPage() {
   // 데이터 가져오기 함수
   async function fetchData() {
     if (!canSearch) return
+
+    // Date validation for '통계' analysis
+    if (selectedAnalysis === '통계') {
+      const totalMonths = (period.endYear - period.startYear) * 12 + (period.endMonth - period.startMonth) + 1;
+      if (totalMonths > 13) {
+        alert('최대 1년까지 선택 가능합니다.');
+        return;
+      }
+    }
 
     try {
       setLoading(true)
@@ -137,6 +147,7 @@ export default function DashboardPage() {
             data={chartData} 
             analysisType={selectedAnalysis}
             selectedCategories={selectedCategories}
+            period={period}
           />
         </section>
       )}
@@ -151,6 +162,13 @@ export default function DashboardPage() {
         apiBaseUrl={API_BASE}
         selectedCategories={selectedCategories}
       />
+
+      {/* Chatbot Icon */}
+      <div className="chatbot-icon">
+        <svg viewBox="0 0 24 24">
+          <path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V4c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"></path>
+        </svg>
+      </div>
     </div>
   );
 }

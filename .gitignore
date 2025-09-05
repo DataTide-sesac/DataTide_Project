@@ -1,8 +1,25 @@
-# Environments
-.env
-env
+# Gitignore for DataTide_workspaceN
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
 env/
 venv/
-ENV/
-env.bak/
-venv.bak/
+*.egg-info/
+.pytest_cache/
+
+# IDEs
+.vscode/
+.idea/
+
+# OS generated files
+.DS_Store
+.Trashes
+Thumbs.db
+
+# Specific to this project
+*.zip
+gemini.md

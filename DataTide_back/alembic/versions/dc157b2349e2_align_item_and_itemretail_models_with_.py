@@ -1,9 +1,8 @@
-# alembic revision --autogenerate -m "Create all tables from ERD"
-"""Create all tables from ERD
+"""Align Item and ItemRetail models with schema
 
-Revision ID: eec6aac093f9
-Revises: 
-Create Date: 2025-09-02 17:33:26.379590
+Revision ID: dc157b2349e2
+Revises: eec6aac093f9
+Create Date: 2025-09-03 10:30:09.899232
 
 """
 from typing import Sequence, Union
@@ -13,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'eec6aac093f9'
-down_revision: Union[str, Sequence[str], None] = None
+revision: str = 'dc157b2349e2'
+down_revision: Union[str, Sequence[str], None] = 'eec6aac093f9'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -31,9 +30,10 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('ground_pk')
     )
     op.create_table('item',
-    sa.Column('item_pk', sa.Integer(), autoincrement=True, nullable=False),
-    sa.Column('item_name', sa.String(length=20), nullable=True),
-    sa.PrimaryKeyConstraint('item_pk')
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('title', sa.String(length=20), nullable=True),
+    sa.Column('description', sa.String(length=255), nullable=True),
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('location',
     sa.Column('local_pk', sa.Integer(), autoincrement=True, nullable=False),
@@ -42,12 +42,12 @@ def upgrade() -> None:
     )
     op.create_table('item_retail',
     sa.Column('retail_pk', sa.BigInteger(), autoincrement=True, nullable=False),
-    sa.Column('item_pk', sa.Integer(), nullable=True),
+    sa.Column('item_id', sa.Integer(), nullable=True),
     sa.Column('production', sa.Integer(), nullable=True),
     sa.Column('inbound', sa.Integer(), nullable=True),
     sa.Column('sales', sa.Integer(), nullable=True),
     sa.Column('month_date', sa.Date(), nullable=True),
-    sa.ForeignKeyConstraint(['item_pk'], ['item.item_pk'], ),
+    sa.ForeignKeyConstraint(['item_id'], ['item.id'], ),
     sa.PrimaryKeyConstraint('retail_pk')
     )
     op.create_table('sea_weather',

@@ -35,6 +35,8 @@
     - DataTide_back
   - **실행 방법**
     - cd DataTide_back
+    - *(처음 실행할 시)* pip install -r requirements.txt
+    - *(DB 스키마 최신으로 적용)* alembic upgrade head
     - python -m uvicorn main:app --reload
 
 ---
@@ -94,6 +96,9 @@
 ---
 
 ## 🗂️ ERD (Entity Relationship Diagram)
+> [!WARNING]
+> 현재 DB 모델이 대규모로 리팩토링되어 아래 ERD는 최신이 아닙니다. 빠른 시일 내에 업데이트가 필요합니다.
+
 ![00_ERD_4](https://github.com/user-attachments/assets/013de0ff-6f5e-4b7c-8ea2-9e5d69d1fba7)
 
 
@@ -104,7 +109,7 @@
 - **파이썬 버전** : 3.10.18
   - **데이터 관련 라이브러리** : sqlalchemy pymysql numpy pandas matplotlib seaborn tqdm
   - **AI 관련 라이브러리** : torch torchvision torchaudio scikit-learn
-  - **웹 관련 라이브러리** : fastapi
+  - **웹 관련 라이브러리** : fastapi, alembic
 
 - **리액트 버전** : 19.1.1
   - **axios** : 1.11.0

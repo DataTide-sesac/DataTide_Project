@@ -1,3 +1,4 @@
+# database.py
 import sqlalchemy
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Connection
@@ -11,7 +12,7 @@ class Database:
             self.url = url 
         
         self.engine = create_engine(self.url)
-        self.connection = None 
+        self.connection = None  # type: ignore
 
     #with 구문을 썼을때 장점  with구문내애서 연결했다가 with구문 끝나면 자원이 해제 
     #예를들자면 db를 연결했다가 사용이 끝나고 해제를 안하면 에러는 안나지만 나중에 따로 해제가 될수도 있도있지만 
@@ -27,7 +28,7 @@ class Database:
             #self.connection: Connection self.connection객체의 타입이 Connection이라는 의미임 
             print("DB연결성공")
             return self #자기자신을 반환한다 
-        except sqlalchemy.exc.SQLAlchemyError as e:
+        except sqlalchemy.exc.SQLAlchemyError as e: # type: ignore
             print("연결실패")
             raise #예외를 여기서 처리하지 않고 with 구문한테 던진다. 
 

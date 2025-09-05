@@ -1,6 +1,7 @@
+# models/item_retail.py
 from sqlalchemy import Column, BigInteger, Integer, Date, ForeignKey
 from sqlalchemy.orm import relationship
-from core.database import Base
+from DataTide_back.core.database import Base
 
 class ItemRetail(Base):
     __tablename__ = "item_retail"

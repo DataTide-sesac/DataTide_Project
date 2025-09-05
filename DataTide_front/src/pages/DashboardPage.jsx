@@ -3,7 +3,8 @@ import ChartComponent from '../components/ChartComponent';
 import Header from '../components/Header';
 import SearchBar from '../components/SearchBar';
 import ResultsTable from '../components/ResultsTable';
-import { generateMockData, generateMockChartData, convertToCSV, downloadFile } from '../utils';
+import ChatbotWindow from '../components/ChatbotWindow'; // Import ChatbotWindow
+import { generateMockData, convertToCSV, downloadFile } from '../utils';
 import { fetchFisheriesData } from '../api';
 import { FISH_ITEMS, ANALYSIS_OPTIONS, DATA_CATEGORIES } from '../constants';
 import './DashboardPage.css';
@@ -13,9 +14,104 @@ import '../components/Table.css';
 import '../components/Chart.css';
 import '../styles/responsive.css';
 import '../components/ChatbotIcon.css';
+import '../components/ChatbotWindow.css'; // Import ChatbotWindow CSS
 
 // 환경변수에서 API 베이스 URL 가져오기
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000'
+
+// 이 함수를 DashboardPage 내로 이동 또는 utils.js에 정의할 수 있습니다.
+const generateDynamicChartData = (period, categories) => {
+  const { startYear, endYear, startMonth, endMonth } = period;
+  const allMonths = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+  
+  const fullYData = {
+    current: {
+      '생산': [25, 18, 27, 38, 33, 49, 36, 40, 43, 37, 44, 47],
+      '판매': [21, 16, 25, 33, 28, 43, 32, 35, 38, 31, 39, 41],
+      '수입': [18, 13, 22, 27, 24, 38, 29, 33, 35, 28, 36, 39]
+    },
+    previous: {
+      '생산': [18, 12, 20, 30, 25, 40, 28, 32, 35, 28, 35, 38],
+      '판매': [15, 10, 18, 25, 20, 35, 25, 28, 30, 25, 30, 33],
+      '수입': [12, 8, 15, 20, 18, 30, 22, 25, 28, 22, 28, 30]
+    }
+  };
+
+  let monthLabels = allMonths;
+  let yData = fullYData;
+
+  // 사용자가 선택한 기간에 맞춰 데이터 슬라이싱
+  if (startYear === endYear && startMonth >= 1 && endMonth <= 12 && startMonth <= endMonth) {
+    monthLabels = allMonths.slice(startMonth - 1, endMonth);
+    const sliceData = (data) => data.slice(startMonth - 1, endMonth);
+    yData = {
+      current: {
+        '생산': sliceData(fullYData.current['생산']),
+        '판매': sliceData(fullYData.current['판매']),
+        '수입': sliceData(fullYData.current['수입']),
+      },
+      previous: {
+        '생산': sliceData(fullYData.previous['생산']),
+        '판매': sliceData(fullYData.previous['판매']),
+        '수입': sliceData(fullYData.previous['수입']),
+      }
+    };
+  }
+
+  const traces = [
+    {
+      x: monthLabels,
+      y: yData.current['생산'],
+      name: `${endYear}(생산)`,
+      type: 'scatter',
+      mode: 'lines+markers',
+      marker: { color: '#1565C0' },
+    },
+    {
+      x: monthLabels,
+      y: yData.current['판매'],
+      name: `${endYear}(판매)`,
+      type: 'scatter',
+      mode: 'lines+markers',
+      marker: { color: '#388E3C' },
+    },
+    {
+      x: monthLabels,
+      y: yData.current['수입'],
+      name: `${endYear}(수입)`,
+      type: 'scatter',
+      mode: 'lines+markers',
+      marker: { color: '#F57C00' },
+    },
+    {
+      x: monthLabels,
+      y: yData.previous['생산'],
+      name: `${endYear - 1}(생산)`,
+      type: 'bar',
+      marker: { color: 'rgba(100, 181, 246, 0.65)' },
+    },
+    {
+      x: monthLabels,
+      y: yData.previous['판매'],
+      name: `${endYear - 1}(판매)`,
+      type: 'bar',
+      marker: { color: 'rgba(129, 199, 132, 0.65)' },
+    },
+    {
+      x: monthLabels,
+      y: yData.previous['수입'],
+      name: `${endYear - 1}(수입)`,
+      type: 'bar',
+      marker: { color: 'rgba(255, 183, 77, 0.65)' },
+    },
+  ];
+
+  // 선택된 카테고리에 따라 필터링
+  return traces.filter(trace => {
+    const categoryMatch = trace.name.match(/\(([^)]+)\)/);
+    return categoryMatch && categories.includes(categoryMatch[1].trim());
+  });
+};
 
 export default function DashboardPage() {
   // 날짜 관련 변수는 여기에서 선언!
@@ -40,6 +136,7 @@ export default function DashboardPage() {
   const [chartData, setChartData] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [isChatbotOpen, setChatbotOpen] = useState(false); // 챗봇 상태 추가
   
   // 검색 가능 여부 확인
   const canSearch = useMemo(() => {
@@ -54,7 +151,7 @@ export default function DashboardPage() {
     if (selectedAnalysis === '통계') {
       const totalMonths = (period.endYear - period.startYear) * 12 + (period.endMonth - period.startMonth) + 1;
       if (totalMonths > 13) {
-        alert('최대 1년까지 선택 가능합니다.');
+        alert('최대 1년까지 조회 가능합니다.');
         return;
       }
     }
@@ -62,6 +159,7 @@ export default function DashboardPage() {
     try {
       setLoading(true)
       setError('')
+      setChartData(null); // 검색 시작 시 차트 초기화
 
       // 실제 API를 사용하려면 아래 주석을 해제하세요.
       // const result = await fetchFisheriesData({ selectedItem, selectedAnalysis, selectedCategories, period });
@@ -69,11 +167,17 @@ export default function DashboardPage() {
       // setChartData(result.chartData);
 
       // 임시 모킹 데이터 사용
-      const mockData = generateMockData()
-      const mockChartData = generateMockChartData()
+      const mockData = generateMockData();
+      setTableData(mockData);
 
-      setTableData(mockData)
-      setChartData(mockChartData)
+      if (selectedAnalysis === '통계') {
+        const dynamicChartData = generateDynamicChartData(period, selectedCategories);
+        setChartData(dynamicChartData);
+      } else {
+        // 예측 분석용 차트 데이터 생성 로직 (필요 시)
+        // const predictionChartData = generatePredictionChartData(period, selectedCategories);
+        // setChartData(predictionChartData);
+      }
 
     } catch (err) {
       setError(err.message || '데이터를 가져오는 중 오류가 발생했습니다')
@@ -105,6 +209,10 @@ export default function DashboardPage() {
   function downloadExcel() {
     window.open(`${API_BASE}/api/download/excel?type=${selectedAnalysis}&item=${selectedItem}`, '_blank')
   }
+
+  const toggleChatbot = () => {
+    setChatbotOpen(!isChatbotOpen);
+  };
 
   return (
     <div className="app-container">
@@ -147,7 +255,6 @@ export default function DashboardPage() {
             data={chartData} 
             analysisType={selectedAnalysis}
             selectedCategories={selectedCategories}
-            period={period}
           />
         </section>
       )}
@@ -164,11 +271,14 @@ export default function DashboardPage() {
       />
 
       {/* Chatbot Icon */}
-      <div className="chatbot-icon">
+      <div className="chatbot-icon" onClick={toggleChatbot}>
         <svg viewBox="0 0 24 24">
           <path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V4c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"></path>
         </svg>
       </div>
+
+      {/* Chatbot Window */}
+      {isChatbotOpen && <ChatbotWindow onClose={toggleChatbot} />}
     </div>
   );
 }

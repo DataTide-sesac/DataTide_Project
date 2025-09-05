@@ -32,7 +32,8 @@ export default function SearchBar({
               <button
                 key={item.id}
                 className={`option-btn ${selectedItem === item.id ? 'selected' : ''}`}
-                onClick={() => setSelectedItem(item.id)} 
+                onClick={() => setSelectedItem(item.id)}
+                disabled={item.disabled}
               >
                 {item.name}
               </button>

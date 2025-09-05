@@ -106,8 +106,7 @@ export function convertToCSV(data) {
     ...data.map(row => [
       row.period, row.production, row.sales, row.imports
     ].join(','))
-  ].join('
-')
+  ].join('')
   
   return '\uFEFF' + csvContent
 }

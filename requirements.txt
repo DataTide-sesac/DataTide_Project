@@ -11,6 +11,7 @@ scikit-learn
 # 시각화
 matplotlib
 seaborn
+IPython
 
 # 실험 편의
 tqdm
@@ -18,6 +19,7 @@ tqdm
 # 웹 백엔드
 fastapi
 alembic
+requests
 
 # SQL
 sqlalchemy
@@ -29,10 +31,12 @@ langchain
 openai
 langchain-community
 langchain-huggingface
+langgraph
 
 # 토큰화
 tiktoken
 sentence-transformers
+numexpr
 
 # 벡터 간의 유사도 검색 알고리즘
 rank_bm25

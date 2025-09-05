@@ -46,21 +46,8 @@ print(item_retail.head())
 # ======================
 # 3. 테이블 머지 (JOIN)
 # ======================
-# sea_weather wide-format 변환
-sea_weather = sea_weather.merge(location, on="local_pk", how="left")
-sea_weather_wide = sea_weather.pivot(
-    index="month_date", 
-    columns="local_pk", 
-    values=["temperature", "wind", "salinity", "wave_height", "wave_period", "wave_speed", "rain", "snow"]
-)
-
 # 컬럼명 정리
-sea_weather_wide.columns = [f"{var}_loc{loc}" for var, loc in sea_weather_wide.columns]
-sea_weather_wide = sea_weather_wide.reset_index()
-print(sea_weather_wide)
-
-df = item_retail.merge(sea_weather_wide, on="month_date", how="left")
-df = df.merge(ground_weather, on="month_date", how="left")
+df = item_retail.merge(ground_weather, on="month_date", how="left")
 df = df.merge(item, on="item_pk", how="left")
 
 # 날짜 정렬
@@ -71,7 +58,8 @@ df = pd.get_dummies(df, columns=['item_name'])
 
 print("Merged DataFrame:")
 print(df.head())
-df.to_csv("item_retail_merged.csv", index=False, encoding="utf-8-sig")
+df.to_csv("compare_sales.csv", index=False, encoding="utf-8-sig")
+
 
 # ======================
 # 4. 시계열 윈도우 데이터셋 생성
@@ -152,9 +140,12 @@ class TransformerEncoderModel(nn.Module):
 # ======================
 # 6. 학습 루프
 # ======================
-def train_and_evaluate(model, train_loader, val_loader, epochs=40, lr=1e-3):
+def train_and_evaluate(model, train_loader, val_loader, epochs=40, lr=1e-3, model_name="model.pth"):
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
+
+    best_rmse = float("inf")  # 아주 큰 값으로 초기화
+    best_state = None
 
     for epoch in range(epochs):
         model.train()
@@ -185,35 +176,26 @@ def train_and_evaluate(model, train_loader, val_loader, epochs=40, lr=1e-3):
         print(f"Epoch {epoch+1}/{epochs} | Train Loss: {train_loss/len(train_loader):.4f} | "
               f"Val Loss: {val_loss/len(val_loader):.4f} | RMSE: {rmse:.2f} | MAE: {mae:.2f} | R²: {r2:.2f}")
 
+        # ✅ 가장 좋은 모델 저장
+        if rmse < best_rmse:
+            best_rmse = rmse
+            best_state = model.state_dict()
+            torch.save(best_state, f"{model_name}_sales.pth")
+            print(f"  👉 Best model saved (epoch {epoch+1}, RMSE={rmse:.2f})")
+
+
     # 최종 성능 리턴
-    return rmse, mae, r2
+    return best_rmse, mae, r2
 
 # ======================
 # 7. 실행
 # ======================
 
-# # 사용할 컬럼 정의 (예시)
-target_cols = ["production", "sales"]
-feature_cols = [x for x in df.columns if x not in ["month_date", "production", "sales", "ground_pk", "item_pk", "retail_pk", "item_pk", "local_pk", "sea_pk"]]
+# 사용할 컬럼 정의 (예시)
+target_cols = ["sales"]
+feature_cols = [x for x in df.columns if x not in ["month_date", "production", "sales", "ground_pk", "item_pk", "retail_pk", "inbound"]]
 
-from sklearn.decomposition import PCA
-X = df[feature_cols].values  # sklearn은 numpy 입력
-
-# 표준화 (TimeSeriesDataset에서도 StandardScaler 했지만 PCA용 별도)
-from sklearn.preprocessing import StandardScaler
-scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)
-print("X_scaled의 shape:", X_scaled.shape)
-
-# PCA 적용
-pca = PCA(n_components=21)  # 원하는 주성분 개수
-X_pca = pca.fit_transform(X_scaled)
-
-# shape 확인
-print(X_pca.shape)  # (num_samples, 20)
-
-# # Dataset 준비
-# dataset = TimeSeriesDataset(df, feature_cols, target_cols, window_size=6)
+# Dataset 준비
 dataset = TimeSeriesDataset(df, feature_cols, target_cols, window_size=6)
 
 # Train / Validation Split
@@ -239,7 +221,7 @@ results = {}
 
 for name, model in models.items():
     print(f"\n===== Training {name} =====")
-    rmse, mae, r2 = train_and_evaluate(model, train_loader, val_loader, epochs=40, lr=1e-3)
+    rmse, mae, r2 = train_and_evaluate(model, train_loader, val_loader, epochs=40, lr=1e-3, model_name=name)
     results[name] = {"RMSE": rmse, "MAE": mae, "R2": r2}
 
 print("\n===== Model Comparison =====")
@@ -251,7 +233,7 @@ correlation_matrix = df[feature_cols + target_cols].corr()     # 데이터 프�
 print(correlation_matrix[:10])
 
 # 2. 히트맵 그리기
-annot = False    # 차트에 줄 속성. 히트맵의 셀에 값을 표시한다. False면 표시 안 함.
+annot = True    # 차트에 줄 속성. 히트맵의 셀에 값을 표시한다. False면 표시 안 함.
 cmap = 'coolwarm'   # 히트맵에서 가장 많이 사용하는 색상. 양의관계는 빨간색, 음의관계는 파란색
 fmt = '.2f'     # 표시될 숫자의 소수점 자리수 지정
 sns.heatmap(correlation_matrix,

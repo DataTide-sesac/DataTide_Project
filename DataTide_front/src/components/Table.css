@@ -1,0 +1,82 @@
+/* 테이블 */
+.table-container {
+  overflow-x: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  min-width: 800px;
+}
+.data-table th,
+.data-table td {
+  padding: 12px 8px;
+  text-align: center;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 14px;
+}
+.data-table th {
+  background: #fafafa;
+  font-weight: 600;
+  color: var(--text-color);
+  border-bottom: 2px solid var(--border-color);
+}
+.data-table tbody tr:hover {
+  background: #f5f5f5;
+}
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.no-data {
+  text-align: center;
+  color: var(--text-secondary);
+  font-style: italic;
+  padding: 40px !important;
+}
+
+/* 결과 섹션 및 다운로드 버튼 */
+.results-section {
+  background: white;
+  margin: 0 24px 24px;
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+.results-header h3 {
+  margin: 0; /* Handled by parent flexbox */
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-color);
+}
+.download-buttons {
+  display: flex;
+  gap: 8px;
+}
+.results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.results-header .download-btn {
+  padding: 8px 16px;
+  border: 1px solid var(--primary-color);
+  border-radius: 6px;
+  background: white;
+  color: var(--primary-color);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none; /* 클릭/포커스 시 검은색 테두리 제거 */
+}
+.results-header .download-btn:hover {
+  background: var(--primary-color);
+  color: white;
+}
+
+/* 클릭/포커스 시 테두리를 더 진한 색으로 변경 */
+.results-header .download-btn:focus {
+  border-color: #0050b3; /* hover 시 배경색보다 진한 색 */
+}

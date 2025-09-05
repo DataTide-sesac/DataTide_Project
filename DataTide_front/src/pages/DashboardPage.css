@@ -1,0 +1,29 @@
+/* Reset and basic styles */
+body {
+  margin: 0;
+  font-family: sans-serif;
+}
+
+#root {
+  height: 100vh;
+  /* Remove default centering and padding */
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+
+
+.app-body {
+  display: flex;
+  justify-content: center; /* Add this */
+  flex: 1;
+  overflow: hidden; /* Prevent body scroll */
+}
+

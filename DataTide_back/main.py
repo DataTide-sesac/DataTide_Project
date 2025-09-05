@@ -1,15 +1,17 @@
+# main.py
 from fastapi import FastAPI
-from routers import sample, items, rag # rag 라우터 import
+from DataTide_back.routers import ground_weather, items, sample
+from DataTide_back.back.routers import location, sea_weather, item_retail # Added
 
 app = FastAPI()
 
-# /api/sample 경로로 라우터 포함
-app.include_router(sample.router, prefix="/api/sample", tags=["sample"])
-# /api/items 경로로 라우터 포함
-app.include_router(items.router, prefix="/api/items", tags=["items"])
-# /api/rag 경로로 라우터 포함
-app.include_router(rag.router, prefix="/api/rag", tags=["rag"])
+app.include_router(ground_weather.router)
+app.include_router(items.router)
+app.include_router(sample.router, prefix="/sample")
+app.include_router(location.router) # Added
+app.include_router(sea_weather.router) # Added
+app.include_router(item_retail.router) # Added
 
-@app.get("/")
-def read_root():
-    return {"message": "FastAPI server is running"}
+@app.get("/", tags=["Root"])
+async def read_root():
+    return {"message": "DataTide Backend API에 오신걸 환영합니다!"}

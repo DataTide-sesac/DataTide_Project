@@ -1,6 +1,8 @@
+# core/database.py
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
-from .config import DB_URL  # 데이터베이스 URL을 별도 config에서 관리
+from DataTide_back.core.config import DB_URL
+  # 데이터베이스 URL을 별도 config에서 관리
 
 engine = create_engine(DB_URL, pool_pre_ping=True)  # 커넥션 풀 관리 및 유휴 커넥션 검사
 

@@ -1,3 +1,4 @@
+# alembic revision --autogenerate -m "Create all tables from ERD"
 """Create all tables from ERD
 
 Revision ID: eec6aac093f9

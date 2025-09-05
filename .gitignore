@@ -21,3 +21,6 @@ test.db
 # IDE / Editor specific
 .vscode/
 .idea/
+
+# Test data
+test/data/

@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from schemas.rag import RagQueryRequest, RagQueryResponse
-from services import rag_service
+from DataTide_back.schemas.rag import RagQueryRequest, RagQueryResponse
+from DataTide_back.services import rag_service
 
 router = APIRouter()
 

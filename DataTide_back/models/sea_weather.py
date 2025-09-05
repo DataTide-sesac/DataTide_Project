@@ -1,7 +1,7 @@
 
 from sqlalchemy import Column, BigInteger, Integer, Date, Float, ForeignKey
 from sqlalchemy.orm import relationship
-from core.database import Base
+from DataTide_back.core.database import Base
 
 class SeaWeather(Base):
     __tablename__ = "sea_weather"

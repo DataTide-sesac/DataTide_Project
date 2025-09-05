@@ -1,16 +1,21 @@
+# alembic/env.py
+import sys
+# 실행 시점에 프로젝트 루트를 자동으로 경로에 포함
 import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 from logging.config import fileConfig
 
 from alembic import context
 
 # Import your app's Base and engine
-from core.database import Base, engine
-# Import all models
-from models.item import Item
-from models.location import Location
-from models.ground_weather import GroundWeather
-from models.sea_weather import SeaWeather
-from models.item_retail import ItemRetail
+     #Import 절대경로로 수정
+from DataTide_back.core.database import Base, engine
+from DataTide_back.models.item import Item
+from DataTide_back.models.item_retail import ItemRetail
+from DataTide_back.models.location import Location
+from DataTide_back.models.ground_weather import GroundWeather
+from DataTide_back.models.sea_weather import SeaWeather
+
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

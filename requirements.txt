@@ -23,6 +23,9 @@ sqlalchemy
 pymysql
 mysql-connector-python
 
+# SQL 보안문제 발생 시
+cryptography
+
 # LLM
 langchain
 openai

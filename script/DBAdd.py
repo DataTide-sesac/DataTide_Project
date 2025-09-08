@@ -247,8 +247,10 @@ if __name__ == '__main__':
     DropTables()
     CreateTables()
 
+
     GroundWeatherAdd(f'{filePath}/GroundWeather')
     LocationAdd(f'{filePath}/SeaWeather')
     SeaWeatherAdd(f'{filePath}/SeaWeather')
     ItemAdd(f'{filePath}/FishData')
     RetailAdd(f'{filePath}/FishData')
+

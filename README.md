@@ -94,7 +94,7 @@
 ---
 
 ## 🗂️ ERD (Entity Relationship Diagram)
-![00_ERD_3](https://github.com/user-attachments/assets/5113077e-865b-49d9-8f67-3069ea2ea4f8)
+![00_ERD_4](https://github.com/user-attachments/assets/013de0ff-6f5e-4b7c-8ea2-9e5d69d1fba7)
 
 
 ---

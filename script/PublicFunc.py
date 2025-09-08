@@ -243,7 +243,7 @@ class PublicFunc():
 
     #저장
     @staticmethod
-    def SaveCSV(df,fileName,encoding='utf-8-sig'):
+    def SaveCSV(df,fileName='',encoding='utf-8-sig'):
         try:
             df.to_csv(fileName, index=False, encoding=encoding)
             print('save 완료')

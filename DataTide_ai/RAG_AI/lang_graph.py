@@ -12,7 +12,7 @@ import langchain
 
 # 시간 라이브러리
 from datetime import datetime, timedelta
-import os
+import os, pickle, time
 import numpy as np
 import json, requests
 from tempfile import tempdir
@@ -208,7 +208,7 @@ print(tools[0].name, tools[0].description)
 # tools(agent가 사용가능한 도구 목록),
 # prompt(agent가 판단할 때 어떤 기준이 있다면? 이걸 프롬프트가 담고 있다.)
 prompt = ChatPromptTemplate.from_messages([
-    ('system', '''당신은 품목당 날짜에 따른 생산, 수입, 판매량 데이터베이스 전문가입니다.
+    ('system', '''당신은 품목당(갈치, 오징어, 고등어) 날짜에 따른 생산, 수입, 판매량 데이터베이스 전문가입니다.
     만약 해당 내용에 대한 질문이 아니라면 저희는 품목당 날짜에 따른 생산, 수입, 판매량만 알려주는 챗봇이라 모른다고 답해줘.
     대답은 친절하게 해주세요.
     다음 도구들을 활용할 수 있어:
@@ -232,7 +232,7 @@ agent_executor = AgentExecutor(agent=agent, tools=tools)
 qa_chain = RetrievalQA.from_chain_type(
     llm=model,
     chain_type="stuff",
-    retriever=vectorstore.as_retriever(search_kwargs={"k": 10}),
+    retriever=vectorstore.as_retriever(search_kwargs={"k": 30}),
     return_source_documents=True,
 )
 
@@ -252,13 +252,104 @@ class AgentState(TypedDict):
 # ==========================================
 
 class SmartCache:
-    def __init__(self, cache_dir="cache", expire_hours=24):
+    def __init__(self, cache_dir="cache", expire_hours=12):
         self.cache_dir = cache_dir
         self.expire_hours = expire_hours
         self.memory_cache = {}
+        self.access_count = 0
+        self.last_cleanup = datetime.now()
+        self.running = False
+        self.cleanup_thread = None
         
         # 🔥 의미 기반 캐싱을 위한 임베딩 모델
         self.embeddings = embeddings
+
+        if not os.path.exists(cache_dir):
+            os.makedirs(cache_dir)
+
+        print(f"🗄️ 스마트 캐시 초기화: {cache_dir}, 만료: {expire_hours}시간")
+        
+        # 🔥 백그라운드 정리 스레드 시작
+        self._start_background_cleanup()
+
+    def _start_background_cleanup(self):
+        """백그라운드 캐시 정리 스레드 시작"""
+        import threading
+        
+        self.running = True
+        self.cleanup_thread = threading.Thread(target=self._background_worker, daemon=True)
+        self.cleanup_thread.start()
+        print("🧵 백그라운드 캐시 정리 스레드 시작")
+    
+    def _background_worker(self):
+        """백그라운드에서 주기적으로 캐시 정리"""
+        while self.running:
+            try:
+                # 30분마다 정리
+                time.sleep(1800)
+                
+                if not self.running:
+                    break
+                
+                start_time = time.time()
+                cleaned = self._cleanup_expired_caches()
+                elapsed = time.time() - start_time
+                
+                if cleaned > 0:
+                    print(f"🧹 백그라운드 정리: {cleaned}개 삭제 ({elapsed:.2f}초)")
+                
+            except Exception as e:
+                print(f"❌ 백그라운드 정리 오류: {e}")
+                time.sleep(300)  # 오류시 5분 대기
+    
+    def _cleanup_expired_caches(self):
+        """만료된 캐시들을 실제로 정리"""
+        cleaned_count = 0
+        current_time = datetime.now()
+        expire_threshold = timedelta(hours=self.expire_hours)
+        
+        # 메모리 캐시 정리
+        expired_keys = []
+        for key, cached_data in self.memory_cache.items():
+            if current_time - cached_data['timestamp'] > expire_threshold:
+                expired_keys.append(key)
+        
+        for key in expired_keys:
+            del self.memory_cache[key]
+            cleaned_count += 1
+        
+        # 디스크 캐시 정리  
+        if os.path.exists(self.cache_dir):
+            for filename in os.listdir(self.cache_dir):
+                if filename.endswith('.pkl'):
+                    file_path = os.path.join(self.cache_dir, filename)
+                    try:
+                        with open(file_path, 'rb') as f:
+                            cached_data = pickle.load(f)
+                        
+                        if current_time - cached_data['timestamp'] > expire_threshold:
+                            os.remove(file_path)
+                            cleaned_count += 1
+                    except:
+                        # 손상된 파일도 삭제
+                        try:
+                            os.remove(file_path)
+                            cleaned_count += 1
+                        except:
+                            pass
+        
+        return cleaned_count
+    
+    def stop_cleanup(self):
+        """캐시 정리 스레드 중지"""
+        self.running = False
+        if self.cleanup_thread and self.cleanup_thread.is_alive():
+            self.cleanup_thread.join(timeout=5)
+        print("🛑 백그라운드 캐시 정리 중지")
+    
+    def __del__(self):
+        """캐시 객체 소멸됨"""
+        self.stop_cleanup()
         
     def _normalize_query(self, query):
         """질문을 정규화해서 유사한 질문들을 같게 만듦"""        
@@ -348,19 +439,41 @@ class SmartCache:
     
     def get(self, query, context_type="rag"):
         """개선된 캐시 조회 - 유사한 질문도 찾음"""
+        self.access_count += 1
         
         # 1. 기존 방식으로 정확한 캐시 확인
         cache_key = self._get_cache_key(query, context_type)
         if cache_key in self.memory_cache:
             cached_data = self.memory_cache[cache_key]
             if not self._is_expired(cached_data['timestamp']):
+                # 🔥 100번 접근마다 지연 정리 실행
+                if self.access_count % 100 == 0:
+                    import threading
+                    threading.Thread(target=self._light_cleanup, daemon=True).start()
+
                 print(f"💾 정확한 캐시 히트: {query[:30]}...")
-                return cached_data['result']
+                return cached_data
         
         # 2. 유사한 질문의 캐시 확인
         similar_cache = self._find_similar_cache(query)
         if similar_cache and not self._is_expired(similar_cache['timestamp']):
-            return similar_cache['result']
+            return similar_cache
+        
+        # 2. 디스크 캐시 확인 (기존 코드와 동일)
+        cache_file = os.path.join(self.cache_dir, f"{cache_key}.pkl")
+        if os.path.exists(cache_file):
+            try:
+                with open(cache_file, 'rb') as f:
+                    cached_data = pickle.load(f)
+                
+                if not self._is_expired(cached_data['timestamp']):
+                    self.memory_cache[cache_key] = cached_data
+                    print(f"💽 디스크 캐시 히트: {query[:30]}...")
+                    return cached_data
+                else:
+                    os.remove(cache_file)
+            except:
+                pass
         
         return None
     
@@ -377,6 +490,30 @@ class SmartCache:
         
         self.memory_cache[cache_key] = cached_data
         print(f"💾 스마트 캐시 저장: {query[:30]}...")
+    
+    def _light_cleanup(self):
+        """지연 정리: 일부 캐시만 확인해서 정리"""
+        current_time = datetime.now()
+        
+        # 최근 5분 내에 정리했으면 스킵
+        if current_time - self.last_cleanup < timedelta(minutes=5):
+            return
+        
+        cleaned_count = 0
+        checked_count = 0
+        
+        # 메모리 캐시 일부만 확인 (최대 50개)
+        cache_items = list(self.memory_cache.items())
+        for key, cached_data in cache_items[:50]:
+            checked_count += 1
+            if self._is_expired(cached_data['timestamp']):
+                del self.memory_cache[key]
+                cleaned_count += 1
+        
+        if cleaned_count > 0:
+            print(f"🐌 지연 정리: {checked_count}개 확인, {cleaned_count}개 삭제")
+        
+        self.last_cleanup = current_time
 
 # 전역 캐시 인스턴스
 cache = SmartCache(cache_dir="lang_cache", expire_hours=12)
@@ -387,8 +524,8 @@ def classify_query_node(state: AgentState):
     query = state["query"]
     
     # 계산/분석이 필요한 키워드들
-    analysis_keywords = ['최대', '최소', '평균', '합계', '분석', '통계', '계산', '비교', '총합']
-    search_keywords = ['찾아', '검색', '언제', '어떤', '몇', '얼마', '가장']
+    analysis_keywords = ['최대', '최소', '평균', '합계', '분석', '통계', '계산', '비교', '총합', '가장']
+    search_keywords = ['찾아', '검색', '언제', '어떤', '몇', '얼마']
     
     # 키워드에 따라 Agent 필요 여부 결정
     needs_agent = any(keyword in query for keyword in analysis_keywords + search_keywords)
@@ -429,7 +566,7 @@ def rag_node(state: AgentState):
         
         # RAG 프롬프트 구성
         rag_prompt = f"""
-            당신은 품목당 날짜에 따른 생산, 수입, 판매량 데이터베이스 전문가입니다.
+            당신은 품목당(갈치, 오징어, 고등어) 날짜에 따른 생산, 수입, 판매량 데이터베이스 전문가입니다.
             만약 해당 내용에 대한 질문이 아니라면 저희는 품목당 날짜에 따른 생산, 수입, 판매량만 알려주는 챗봇이라 모른다고 답해줘.
             대답은 친절하게 해주세요.
             필요하다면 다음의 대화 기록을 참고하여 질문에 답변하세요.
@@ -448,6 +585,8 @@ def rag_node(state: AgentState):
         state["source_documents"] = response.get('source_documents', [])
         
         print(f"✅ RAG 검색 완료: {len(state['source_documents'])}개 문서 참조")
+
+        cache.set(query=query, result=response['result'], context_type="rag")
         
     except Exception as e:
         print(f"❌ RAG 오류: {e}")
@@ -461,12 +600,11 @@ def agent_node(state: AgentState):
     print("🤖 Agent 분석 시작...")
 
     # 🔥 복합 캐시 키 생성 (새로 추가된 부분)
-    cache_key = f"{state['query']}"
-    cached_result = cache.get(cache_key, "agent")
+    cached_result = cache.get(query, "agent")
 
     if cached_result:
         print("💾 Agent 캐시 히트!")
-        state["agent_result"] = cached_result
+        state["agent_result"] = cached_result["result"]
         return state  # 🚀 Agent 실행 없이 바로 리턴!
     
     try:
@@ -482,7 +620,7 @@ def agent_node(state: AgentState):
 
         검색 결과: {texts}
         
-        원래 사용자 질문: {state["query"]}
+        원래 사용자 질문: {query}
 
         대화 기록:
         {history_str}
@@ -496,6 +634,8 @@ def agent_node(state: AgentState):
         state["agent_result"] = response['output']
         
         print("✅ Agent 분석 완료")
+
+        cache.set(query=query, result=response['output'], context_type="agent")
         
     except Exception as e:
         print(f"❌ Agent 오류: {e}")
@@ -557,6 +697,19 @@ workflow_add_edge_2()
 
 # 워크플로우 컴파일
 app = workflow.compile()
+def lang_graph_png():
+    from IPython.display import Image, display
+
+    try:
+        #우리가 만든 app의 graph를 이미지로 그려서 display()로 감싸 출력하는 함수
+        with open("LangGraph.png", "wb") as f:
+            f.write(app.get_graph().draw_mermaid_png())
+        # display(Image("LangGraph.png"))
+
+    except Exception:
+        print("랭그래프 png 실패")
+
+# lang_graph_png()
 
 print("🚀 LangGraph 워크플로우 준비 완료!")
 
@@ -601,10 +754,10 @@ while True:
         print(f"💬 답변:\n{final_answer}")
         print("="*50)
 
-        if cache.get(query, "rag"):
-            print(f"💾 캐시 활용으로 토큰 절약!")  # 🔥 새로 추가
-        else:
-            print(f"캐시 추가!!!")
+        # if cache.get(query, "rag"):
+        #     print(f"💾 캐시 활용으로 토큰 절약!")  # 🔥 새로 추가
+        # else:
+        #     print(f"캐시 추가!!!")
         
     except Exception as e:
         print(f"❌ 전체 처리 오류: {str(e)}")

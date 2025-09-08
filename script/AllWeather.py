@@ -10,11 +10,6 @@ def ReadCSVWeather():
     df1 = func.ReadCSV(filePath,fileNameWeather,11,'cp949')
     df2 = func.ReadCSV(filePath,fileNameRain,12,'cp949')
 
-    print("**"*15)
-    print(df1)
-    print("**"*15)
-    print(df2)
-    print("**"*15)
     dfCut1 = df1[df1['일시'].str.contains('2025',na=False)&
             ~df1['일시'].str.contains('08',na=False)].sort_values(by='일시')
     dfCut2 = df2[df2['일시'].str.contains('2025',na=False)&

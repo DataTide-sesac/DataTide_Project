@@ -15,6 +15,7 @@ IPython
 
 # 실험 편의
 tqdm
+wandb
 
 # 웹 백엔드
 fastapi

@@ -13,9 +13,23 @@ from dotenv import load_dotenv
 
 import seaborn as sns
 import matplotlib.pyplot as plt
+import wandb
 
 # --- 환경변수 불러오기 ---
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../..", ".env"))
+
+# 프로젝트명, 엔티티(계정명 또는 팀명), 하이퍼파라미터 기록
+wandb.init(
+    project="DataTide_sales",   # 원하는 프로젝트 이름
+    entity=os.getenv("WANDB_ENTITY"),       # 본인 계정명
+    config={
+        "epochs": 40,
+        "learning_rate": 1e-3,
+        "batch_size": 32,
+        "window_size": 6,
+        "hidden_dim": 64
+    }
+)
 
 # ======================
 # 1. MySQL 연결
@@ -173,8 +187,22 @@ def train_and_evaluate(model, train_loader, val_loader, epochs=40, lr=1e-3, mode
         mae = mean_absolute_error(y_true, y_pred)
         r2 = r2_score(y_true, y_pred)
 
+        avg_train_loss = train_loss / len(train_loader)
+        avg_val_loss = val_loss / len(val_loader)
+
         print(f"Epoch {epoch+1}/{epochs} | Train Loss: {train_loss/len(train_loader):.4f} | "
               f"Val Loss: {val_loss/len(val_loader):.4f} | RMSE: {rmse:.2f} | MAE: {mae:.2f} | R²: {r2:.2f}")
+        
+        # 🚀 wandb에 로그 기록
+        wandb.log({
+            "epoch": epoch+1,
+            "train_loss": avg_train_loss,
+            "val_loss": avg_val_loss,
+            "rmse": rmse,
+            "mae": mae,
+            "r2": r2,
+            "model": model_name
+        })
 
         # ✅ 가장 좋은 모델 저장
         if rmse < best_rmse:
@@ -221,26 +249,30 @@ results = {}
 
 for name, model in models.items():
     print(f"\n===== Training {name} =====")
-    rmse, mae, r2 = train_and_evaluate(model, train_loader, val_loader, epochs=40, lr=1e-3, model_name=name)
+    rmse, mae, r2 = train_and_evaluate(model, train_loader, val_loader, 
+                                       epochs=wandb.config.epochs, 
+                                       lr=wandb.config.learning_rate, 
+                                       model_name=name)
     results[name] = {"RMSE": rmse, "MAE": mae, "R2": r2}
 
 print("\n===== Model Comparison =====")
 for name, metric in results.items():
     print(f"{name}: RMSE={metric['RMSE']:.2f}, MAE={metric['MAE']:.2f}, R²={metric['R2']:.2f}")
 
-# 히트맵.
-correlation_matrix = df[feature_cols + target_cols].corr()     # 데이터 프레임이 corr 이라는 함수가 있어서 상관계수를 계산한다.
-print(correlation_matrix[:10])
+def drawHitmap():
+    # 히트맵.
+    correlation_matrix = df[feature_cols + target_cols].corr()     # 데이터 프레임이 corr 이라는 함수가 있어서 상관계수를 계산한다.
+    print(correlation_matrix[:10])
 
-# 2. 히트맵 그리기
-annot = True    # 차트에 줄 속성. 히트맵의 셀에 값을 표시한다. False면 표시 안 함.
-cmap = 'coolwarm'   # 히트맵에서 가장 많이 사용하는 색상. 양의관계는 빨간색, 음의관계는 파란색
-fmt = '.2f'     # 표시될 숫자의 소수점 자리수 지정
-sns.heatmap(correlation_matrix,
-            annot=annot, cmap=cmap, fmt=fmt, 
-            linewidths=.5)      # 셀 사이에 선 추가
-plt.xticks(rotation=45, ha='right')     #  x축 레이블 회전
-plt.yticks(rotation=0)
-plt.tight_layout()      # 레이블 겹침 방지. 다시 그려라
-plt.show()
+    # 2. 히트맵 그리기
+    annot = True    # 차트에 줄 속성. 히트맵의 셀에 값을 표시한다. False면 표시 안 함.
+    cmap = 'coolwarm'   # 히트맵에서 가장 많이 사용하는 색상. 양의관계는 빨간색, 음의관계는 파란색
+    fmt = '.2f'     # 표시될 숫자의 소수점 자리수 지정
+    sns.heatmap(correlation_matrix,
+                annot=annot, cmap=cmap, fmt=fmt, 
+                linewidths=.5)      # 셀 사이에 선 추가
+    plt.xticks(rotation=45, ha='right')     #  x축 레이블 회전
+    plt.yticks(rotation=0)
+    plt.tight_layout()      # 레이블 겹침 방지. 다시 그려라
+    plt.show()
 

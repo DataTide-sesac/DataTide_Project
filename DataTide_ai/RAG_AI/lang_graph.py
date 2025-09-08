@@ -31,7 +31,7 @@ from langchain.chat_models import init_chat_model
 
 # --- 환경변수 불러오기 ---
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../..", ".env"))
-openai_api_key = os.getenv("OPENAI_API_KEY")
+openai_api_key = os.getenv("OPENAI_API_KEY2")
 
 mysql_user = os.getenv("MYSQL_USER")
 mysql_password = os.getenv("MYSQL_PASSWORD")
@@ -525,7 +525,8 @@ def classify_query_node(state: AgentState):
     
     # 계산/분석이 필요한 키워드들
     analysis_keywords = ['최대', '최소', '평균', '합계', '분석', '통계', '계산', '비교', '총합', '가장']
-    search_keywords = ['찾아', '검색', '언제', '어떤', '몇', '얼마']
+    # search_keywords = ['찾아', '검색', '언제', '어떤', '몇', '얼마']
+    search_keywords = []
     
     # 키워드에 따라 Agent 필요 여부 결정
     needs_agent = any(keyword in query for keyword in analysis_keywords + search_keywords)
@@ -590,6 +591,10 @@ def rag_node(state: AgentState):
         
     except Exception as e:
         print(f"❌ RAG 오류: {e}")
+        if "Error code: 429" in str(e) and model.openai_api_key != openai_api_key2:
+            model.openai_api_key = openai_api_key2
+            llm_math.llm.openai_api_key  = openai_api_key2
+            rag_node(state)
         state["rag_result"] = f"RAG 검색 오류: {str(e)}"
         state["source_documents"] = []
     
@@ -639,6 +644,10 @@ def agent_node(state: AgentState):
         
     except Exception as e:
         print(f"❌ Agent 오류: {e}")
+        if "Error code: 429" in str(e) and model.openai_api_key != openai_api_key2:
+            model.openai_api_key = openai_api_key2
+            llm_math.llm.openai_api_key  = openai_api_key2
+            rag_node(state)
         state["agent_result"] = f"Agent 분석 오류: {str(e)}"
     
     return state

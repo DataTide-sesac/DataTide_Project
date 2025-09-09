@@ -16,20 +16,7 @@ import matplotlib.pyplot as plt
 import wandb
 
 # --- 환경변수 불러오기 ---
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../..", ".env"))
-
-# 프로젝트명, 엔티티(계정명 또는 팀명), 하이퍼파라미터 기록
-wandb.init(
-    project="DataTide_sales",   # 원하는 프로젝트 이름
-    entity=os.getenv("WANDB_ENTITY"),       # 본인 계정명
-    config={
-        "epochs": 50,
-        "learning_rate": 1e-3,
-        "batch_size": 32,
-        "window_size": 6,
-        "hidden_dim": 64
-    }
-)
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../../..", ".env"))
 
 # ======================
 # 1. MySQL 연결
@@ -41,9 +28,11 @@ HOST = "localhost"
 PORT = 3306
 DB = os.getenv("MYSQL_DATABASE")
 
+db_con = f"mysql+pymysql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DB}"
+# print(db_con)
 
 # SQLAlchemy 엔진 생성
-engine = create_engine(f"mysql+pymysql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DB}")
+engine = create_engine(db_con)
 
 # ======================
 # 2. 테이블 불러오기
@@ -159,6 +148,8 @@ def train_and_evaluate(model, train_loader, val_loader, epochs=40, lr=1e-3, mode
     optimizer = optim.Adam(model.parameters(), lr=lr)
 
     best_rmse = float("inf")  # 아주 큰 값으로 초기화
+    best_mae = float("inf")  # 아주 큰 값으로 초기화
+    best_r2 = float("inf")  # 아주 큰 값으로 초기화
     best_state = None
 
     for epoch in range(epochs):
@@ -207,13 +198,15 @@ def train_and_evaluate(model, train_loader, val_loader, epochs=40, lr=1e-3, mode
         # ✅ 가장 좋은 모델 저장
         if rmse < best_rmse:
             best_rmse = rmse
+            best_mae = mae
+            best_r2 = r2
             best_state = model.state_dict()
             torch.save(best_state, f"{model_name}_sales.pth")
             print(f"  👉 Best model saved (epoch {epoch+1}, RMSE={rmse:.2f})")
 
 
     # 최종 성능 리턴
-    return best_rmse, mae, r2
+    return best_rmse, best_mae, best_r2
 
 # ======================
 # 7. 실행
@@ -249,6 +242,21 @@ results = {}
 
 for name, model in models.items():
     print(f"\n===== Training {name} =====")
+    # 프로젝트명, 엔티티(계정명 또는 팀명), 하이퍼파라미터 기록
+    wandb.init(
+        project="DataTide_sales_compare_model",   # 원하는 프로젝트 이름
+        entity=os.getenv("WANDB_ENTITY"),       # 본인 계정명
+        config={
+            "epochs": 100,
+            "learning_rate": 1e-3,
+            "batch_size": 32,
+            "window_size": 6,
+            "hidden_dim": 64,
+            "model":name
+        },
+        name=name,
+        reinit=True   # run 새로 시작
+    )
     rmse, mae, r2 = train_and_evaluate(model, train_loader, val_loader, 
                                        epochs=wandb.config.epochs, 
                                        lr=wandb.config.learning_rate, 

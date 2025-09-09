@@ -13,9 +13,10 @@ from dotenv import load_dotenv
 
 import seaborn as sns
 import matplotlib.pyplot as plt
+import wandb
 
 # --- 환경변수 불러오기 ---
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../..", ".env"))
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../../..", ".env"))
 
 # ======================
 # 1. MySQL 연결
@@ -27,9 +28,11 @@ HOST = "localhost"
 PORT = 3306
 DB = os.getenv("MYSQL_DATABASE")
 
+db_con = f"mysql+pymysql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DB}"
+# print(db_con)
 
 # SQLAlchemy 엔진 생성
-engine = create_engine(f"mysql+pymysql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DB}")
+engine = create_engine(db_con)
 
 # ======================
 # 2. 테이블 불러오기
@@ -162,9 +165,14 @@ class TransformerEncoderModel(nn.Module):
 # ======================
 # 6. 학습 루프
 # ======================
-def train_and_evaluate(model, train_loader, val_loader, epochs=40, lr=1e-3):
+def train_and_evaluate(model, train_loader, val_loader, epochs=40, lr=1e-3, model_name="model.pth"):
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
+
+    best_rmse = float("inf")  # 아주 큰 값으로 초기화
+    best_mae = float("inf")  # 아주 큰 값으로 초기화
+    best_r2 = float("inf")  # 아주 큰 값으로 초기화
+    best_state = None
 
     for epoch in range(epochs):
         model.train()
@@ -192,11 +200,35 @@ def train_and_evaluate(model, train_loader, val_loader, epochs=40, lr=1e-3):
         mae = mean_absolute_error(y_true, y_pred)
         r2 = r2_score(y_true, y_pred)
 
+        avg_train_loss = train_loss / len(train_loader)
+        avg_val_loss = val_loss / len(val_loader)
+
         print(f"Epoch {epoch+1}/{epochs} | Train Loss: {train_loss/len(train_loader):.4f} | "
               f"Val Loss: {val_loss/len(val_loader):.4f} | RMSE: {rmse:.2f} | MAE: {mae:.2f} | R²: {r2:.2f}")
+        
+        # 🚀 wandb에 로그 기록
+        wandb.log({
+            "epoch": epoch+1,
+            "train_loss": avg_train_loss,
+            "val_loss": avg_val_loss,
+            "rmse": rmse,
+            "mae": mae,
+            "r2": r2,
+            "model": model_name
+        })
+
+        # ✅ 가장 좋은 모델 저장
+        if rmse < best_rmse:
+            best_rmse = rmse
+            best_mae = mae
+            best_r2 = r2
+            best_state = model.state_dict()
+            torch.save(best_state, f"{model_name}_sales.pth")
+            print(f"  👉 Best model saved (epoch {epoch+1}, RMSE={rmse:.2f})")
+
 
     # 최종 성능 리턴
-    return rmse, mae, r2
+    return best_rmse, best_mae, best_r2
 
 # ======================
 # 7. 실행
@@ -249,13 +281,32 @@ results = {}
 
 for name, model in models.items():
     print(f"\n===== Training {name} =====")
-    rmse, mae, r2 = train_and_evaluate(model, train_loader, val_loader, epochs=40, lr=1e-3)
+    # 프로젝트명, 엔티티(계정명 또는 팀명), 하이퍼파라미터 기록
+    wandb.init(
+        project="DataTide_production_compare_model",   # 원하는 프로젝트 이름
+        entity=os.getenv("WANDB_ENTITY"),       # 본인 계정명
+        config={
+            "epochs": 100,
+            "learning_rate": 1e-3,
+            "batch_size": 32,
+            "window_size": 6,
+            "hidden_dim": 64,
+            "model":name
+        },
+        name=name,
+        reinit=True   # run 새로 시작
+    )
+    rmse, mae, r2 = train_and_evaluate(model, train_loader, val_loader, 
+                                       epochs=wandb.config.epochs, 
+                                       lr=wandb.config.learning_rate, 
+                                       model_name=name)
     results[name] = {"RMSE": rmse, "MAE": mae, "R2": r2}
 
 print("\n===== Model Comparison =====")
 for name, metric in results.items():
     print(f"{name}: RMSE={metric['RMSE']:.2f}, MAE={metric['MAE']:.2f}, R²={metric['R2']:.2f}")
 
+def drawHitmap():
 # 히트맵.
 correlation_matrix = df[feature_cols + target_cols].corr()     # 데이터 프레임이 corr 이라는 함수가 있어서 상관계수를 계산한다.
 print(correlation_matrix[:10])

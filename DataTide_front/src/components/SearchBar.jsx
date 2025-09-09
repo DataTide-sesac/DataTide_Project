@@ -35,7 +35,7 @@ export default function SearchBar({
                 onClick={() => setSelectedItem(item.id)}
                 disabled={item.disabled}
               >
-                {item.name}
+                {item.kr_name}
               </button>
             ))}
           </div>

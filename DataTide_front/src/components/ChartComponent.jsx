@@ -21,7 +21,7 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
         showarrow: false,
         xref: 'paper',
         yref: 'paper',
-        x: 0.0,
+        x: -0.035,
         y: 0.99,
         xanchor: 'left',
         yanchor: 'bottom',
@@ -50,8 +50,8 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
     ...baseComparisonLayout,
     legend: {
       bgcolor: 'rgba(255, 255, 255, 0.7)',
-      bordercolor: '#E2E2E2',
-      borderwidth: 1,
+      // bordercolor: '#E2E2E2',
+      // borderwidth: 1,
       font: {
         size: 14
       },
@@ -63,17 +63,21 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
             y: -0.2
           }
         : { // Desktop
-            x: 1,
+            orientation: 'h',
             y: 1,
-            xanchor: 'left',
-            yanchor: 'top'
+            yanchor: 'bottom',
+            x: 1,
+            xanchor: 'right'
           })
     },
-    margin: windowWidth < 768 ? { b: 100 } : { r: 170 }
+    margin: windowWidth < 768 ? { b: 100 } : { t: 80 } // Adjusted margin for top legend
   };
 
 
-  // Mock data for prediction chart
+
+
+
+  // Mock data for prediction chart (주석 처리)
   const pastX = ['2023년 01월', '2023년 02월', '2023년 03월', '2023년 04월', '2023년 05월', '2023년 06월', '2023년 07월', '2023년 08월', '2023년 09월', '2023년 10월', '2023년 11월', '2023년 12월'];
   const predictedX = ['2024년 01월', '2024년 02월', '2024년 03월', '2024년 04월', '2024년 05월', '2024년 06월', '2024년 07월', '2024년 08월', '2024년 09월', '2024년 10월', '2024년 11월', '2024년 12월'];
 
@@ -174,7 +178,7 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
         showarrow: false,
         xref: 'paper',
         yref: 'paper',
-        x: 0.0,
+        x: -0.035,
         y: 0.99,
         xanchor: 'left',
         yanchor: 'bottom',
@@ -205,12 +209,6 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
         {analysisType === '통계' ? (
           <div className="comparison-chart">
             <h4>📊 전년 대비 통계 차트</h4>
-            <p>• 올해 데이터(생산): 선 그래프 (#1565C0)</p>
-            <p>• 올해 데이터(판매): 선 그래프 (#388E3C)</p>
-            <p>• 올해 데이터(수입): 선 그래프 (#F57C00)</p>
-            <p>• 작년 데이터(생산): 막대 그래프 (#64B5F6)</p>
-            <p>• 작년 데이터(판매): 막대 그래프 (#81C784)</p>
-            <p>• 작년 데이터(수입): 막대 그래프 (#FFB74D)</p>
             <Plot
               key={JSON.stringify(data)}
               data={data}
@@ -222,10 +220,8 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
         ) : (
           <div className="prediction-chart">
             <h4>🔮 AI 예측 차트</h4>
-            <p>• 실제 데이터: 실선</p>
-            <p>• 예측 데이터: 점선 + 신뢰구간</p>
             <Plot
-              key={JSON.stringify(predictionMockData)}
+              key={JSON.stringify(predictionData)}
               data={predictionData}
               layout={predictionLayout}
               style={{ width: '100%', height: '100%' }}

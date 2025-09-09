@@ -23,7 +23,7 @@ wandb.init(
     project="DataTide_sales",   # 원하는 프로젝트 이름
     entity=os.getenv("WANDB_ENTITY"),       # 본인 계정명
     config={
-        "epochs": 40,
+        "epochs": 50,
         "learning_rate": 1e-3,
         "batch_size": 32,
         "window_size": 6,

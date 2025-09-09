@@ -12,15 +12,19 @@ def FileRename(filePath):
             for type in typeList:
                 fileName = func.ReadFold(f'{filePath}/{local}/{year}_월간보고서/{type}')
                 for file in fileName:
-                    oldFilePath = f'{filePath}/{local}/{year}_월간보고서/{type}/{file}'
-                    newFilePath = f'./DataSet/SeaWeather/{local}'
                     if '월간' in file:
                         for month in monthList:
-                            if month in file:
-                                os.rename(oldFilePath,f"{newFilePath}/{local}_{year}_{month}_{type}.pdf")
+                            if f'{year}_{month}' in file:
+                                oldFileName = os.path.join(f'{filePath}/{local}/{year}_월간보고서/{type}',file)
+                                newFileName = os.path.join(f'{filePath}/{local}/{year}_월간보고서/{type}',f"{local}_{year}_{month}_{type}_월간보고서.pdf")
+                                if os.path.exists(newFileName):
+                                    os.remove(newFileName)
+
+                                os.rename(oldFileName,newFileName)
+                                break
 
 
 
 if __name__ == '__main__':
-    filePath = './sea_weather_data'
+    filePath = './data/sea_weather_data'
     FileRename(filePath)

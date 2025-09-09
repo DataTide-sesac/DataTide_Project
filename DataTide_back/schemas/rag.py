@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import List
 
 class RagQueryRequest(BaseModel):
-    query: str
+    message: str
 
 class SourceDocument(BaseModel):
     source: str

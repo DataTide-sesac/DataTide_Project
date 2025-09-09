@@ -20,7 +20,7 @@
     - DataTide_front
   - **실행 방법**
     - cd DataTide_front
-    - *(처음 실행할 시)* npm install
+    - *(처음 실행할 시)* npm install --prefix DataTide_front
     - npm run dev
 
 ---

@@ -1,6 +1,6 @@
 # services/item_crud.py
 from sqlalchemy.orm import Session
-from DataTide_back.models.item import Item
+from DataTide_back.db.models.item import Item
 from DataTide_back.schemas.item import ItemCreate
     # Import 절대경로로 수정
 def get_item(db: Session, item_pk: int):

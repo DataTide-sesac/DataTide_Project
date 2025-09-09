@@ -11,9 +11,7 @@ class PublicFunc():
     @staticmethod
     def ReadCSV(filePath, fileName, skiprows=0, encoding='utf-8-sig'):
         try:
-            # Combine path and filename using pathlib's / operator
-            full_path = filePath / fileName
-            df = pd.read_csv(full_path, skiprows=skiprows , encoding=encoding)
+            df = pd.read_csv(f"{filePath}/{fileName}",skiprows=skiprows , encoding=encoding)
             print(df.head())
             print(df.columns)
             print(df.shape)
@@ -245,7 +243,7 @@ class PublicFunc():
 
     #저장
     @staticmethod
-    def SaveCSV(df,fileName,encoding='utf-8-sig'):
+    def SaveCSV(df,fileName='',encoding='utf-8-sig'):
         try:
             df.to_csv(fileName, index=False, encoding=encoding)
             print('save 완료')

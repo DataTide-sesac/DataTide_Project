@@ -1,16 +1,28 @@
+import sys
+import os
+
+# Add the project root to sys.path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 # main.py
 from fastapi import FastAPI
-from DataTide_back.routers import ground_weather, items, sample
-from DataTide_back.back.routers import location, sea_weather, item_retail # Added
+from fastapi.middleware.cors import CORSMiddleware
+from DataTide_back.api.v1.router import api_router
 
 app = FastAPI()
 
-app.include_router(ground_weather.router)
-app.include_router(items.router)
-app.include_router(sample.router, prefix="/sample")
-app.include_router(location.router) # Added
-app.include_router(sea_weather.router) # Added
-app.include_router(item_retail.router) # Added
+# CORS 미들웨어 추가
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 모든 출처 허용
+    allow_credentials=True,
+    allow_methods=["*"],  # 모든 HTTP 메서드 허용
+    allow_headers=["*"],  # 모든 헤더 허용
+)
+
+app.include_router(api_router)
 
 @app.get("/", tags=["Root"])
 async def read_root():

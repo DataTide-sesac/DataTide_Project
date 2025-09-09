@@ -1,3 +1,4 @@
+// src/pages/DashboardPage.jsx
 import React, { useState, useMemo } from 'react';
 import ChartComponent from '../components/ChartComponent';
 import Header from '../components/Header';
@@ -161,23 +162,32 @@ export default function DashboardPage() {
       setError('')
       setChartData(null); // 검색 시작 시 차트 초기화
 
-      // 실제 API를 사용하려면 아래 주석을 해제하세요.
-      // const result = await fetchFisheriesData({ selectedItem, selectedAnalysis, selectedCategories, period });
-      // setTableData(result.tableData);
-      // setChartData(result.chartData);
-
-      // 임시 모킹 데이터 사용
-      const mockData = generateMockData();
-      setTableData(mockData);
-
-      if (selectedAnalysis === '통계') {
-        const dynamicChartData = generateDynamicChartData(period, selectedCategories);
-        setChartData(dynamicChartData);
-      } else {
-        // 예측 분석용 차트 데이터 생성 로직 (필요 시)
-        // const predictionChartData = generatePredictionChartData(period, selectedCategories);
-        // setChartData(predictionChartData);
+      // 실제 API 호출로 변경
+      const selectedItemName = selectedItem; // selectedItem 자체가 이제 영문 품목명입니다.
+      if (!selectedItemName) {
+        throw new Error('Selected item name not found.');
       }
+      const result = await fetchFisheriesData({ 
+        selectedItem: selectedItemName, 
+        selectedAnalysis, 
+        selectedCategories, 
+        period 
+      });
+      setTableData(result.tableData);
+      setChartData(result.chartData);
+
+      // 임시 모킹 데이터 사용 (주석 처리)
+      // const mockData = generateMockData();
+      // setTableData(mockData);
+
+      // if (selectedAnalysis === '통계') {
+      //   const dynamicChartData = generateDynamicChartData(period, selectedCategories);
+      //   setChartData(dynamicChartData);
+      // } else {
+      //   // 예측 분석용 차트 데이터 생성 로직 (필요 시)
+      //   // const predictionChartData = generatePredictionChartData(period, selectedCategories);
+      //   // setChartData(predictionChartData);
+      // }
 
     } catch (err) {
       setError(err.message || '데이터를 가져오는 중 오류가 발생했습니다')
@@ -242,7 +252,7 @@ export default function DashboardPage() {
       {chartData && (
         <section className="chart-section">
           <h3>
-            📈 {FISH_ITEMS.find(f => f.id === selectedItem)?.name} {selectedAnalysis} 분석 결과
+            📈 {FISH_ITEMS.find(f => f.id === selectedItem)?.kr_name} {selectedAnalysis} 분석 결과
             {selectedAnalysis === '통계' && ` (${period.startYear}~${period.endYear}년)`}
           </h3>
           <div className="chart-description">
@@ -262,7 +272,7 @@ export default function DashboardPage() {
       <ResultsTable 
         tableData={tableData}
         loading={loading}
-        selectedItem={FISH_ITEMS.find(f => f.id === selectedItem)?.name}
+        selectedItem={FISH_ITEMS.find(f => f.name === selectedItem)?.kr_name}
         selectedAnalysis={selectedAnalysis}
         downloadCSV={downloadCSV}
         downloadExcel={downloadExcel}

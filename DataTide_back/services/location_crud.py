@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from DataTide_back.models.location import Location
+from DataTide_back.db.models.location import Location
 from DataTide_back.schemas.location import LocationCreate
 
 def get_location(db: Session, local_pk: int):

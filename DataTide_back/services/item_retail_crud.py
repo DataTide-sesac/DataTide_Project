@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
-from DataTide_back.models.item_retail import ItemRetail
+from DataTide_back.db.models.item_retail import ItemRetail
 from DataTide_back.schemas.item_retail import ItemRetailCreate
-from DataTide_back.models.item import Item # To look up item_pk
+from DataTide_back.db.models.item import Item # To look up item_pk
 
 def get_item_retail(db: Session, retail_pk: int):
     return db.query(ItemRetail).filter(ItemRetail.retail_pk == retail_pk).first()

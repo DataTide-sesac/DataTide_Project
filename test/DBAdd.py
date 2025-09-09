@@ -1,29 +1,108 @@
-"""주요 내용 및 변수명 점검
-CSV 파일을 읽어들여 pandas DataFrame으로 변환 후, 한글 컬럼명을 프로젝트 변수명(item_name, month_date, production, inbound, sales 등)으로 정확히 변경하고 있습니다.
-각 데이터 전처리 및 to_sql 메서드를 이용한 DB 테이블(ground_weather, sea_weather, location, item, item_retail)에 데이터 삽입 과정이 명확하고 체계적입니다.
-특히 RetailAdd 함수에서 item 테이블과 item_retail 테이블 사이의 FK 역할을 하는 item_pk 키를 pd.merge로 잘 매핑하고 있어 DB 관계성 유지가 적절합니다.
-DB 접속 정보는 하드코딩되어 있으니, 추후 환경변수나 설정파일로 분리하는 것이 좋겠습니다.
-o 추후 CSV 파일명과 경로를 하드코딩하지 말고 인자로 받거나 설정파일에서 관리
-o 예외 처리 부분을 보다 세밀하게 보완해 데이터 이상 상황 대비
-o DB 접속 정보(특히 비밀번호)를 안전하게 환경변수 또는 비밀 정보 관리 시스템으로 전환
-"""
-#test/DBAdd.py
-from pathlib import Path
 import PublicFunc as pf
 import pandas as pd
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 func = pf.PublicFunc()
+
+def DropTables():
+    user = 'team_dt'
+    password = 'dt_1234'
+    host = 'localhost'
+    port = 3306
+    database = 'datatide_db'
+
+    engine = create_engine(f'mysql+pymysql://{user}:{password}@{host}:{port}/{database}')
+
+    with engine.connect() as conn:
+        print(f'Connected {user}')
+
+        #외래키 제약 제거
+        conn.execute(text('SET FOREIGN_KEY_CHECKS = 0;'))
+
+        #테이블 삭제
+        conn.execute(text(f'''
+                          DROP TABLE 
+                          location,
+                          item,
+                          item_retail,
+                          ground_weather,
+                          sea_weather
+                          '''))
+
+def CreateTables():
+    user = 'team_dt'
+    password = 'dt_1234'
+    host = 'localhost'
+    port = 3306
+    database = 'datatide_db'
+
+    engine = create_engine(f'mysql+pymysql://{user}:{password}@{host}:{port}/{database}')
+
+    with engine.connect() as conn:
+        print(f'Connected {user}')
+
+        conn.execute(text(f'''
+                    create table location(
+                    local_pk INT primary key AUTO_INCREMENT,
+                    local_name varchar(30)
+                );
+                '''))
+        conn.execute(text(f'''
+                    CREATE TABLE item(
+                    item_pk   INT PRIMARY key AUTO_INCREMENT,
+                    item_name VARCHAR(20)
+                );
+                '''))
+        conn.execute(text(f'''
+                    create table ground_weather(
+                    ground_pk BIGINT PRIMARY key AUTO_INCREMENT,
+                    month_date date,
+                    temperature float,
+                    rain float
+                );
+                '''))
+        conn.execute(text(f'''
+                    create table item_retail(
+                    retail_pk BIGINT PRIMARY key AUTO_INCREMENT,
+                    item_pk int,
+                    month_date date,
+                    production int,
+                    inbound int,
+                    sales int,
+                    
+                    FOREIGN KEY (item_pk) REFERENCES item(item_pk)
+                );
+                '''))
+        
+        conn.execute(text(f'''
+                    create table sea_weather(
+                    sea_pk bigint PRIMARY key AUTO_INCREMENT,
+                    local_pk int,
+                    month_date date,
+                    temperature float,
+                    wind float,
+                    salinity float,
+                    wave_height float,
+                    wave_period float,
+                    wave_speed float,
+                    rain float,
+                    snow float,
+                    
+                    FOREIGN KEY (local_pk) REFERENCES location(local_pk)
+                );
+                '''))
+
 #ground_weather
 def GroundWeatherAdd(filePath):
-    fileName='kr_temp_percip.csv'
-
-    df = func.ReadCSV(filePath, fileName)
-
-    df.rename(columns={
+    itemDic = {
         '일시':'month_date',
         '평균기온':'temperature',
         '평균강수':'rain'
-    },inplace=True)
+    }
+    fileName=func.ReadFold(filePath)
+    for file in fileName:
+        df = func.ReadCSV(filePath, file)
+
+    df.rename(columns=itemDic,inplace=True)
 
     user = 'team_dt'
     password = 'dt_1234'
@@ -36,11 +115,7 @@ def GroundWeatherAdd(filePath):
     df.to_sql(name='ground_weather', con=engine, if_exists='append',index=False)
 
 def SeaWeatherAdd(filePath):
-    fileName='SeaWeather_2025.csv'
-
-    df = func.ReadCSV(filePath, fileName)
-
-    df.rename(columns={
+    itemDic = {
         '지역':'local_name',
         '일시':'month_date',
         '수온':'temperature',
@@ -51,7 +126,12 @@ def SeaWeatherAdd(filePath):
         '풍속':'wind',
         '강수량':'rain',
         '적설량':'snow'
-    },inplace=True)
+    }
+    fileName=func.ReadFold(filePath)
+    for file in fileName:
+        df = func.ReadCSV(filePath, file)
+
+    df.rename(columns=itemDic,inplace=True)
     
 
     user = 'team_dt'
@@ -73,9 +153,9 @@ def SeaWeatherAdd(filePath):
     df_insert.to_sql(name='sea_weather', con=engine, if_exists='append', index=False)
 
 def LocationAdd(filePath):
-    fileName='SeaWeather_2025.csv'
-
-    df = func.ReadCSV(filePath, fileName)
+    fileName=func.ReadFold(filePath)
+    for file in fileName:
+        df = func.ReadCSV(filePath, file)
 
     df.rename(columns={
         '지역':'local_name'
@@ -89,31 +169,28 @@ def LocationAdd(filePath):
 
     engine = create_engine(f'mysql+pymysql://{user}:{password}@{host}:{port}/{database}')
     
-    df_localName = df['local_name'].drop_duplicates().to_frame()
+    df_localName = df['local_name'].drop_duplicates()
     df_localName.to_sql(name='location', con=engine, if_exists='append',index=False)
 
 
 def ItemAdd(filePath):
-    fileNameCalamari='Calamari_2025.csv'
-    fileNameCutlassFish='CutlassFish_2025.csv'
-    fileNameMackerel='Mackerel_2025.csv'
-
-    dfCalamari = func.ReadCSV(filePath, fileNameCalamari)
-    dfCutlassFish = func.ReadCSV(filePath, fileNameCutlassFish)
-    dfMackerel = func.ReadCSV(filePath, fileNameMackerel)
-
-    tempList = []
-    tempList.append(dfCalamari['품목명'])
-    tempList.append(dfCutlassFish['품목명'])
-    tempList.append(dfMackerel['품목명'])
-
-    tempList = func.MixData(tempList)
-
-    dfFishName = tempList.drop_duplicates()
-    
-    dfFishName = dfFishName.rename(columns={
+    itemDic = {
         '품목명':'item_name'
-    })
+    }
+
+    fileName = func.ReadFold(filePath)
+    fishList = []
+    for file in fileName:
+        df = func.ReadCSV(filePath, file)
+        df.reset_index(drop=True, inplace=True)
+        
+        fishList.append(df['품목명'])
+
+    fishList = func.MixData(fishList)
+
+    dfFishName = fishList.drop_duplicates()
+    
+    dfFishName.rename(columns=itemDic,inplace=True)
 
     user = 'team_dt'
     password = 'dt_1234'
@@ -126,14 +203,6 @@ def ItemAdd(filePath):
     dfFishName.to_sql(name='item', con=engine, if_exists='append',index=False)
 
 def RetailAdd(filePath):
-    fileNameCalamari='Calamari_2025.csv'
-    fileNameCutlassFish='CutlassFish_2025.csv'
-    fileNameMackerel='Mackerel_2025.csv'
-
-    dfCalamari = func.ReadCSV(filePath, fileNameCalamari)
-    dfCutlassFish = func.ReadCSV(filePath, fileNameCutlassFish)
-    dfMackerel = func.ReadCSV(filePath, fileNameMackerel)
-    
     itemDic = {
         '품목명':'item_name',
         '날짜':'month_date',
@@ -142,23 +211,17 @@ def RetailAdd(filePath):
         '판매':'sales'
         }
     
-    
-    if dfCalamari is not None:
-        dfCalamari.rename(columns=itemDic, inplace=True)
-    else:
-        raise ValueError(f"Failed to read {fileNameCalamari}")
+    fileName = func.ReadFold(filePath)
+    fishList = []
+    for file in fileName:
+        df = func.ReadCSV(filePath, file)
+        df.reset_index(drop=True, inplace=True)
 
-    if dfCutlassFish is not None:
-        dfCutlassFish.rename(columns=itemDic, inplace=True)
-    else:
-        raise ValueError(f"Failed to read {fileNameCutlassFish}")
+        fishList.append(df)
 
-    if dfMackerel is not None:
-        dfMackerel.rename(columns=itemDic, inplace=True)
-    else:
-        raise ValueError(f"Failed to read {fileNameMackerel}")
+    fishList = func.MixData(fishList)
 
-
+    fishList.rename(columns=itemDic, inplace=True)
 
     user = 'team_dt'
     password = 'dt_1234'
@@ -170,31 +233,22 @@ def RetailAdd(filePath):
 
     #부모테이블에서 키,이름 받기
     itemKey = pd.read_sql('SELECT item_pk, item_name FROM item', engine)
-    
+
     #데이터 합치기
-    dfMergedCalamari = pd.merge(dfCalamari,itemKey, how='left', on='item_name')
-    dfMergedCutlassFish = pd.merge(dfCutlassFish,itemKey, how='left', on='item_name')
-    dfMergedMackerel = pd.merge(dfMackerel,itemKey, how='left', on='item_name')
+    dfMerged = pd.merge(fishList,itemKey, how='left', on='item_name')
 
-    dfInsertCalamari = dfMergedCalamari[['item_pk','production','inbound','sales','month_date']]
-    dfInsertCutlassFish = dfMergedCutlassFish[['item_pk','production','inbound','sales','month_date']]
-    dfInsertMackerel = dfMergedMackerel[['item_pk','production','inbound','sales','month_date']]
+    dfInsert = dfMerged[['item_pk','production','inbound','sales','month_date']]
 
-    dfInsertCalamari.to_sql(name='item_retail', con=engine, if_exists='append',index=False)
-    dfInsertCutlassFish.to_sql(name='item_retail', con=engine, if_exists='append',index=False)
-    dfInsertMackerel.to_sql(name='item_retail', con=engine, if_exists='append',index=False)
-
-
-
+    dfInsert.to_sql(name='item_retail', con=engine, if_exists='append',index=False)
 
 if __name__ == '__main__':
-    #완성본 아님
-    #fileName은 하드코딩 되어있음. 나중에 수정해야됨
-    #아직 테스트 용도
-    # Use pathlib to create a robust, absolute path
-    filePath = Path(__file__).parent / 'data' / '테스트_완성'
-    GroundWeatherAdd(filePath)
-    LocationAdd(filePath)
-    SeaWeatherAdd(filePath)
-    ItemAdd(filePath)
-    RetailAdd(filePath)
+    filePath='./DataSet/Total'
+
+    DropTables()
+    CreateTables()
+
+    GroundWeatherAdd(f'{filePath}/GroundWeather')
+    LocationAdd(f'{filePath}/SeaWeather')
+    SeaWeatherAdd(f'{filePath}/SeaWeather')
+    ItemAdd(f'{filePath}/FishData')
+    RetailAdd(f'{filePath}/FishData')

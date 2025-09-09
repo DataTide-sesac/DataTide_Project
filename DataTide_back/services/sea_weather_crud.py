@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
-from DataTide_back.models.sea_weather import SeaWeather
+from DataTide_back.db.models.sea_weather import SeaWeather
 from DataTide_back.schemas.sea_weather import SeaWeatherCreate
-from DataTide_back.models.location import Location # To look up local_pk
+from DataTide_back.db.models.location import Location # To look up local_pk
 
 def get_sea_weather(db: Session, sea_pk: int):
     return db.query(SeaWeather).filter(SeaWeather.sea_pk == sea_pk).first()

@@ -34,9 +34,9 @@ export default function ResultsTable({
       header: '수입량(톤)',
       prevHeader: '전년수입량',
       changeHeader: '수입증감률',
-      dataKey: 'imports',
-      prevDataKey: 'prevImports',
-      changeDataKey: 'importsChange',
+      dataKey: 'inbound',
+      prevDataKey: 'prevInbound',
+      changeDataKey: 'inboundChange',
     },
   };
 
@@ -130,7 +130,7 @@ export default function ResultsTable({
                     <>
                       <td>{formatNumber(row.production)}</td>
                       <td>{formatNumber(row.sales)}</td>
-                      <td>{formatNumber(row.imports)}</td>
+                      <td>{formatNumber(row.inbound)}</td>
                       <td>{row.dataType}</td>
                       <td>{row.confidence ? `${row.confidence}%` : '-' }</td>
                     </>

@@ -40,18 +40,23 @@ def CreateTables():
     with engine.connect() as conn:
         print(f'Connected {user}')
 
+        # location
         conn.execute(text(f'''
                     create table location(
                     local_pk INT primary key AUTO_INCREMENT,
                     local_name varchar(30)
                 );
                 '''))
+        
+        # item
         conn.execute(text(f'''
                     CREATE TABLE item(
                     item_pk   INT PRIMARY key AUTO_INCREMENT,
                     item_name VARCHAR(20)
                 );
                 '''))
+        
+        # ground_weather
         conn.execute(text(f'''
                     create table ground_weather(
                     ground_pk BIGINT PRIMARY key AUTO_INCREMENT,
@@ -60,6 +65,8 @@ def CreateTables():
                     rain float
                 );
                 '''))
+        
+        # item_retail
         conn.execute(text(f'''
                     create table item_retail(
                     retail_pk BIGINT PRIMARY key AUTO_INCREMENT,
@@ -73,6 +80,21 @@ def CreateTables():
                 );
                 '''))
         
+        # item_predict
+        conn.execute(text(f'''
+                    create table item_predict(
+                    predict_pk BIGINT PRIMARY key AUTO_INCREMENT,
+                    item_pk int,
+                    month_date date,
+                    production int,
+                    inbound int,
+                    sales int,
+                    
+                    FOREIGN KEY (item_pk) REFERENCES item(item_pk)
+                );
+                '''))
+        
+        # sea_weather
         conn.execute(text(f'''
                     create table sea_weather(
                     sea_pk bigint PRIMARY key AUTO_INCREMENT,

@@ -71,7 +71,7 @@ df = pd.get_dummies(df, columns=['item_name'])
 
 print("Merged DataFrame:")
 print(df.head())
-df.to_csv("item_retail_merged.csv", index=False, encoding="utf-8-sig")
+df.to_csv("compare_production.csv", index=False, encoding="utf-8-sig")
 
 # ======================
 # 4. 시계열 윈도우 데이터셋 생성
@@ -101,7 +101,7 @@ class TimeSeriesDataset(Dataset):
 # 5. PyTorch 모델 정의
 # ======================
 class LSTMModel(nn.Module):
-    def __init__(self, input_dim, hidden_dim=64, output_dim=2, num_layers=2):
+    def __init__(self, input_dim, hidden_dim=64, output_dim=1, num_layers=2):
         super(LSTMModel, self).__init__()
         self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, batch_first=True)
         self.fc = nn.Linear(hidden_dim, output_dim)
@@ -112,18 +112,28 @@ class LSTMModel(nn.Module):
         return out
 
 class SimpleRNNModel(nn.Module):
-    def __init__(self, input_dim, hidden_dim=64, output_dim=2, num_layers=2):
+    def __init__(self, input_dim, hidden_dim=64, output_dim=1, num_layers=2):
         super().__init__()
         self.rnn = nn.RNN(input_dim, hidden_dim, num_layers, batch_first=True)
-        self.fc = nn.Linear(hidden_dim, output_dim)
+        
+        # 중간 hidden layer 추가
+        self.hidden_layer = nn.Linear(hidden_dim, hidden_dim // 2)
+        self.relu = nn.ReLU()
+
+        self.fc = nn.Linear(hidden_dim // 2, output_dim)
 
     def forward(self, x):
         _, h_n = self.rnn(x)
-        out = self.fc(h_n[-1])
+       
+        # 추가 hidden layer 통과
+        h_n = self.hidden_layer(h_n[-1])     # (batch, hidden_dim//2)
+        h_n = self.relu(h_n)
+
+        out = self.fc(h_n)
         return out
 
 class GRUModel(nn.Module):
-    def __init__(self, input_dim, hidden_dim=64, output_dim=2, num_layers=2):
+    def __init__(self, input_dim, hidden_dim=64, output_dim=1, num_layers=2):
         super().__init__()
         self.gru = nn.GRU(input_dim, hidden_dim, num_layers, batch_first=True)
         self.fc = nn.Linear(hidden_dim, output_dim)
@@ -135,7 +145,7 @@ class GRUModel(nn.Module):
 
 # feature embedding → Transformer Encoder → FC regression head
 class TransformerEncoderModel(nn.Module):
-    def __init__(self, input_dim, d_model=64, nhead=4, num_layers=2, output_dim=2):
+    def __init__(self, input_dim, d_model=64, nhead=4, num_layers=2, output_dim=1):
         super().__init__()
         self.input_fc = nn.Linear(input_dim, d_model)
         encoder_layer = nn.TransformerEncoderLayer(d_model=d_model, nhead=nhead, batch_first=True)
@@ -193,7 +203,7 @@ def train_and_evaluate(model, train_loader, val_loader, epochs=40, lr=1e-3):
 # ======================
 
 # # 사용할 컬럼 정의 (예시)
-target_cols = ["production", "sales"]
+target_cols = ["production"]
 feature_cols = [x for x in df.columns if x not in ["month_date", "production", "sales", "ground_pk", "item_pk", "retail_pk", "item_pk", "local_pk", "sea_pk"]]
 
 from sklearn.decomposition import PCA

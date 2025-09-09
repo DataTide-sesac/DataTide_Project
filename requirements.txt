@@ -8,6 +8,18 @@ matplotlib
 seaborn
 tqdm
 fastapi
+IPython
+
+# 실험 편의
+tqdm
+wandb
+
+# 웹 백엔드
+fastapi
+alembic
+requests
+
+# SQL
 sqlalchemy
 pymysql
 mysql-connector-python
@@ -17,9 +29,21 @@ langchain-community
 langchain-huggingface
 tiktoken
 sentence-transformers
+langgraph
+
+# 토큰화
+tiktoken
+sentence-transformers
+numexpr
+
+# 벡터 간의 유사도 검색 알고리즘
 rank_bm25
 chromadb
 faiss-cpu
 PyPDF2
 tabula-py
+python-dotenv
+cryptography
+
+# 환경변수 불러오기
 python-dotenv

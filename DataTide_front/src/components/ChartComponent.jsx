@@ -35,8 +35,9 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
         showarrow: false,
         xref: 'paper',
         yref: 'paper',
-        x: -0.02,
-        y: 1.21,
+        x: -0.038,
+        y: 1.24,
+
         xanchor: 'left',
         yanchor: 'top',
         font: {
@@ -78,8 +79,8 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
 
 
   // Mock data for prediction chart (주석 처리)
-  const pastX = ['2023년 01월', '2023년 02월', '2023년 03월', '2023년 04월', '2023년 05월', '2023년 06월', '2023년 07월', '2023년 08월', '2023년 09월', '2023년 10월', '2023년 11월', '2023년 12월'];
-  const predictedX = ['2024년 01월', '2024년 02월', '2024년 03월', '2024년 04월', '2024년 05월', '2024년 06월', '2024년 07월', '2024년 08월', '2024년 09월', '2024년 10월', '2024년 11월', '2024년 12월'];
+  const fullPastX = ['2023년 01월', '2023년 02월', '2023년 03월', '2023년 04월', '2023년 05월', '2023년 06월', '2023년 07월', '2023년 08월', '2023년 09월', '2023년 10월', '2023년 11월', '2023년 12월'];
+  const fullPredictedX = ['2024년 01월', '2024년 02월', '2024년 03월', '2024년 04월', '2024년 05월', '2024년 06월', '2024년 07월', '2024년 08월', '2024년 09월', '2024년 10월', '2024년 11월', '2024년 12월'];
 
   const predictionMockData = {
     '생산': {
@@ -102,12 +103,18 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
     }
   };
 
+  // 6+6 month data configuration
+  const pastX = fullPastX.slice(-6);
+  const predictedX = fullPredictedX.slice(0, 6);
+
   const predictionData = [];
   selectedCategories.forEach(category => {
     const trimmedCategory = category.trim();
     const categoryData = predictionMockData[trimmedCategory];
     if (categoryData) {
-      const { pastY, predictedY, color, fill } = categoryData;
+      const { color, fill } = categoryData;
+      const pastY = categoryData.pastY.slice(-6);
+      const predictedY = categoryData.predictedY.slice(0, 6);
       const pastXConnected = [...pastX, predictedX[0]];
       const pastYConnected = [...pastY, predictedY[0]];
 
@@ -192,8 +199,8 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
         showarrow: false,
         xref: 'paper',
         yref: 'paper',
-        x: -0.02,
-        y: 1.21,
+        x: -0.038,
+        y: 1.24,
         xanchor: 'left',
         yanchor: 'top',
         font: {

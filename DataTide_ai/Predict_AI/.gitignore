@@ -1,3 +1,4 @@
 sales/wandb
 sales/__pycache__
 production/wandb
+.pth

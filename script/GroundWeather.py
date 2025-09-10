@@ -3,6 +3,8 @@ import pandas as pd
 
 func = pf.PublicFunc()
 
+# GroundWeather 전처리
+# 원본 파일 -> csv 변환 / 합치기
 def GroundWeather(filePath,saveFilePath):
     groundDic = {'속초':'강원','인천':'경기','영덕':'경북',
                  '부산':'부산','목포':'전남','부안':'전북',
@@ -26,6 +28,7 @@ def GroundWeather(filePath,saveFilePath):
 
     func.SaveCSV(fileList,f'{saveFilePath}/kr_temp_percip.csv')
 
+# 한국 기온, 강수량 처리
 def AllGroundWeather(filePath,saveFilePath):
 
     fileNameWeather = '150101_250827_한국_기온.csv'
@@ -43,6 +46,7 @@ def AllGroundWeather(filePath,saveFilePath):
     func.SaveCSV(dfCut1,f'{saveFilePath}/전국_기온.csv')
     func.SaveCSV(dfCut2,f'{saveFilePath}/전국_강수.csv')
 
+# 합치기(가로)
 def AddHorizontal(filePath, saveFilePath):
 
     fileData = func.ReadFold(filePath)

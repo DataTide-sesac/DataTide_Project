@@ -3,7 +3,7 @@ import pandas as pd
 
 func = pf.PublicFunc()
 
-#데이터 추출
+# 데이터 추출
 def SeaData(filePath):
     localList = ['강원','경기','경북','부산','전남','전북','제주','충남','통영']
     yearList = ['2015','2016','2017','2018','2019','2020','2021','2022','2023','2024','2025']
@@ -31,7 +31,7 @@ def SeaData(filePath):
                 elif '년간' in file:
                     func.SaveCSV(df, f'./testDataFold/{local}/{year}_월간보고서/{local}_{year}_{type}.csv')
 
-#NaN값 확인
+# NaN값 확인
 def IsNullCheck(filePath):
     localList = ['강원','경기','경북','부산','전남','전북','제주','충남','통영']
     yearList = ['2015','2016','2017','2018','2019','2020','2021','2022','2023','2024','2025']
@@ -47,7 +47,7 @@ def IsNullCheck(filePath):
             for values in noneList:
                 print(values)
 
-#컬럼 갯수 체크         
+# 컬럼 갯수 체크         
 def IsColumnsCheck(filePath):
     localList = ['강원','경기','경북','부산','전남','전북','제주','충남','통영']
     yearList = ['2015','2016','2017','2018','2019','2020','2021','2022','2023','2024','2025']
@@ -65,7 +65,7 @@ def IsColumnsCheck(filePath):
             for values in nullColumnsList:
                 print(values)
 
-#지역,날짜 삽입
+# 지역,날짜 삽입
 def SeaWeatherAddColumns(filePath):
     localList = ['강원','경기','경북','부산','전남','전북','제주','충남','통영']
     yearList = ['2015','2016','2017','2018','2019','2020','2021','2022','2023','2024','2025']
@@ -79,7 +79,7 @@ def SeaWeatherAddColumns(filePath):
             for file in fileName:
                 df = func.ReadCSV(f'{filePath}/{local}/{year}_월간보고서',file)
                 func.AddColumns(df,0,'지역',local)
-                #날짜 삽입 / df의 행 갯수까지
+                # 날짜 삽입 / df의 행 갯수까지
                 func.AddColumns(df,1,'일시',[f"{year}-{month}-01" for month in monthList[:len(df)]])
                 df = df.reset_index(drop=True)
                 fileList.append(df)
@@ -89,7 +89,7 @@ def SeaWeatherAddColumns(filePath):
             fileList = func.AddLabels(fileList,typeList)
             func.SaveCSV(fileList,f'{filePath}/{local}_{year}_SeaWeather.csv')
 
-#모든 연도 합치기
+# 모든 연도 합치기
 def MixAllData(filePath):
     localList = ['강원','경기','경북','부산','전남','전북','제주','충남','통영']
     for local in localList:
@@ -102,7 +102,7 @@ def MixAllData(filePath):
         fileList = func.MixData(fileList)
         func.SaveCSV(fileList,f'{filePath}/{local}_SeaWeather.csv')
 
-#강수량, 적설량 추가
+# 강수량, 적설량 추가
 def MergeRainSnow(filePath):
     groundFilePath = f'{filePath}/GroundWeather'
     groundFileName = 'kr_temp_percip.csv'

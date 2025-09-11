@@ -133,6 +133,8 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
         type: 'scatter',
         mode: 'lines',
         line: { color: color, dash: 'dash' },
+        fill:'tozeroy',
+        fillcolor:fill,
       });
       predictionData.push({
         x: [...predictedX, ...[...predictedX].reverse()],

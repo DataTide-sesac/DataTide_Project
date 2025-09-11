@@ -92,12 +92,12 @@ export function generateMockChartData({ analysisType, period, selectedCategories
     }
 
     const traces = [
-      { x: monthLabels, y: yData.current['생산'], name: `${startYear === endYear ? endYear : `${startYear}~${endYear}`} 생산`, type: 'scatter', mode: 'lines+markers', marker: { color: '#1565C0' } },
+      { x: monthLabels, y: yData.current['수입'], name: `${startYear === endYear ? endYear : `${startYear}~${endYear}`} 수입`, type: 'scatter', mode: 'lines+markers', marker: { color: '#1565C0' } },
       { x: monthLabels, y: yData.current['판매'], name: `${startYear === endYear ? endYear : `${startYear}~${endYear}`} 판매`, type: 'scatter', mode: 'lines+markers', marker: { color: '#388E3C' } },
-      { x: monthLabels, y: yData.current['수입'], name: `${startYear === endYear ? endYear : `${startYear}~${endYear}`} 수입`, type: 'scatter', mode: 'lines+markers', marker: { color: '#F57C00' } },
-      { x: monthLabels, y: yData.previous['생산'], name: `${startYear === endYear ? endYear - 1 : `${startYear - 1}~${endYear - 1}`} 생산`, type: 'bar', marker: { color: 'rgba(100, 181, 246, 0.6)' } },
+      { x: monthLabels, y: yData.current['생산'], name: `${startYear === endYear ? endYear : `${startYear}~${endYear}`} 생산`, type: 'scatter', mode: 'lines+markers', marker: { color: '#F57C00' } },
+      { x: monthLabels, y: yData.previous['수입'], name: `${startYear === endYear ? endYear - 1 : `${startYear - 1}~${endYear - 1}`} 수입`, type: 'bar', marker: { color: 'rgba(100, 181, 246, 0.6)' } },
       { x: monthLabels, y: yData.previous['판매'], name: `${startYear === endYear ? endYear - 1 : `${startYear - 1}~${endYear - 1}`} 판매`, type: 'bar', marker: { color: 'rgba(129, 199, 132, 0.60)' } },
-      { x: monthLabels, y: yData.previous['수입'], name: `${startYear === endYear ? endYear - 1 : `${startYear - 1}~${endYear - 1}`} 수입`, type: 'bar', marker: { color: 'rgba(255, 183, 77, 0.60)' } },
+      { x: monthLabels, y: yData.previous['생산'], name: `${startYear === endYear ? endYear - 1 : `${startYear - 1}~${endYear - 1}`} 생산`, type: 'bar', marker: { color: 'rgba(255, 183, 77, 0.60)' } },
     ];
 
     const filteredTraces = traces.filter(trace => selectedCategories.some(category => trace.name.includes(category)));

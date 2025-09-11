@@ -260,3 +260,98 @@ app.include_router(rag_router.router, prefix="/rag", tags=["RAG"])
 5.  **"Server response"** 섹션에서 AI 서버로부터 온 답변이 포함된 최종 응답을 확인합니다.
 
 이 과정을 통해 두 서버가 성공적으로 연동되었음을 확인할 수 있습니다.
+
+네, AI 서버(`DataTide_ai/RAG_AI`)를 구동하는 데 필요한 파이썬 패키지 목록입니다.
+
+-----
+
+## **AI 서버 필수 패키지**
+
+아래 내용을 `requirements.txt` 파일로 저장하여 한 번에 설치하거나, `pip install` 명령어로 직접 설치할 수 있습니다.
+
+### **`requirements.txt` 형식**
+
+```
+# Web Server
+fastapi
+uvicorn[standard]
+
+# LangChain Framework
+langchain
+langchain-community
+langchain-openai
+
+# Vector Store & Embeddings
+faiss-cpu
+sentence-transformers
+
+# Utilities
+python-dotenv
+```
+
+  - **한 번에 설치하는 명령어:**
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+-----
+
+### **한 줄 명령어 형식**
+
+  - 터미널에 아래 명령어를 복사하여 붙여넣어도 됩니다.
+    ```bash
+    pip install fastapi "uvicorn[standard]" langchain langchain-community langchain-openai faiss-cpu sentence-transformers python-dotenv
+    ```
+
+### **패키지별 역할**
+
+  * **fastapi, uvicorn**: AI 모델을 API로 노출하기 위한 웹 서버입니다.
+  * **langchain, langchain-community, langchain-openai**: RAG 파이프라인을 구성하는 핵심 프레임워크입니다.
+  * **faiss-cpu**: 문서 벡터를 저장하고 검색하는 벡터 데이터베이스입니다.
+  * **sentence-transformers**: 텍스트를 벡터로 변환(임베딩)하는 데 사용됩니다.
+  * **python-dotenv**: `.env` 파일에서 API 키 같은 환경 변수를 불러옵니다.
+
+
+-----
+
+## **백엔드 서버 필수 패키지**
+
+### **`requirements.txt` 형식**
+
+```
+# Web Server
+fastapi
+uvicorn[standard]
+
+# Database
+SQLAlchemy
+PyMySQL
+alembic
+
+# HTTP Client
+httpx
+```
+
+  - **한 번에 설치하는 명령어:**
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+-----
+
+### **한 줄 명령어 형식**
+
+  - 터미널에 아래 명령어를 복사하여 붙여넣어도 됩니다.
+    ```bash
+    pip install fastapi "uvicorn[standard]" SQLAlchemy PyMySQL alembic httpx
+    ```
+
+### **패키지별 역할**
+
+  * **fastapi, uvicorn**: API 서버를 구축하고 실행하는 웹 프레임워크입니다.
+  * **SQLAlchemy**: 데이터베이스 작업을 파이썬 코드로 쉽게 처리하게 해주는 ORM 라이브러리입니다.
+  * **PyMySQL**: SQLAlchemy가 MySQL 데이터베이스와 통신할 수 있도록 하는 드라이버입니다.
+  * **alembic**: 데이터베이스 스키마 변경을 관리(마이그레이션)하는 도구입니다.
+  * **httpx**: AI 서버에 HTTP 요청을 보내기 위한 클라이언트 라이브러리입니다.
+
+

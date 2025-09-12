@@ -95,33 +95,61 @@ class LSTMModel(nn.Module):
     def __init__(self, input_dim, hidden_dim=64, output_dim=2, num_layers=2):
         super(LSTMModel, self).__init__()
         self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, batch_first=True)
+        self.relu = nn.ReLU()
+
         self.fc = nn.Linear(hidden_dim, output_dim)
+        self.fc1 = nn.Linear(hidden_dim, 64)
+        self.fc2 = nn.Linear(64, output_dim)
 
     def forward(self, x):
         _, (h_n, _) = self.lstm(x)
-        out = self.fc(h_n[-1])  # 마지막 hidden state
+        out = h_n[-1]
+        out = self.fc(out)
+
+        # out = self.fc1(out)
+        # out = self.relu(out)
+        # out = self.fc2(out)  # 마지막 hidden state
+
         return out
 
 class SimpleRNNModel(nn.Module):
     def __init__(self, input_dim, hidden_dim=64, output_dim=2, num_layers=2):
         super().__init__()
         self.rnn = nn.RNN(input_dim, hidden_dim, num_layers, batch_first=True)
+        self.relu = nn.ReLU()
+
         self.fc = nn.Linear(hidden_dim, output_dim)
+        self.fc1 = nn.Linear(hidden_dim, 64)
+        self.fc2 = nn.Linear(64, output_dim)
 
     def forward(self, x):
         _, h_n = self.rnn(x)
-        out = self.fc(h_n[-1])
+        out = h_n[-1]
+        out = self.fc(out)
+
+        # out = self.fc1(h_n[-1])
+        # out = self.relu(out)
+        # out = self.fc2(out)  # 마지막 hidden state
         return out
 
 class GRUModel(nn.Module):
     def __init__(self, input_dim, hidden_dim=64, output_dim=2, num_layers=2):
         super().__init__()
         self.gru = nn.GRU(input_dim, hidden_dim, num_layers, batch_first=True)
+        self.relu = nn.ReLU()
+
         self.fc = nn.Linear(hidden_dim, output_dim)
+        self.fc1 = nn.Linear(hidden_dim, 64)
+        self.fc2 = nn.Linear(64, output_dim)
 
     def forward(self, x):
         _, h_n = self.gru(x)
-        out = self.fc(h_n[-1])
+        out = h_n[-1]
+        out = self.fc(out)
+
+        # out = self.fc1(h_n[-1])
+        # out = self.relu(out)
+        # out = self.fc2(out)  # 마지막 hidden state
         return out
 
 # feature embedding → Transformer Encoder → FC regression head
@@ -131,13 +159,21 @@ class TransformerEncoderModel(nn.Module):
         self.input_fc = nn.Linear(input_dim, d_model)
         encoder_layer = nn.TransformerEncoderLayer(d_model=d_model, nhead=nhead, batch_first=True)
         self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
+        self.relu = nn.ReLU()
+
         self.fc = nn.Linear(d_model, output_dim)
+        self.fc1 = nn.Linear(d_model, 64)
+        self.fc2 = nn.Linear(64, output_dim)
 
     def forward(self, x):
         x = self.input_fc(x)
         x = self.transformer(x)
         # 마지막 시점 선택
         out = self.fc(x[:, -1, :])
+
+        # out = self.fc1(x[:, -1, :])
+        # out = self.relu(out)
+        # out = self.fc2(out)  # 마지막 hidden state
         return out
     
 # ======================
@@ -244,7 +280,7 @@ for name, model in models.items():
     print(f"\n===== Training {name} =====")
     # 프로젝트명, 엔티티(계정명 또는 팀명), 하이퍼파라미터 기록
     wandb.init(
-        project="DataTide_sales_compare_model",   # 원하는 프로젝트 이름
+        project="DataTide_sales_compare_model_1hidden_2",   # 원하는 프로젝트 이름
         entity=os.getenv("WANDB_ENTITY"),       # 본인 계정명
         config={
             "epochs": 100,

@@ -201,6 +201,23 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
     }
   });
 
+
+  //
+  const rankChartOptions = {
+              type: 'line',
+              data: data,
+              options: {
+                responsive: true,
+                plugins: {
+                  title: {
+                    display: true,
+                    text: (ctx) => 'Point Style: ' + ctx.chart.data.datasets[0].pointStyle,
+                  }
+                }
+              }
+            };
+  //
+
   const allX = [...pastX, ...predictedX];
   const ticktext = allX.map((label, index) => {
     const [year, month] = label.split(' ');
@@ -250,9 +267,21 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
     <div className="chart-container">
       <div className="chart-placeholder">
         {analysisType === '통계' ? (
-          <div className="comparison-chart">
-            <h4>📊 전년 대비 통계 차트</h4>
-            <Bar options={chartJsOptions} data={data} />
+
+          <div>
+            <div className="comparison-chart" style={{height: '500px'}}>
+              <h4>📊 전년 대비 통계 차트</h4>
+              <Bar options={chartJsOptions} data={data} />
+              {/* 통계 차트 추가 */}
+              {/* <div className="comparison-chart"> */}
+            </div>
+              <div className="comparison-chart" style={{height: '500px'}}>
+              <h4>📊 전년 대비 통계 차트</h4>
+              <Bar options={chartJsOptions} data={data} />
+              {/* 통계 차트 추가 */}
+              {/* <div className="comparison-chart"> */}
+            </div>
+
           </div>
         ) : (
           <div className="prediction-chart">
@@ -270,8 +299,8 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
 
       {/* 🔥 차트 데이터 출처 표시 */}
       <div className="chart-data-source">
-        <p><strong>📡 차트 데이터:</strong> {analysisType === '통계' ? '시계열 통계 분석 결과' : 'LSTM 예측 모델 출력'}</p>
-        <p><strong>🔄 실시간 연동:</strong> 서버 DB에서 자동 업데이트</p>
+        {/* <p><strong>📡 차트 데이터:</strong> {analysisType === '통계' ? '시계열 통계 분석 결과' : 'LSTM 예측 모델 출력'}</p>
+        <p><strong>🔄 실시간 연동:</strong> 서버 DB에서 자동 업데이트</p> */}
       </div>
     </div>
   );

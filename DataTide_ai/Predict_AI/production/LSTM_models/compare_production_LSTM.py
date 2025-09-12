@@ -18,7 +18,7 @@ from sklearn.preprocessing import LabelEncoder
 import joblib
 
 # --- 환경변수 불러오기 ---
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../../..", ".env"))
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../../../..", ".env"))
 
 # ======================
 # 1. MySQL 연결
@@ -51,42 +51,6 @@ print(item_retail.head())
 # ======================
 # 3. 테이블 머지 (JOIN)
 # ======================
-def read_df_1():
-    item_retail = pd.read_sql("SELECT * FROM item_retail", engine)
-    sea_weather = pd.read_sql("SELECT * FROM sea_weather", engine)
-    ground_weather = pd.read_sql("SELECT * FROM ground_weather", engine)
-    location = pd.read_sql("SELECT * FROM location", engine)
-    item = pd.read_sql("SELECT * FROM item", engine)
-
-    # sea_weather wide-format 변환
-    sea_weather = sea_weather.merge(location, on="local_pk", how="left")
-    sea_weather_wide = sea_weather.pivot(
-        index="month_date", 
-        columns="local_pk", 
-        values=["temperature", "wind", "salinity", "wave_height", "wave_period", "wave_speed", "rain", "snow"]
-    )
-
-    # 컬럼명 정리
-    sea_weather_wide.columns = [f"{var}_loc{loc}" for var, loc in sea_weather_wide.columns]
-    sea_weather_wide = sea_weather_wide.reset_index()
-    print(sea_weather_wide)
-
-    df = item_retail.merge(sea_weather_wide, on="month_date", how="left")
-    # df = df.merge(ground_weather, on="month_date", how="left")
-    df = df.merge(item, on="item_pk", how="left")
-
-    # 날짜 정렬
-    df["month_date"] = pd.to_datetime(df["month_date"])
-    df = df.sort_values(["month_date"]).reset_index(drop=True)
-    df["month_num"] = df["month_date"].dt.year * 12 + df["month_date"].dt.month
-    df = pd.get_dummies(df, columns=['item_name'])
-
-    print("Merged DataFrame:")
-    print(df.head())
-    df.to_csv("compare_production1.csv", index=False, encoding="utf-8-sig")
-
-    return df
-
 def read_df_2():
     item_retail = pd.read_sql("SELECT * FROM item_retail", engine)
     sea_weather = pd.read_sql("SELECT * FROM sea_weather", engine)
@@ -111,40 +75,6 @@ def read_df_2():
     print("Merged DataFrame:")
     print(df.head())
     df.to_csv("compare_production2.csv", index=False, encoding="utf-8-sig")
-
-    return df
-
-def read_df_3():
-    item_retail = pd.read_sql("SELECT * FROM item_retail", engine)
-    sea_weather = pd.read_sql("SELECT * FROM sea_weather", engine)
-    location = pd.read_sql("SELECT * FROM location", engine)
-    item = pd.read_sql("SELECT * FROM item", engine)
-    
-    # sea_weather wide-format 변환
-    sea_weather = sea_weather.merge(location, on="local_pk", how="left")
-
-    df = item_retail.merge(sea_weather, on="month_date", how="left")
-    df = df.merge(item, on="item_pk", how="left")
-
-    # 날짜 정렬
-    df["month_date"] = pd.to_datetime(df["month_date"])
-    df = df.sort_values(["month_date"]).reset_index(drop=True)
-    df["month_num"] = df["month_date"].dt.year * 12 + df["month_date"].dt.month
-
-    # 학습 단계
-    item_le = LabelEncoder()
-    local_le = LabelEncoder()
-
-    df["item_id"] = item_le.fit_transform(df["item_name"])
-    df["local_id"] = local_le.fit_transform(df["local_name"])
-
-    print("Merged DataFrame:")
-    print(df.head())
-    df.to_csv("compare_production3.csv", index=False, encoding="utf-8-sig")
-
-    # 인코더 저장
-    joblib.dump(item_le, "item_encoder.pkl")
-    joblib.dump(local_le, "local_encoder.pkl")
 
     return df
 
@@ -177,63 +107,84 @@ class TimeSeriesDataset(Dataset):
 # ======================
 # 5. PyTorch 모델 정의
 # ======================
-class LSTMModel(nn.Module):
+class LSTMModel_1hidden(nn.Module):
     def __init__(self, input_dim, hidden_dim=64, output_dim=1, num_layers=2):
-        super(LSTMModel, self).__init__()
+        super(LSTMModel_1hidden, self).__init__()
         self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, batch_first=True)
+        self.relu = nn.ReLU()
+
         self.fc = nn.Linear(hidden_dim, output_dim)
+        self.fc1 = nn.Linear(hidden_dim, 64)
+        self.fc2 = nn.Linear(64, output_dim)
 
     def forward(self, x):
         _, (h_n, _) = self.lstm(x)
-        out = self.fc(h_n[-1])  # 마지막 hidden state
+        out = h_n[-1]
+        out = self.fc(out)
+
+        # out = self.fc1(h_n[-1])
+        # out = self.relu(out)
+        # out = self.fc2(out)  # 마지막 hidden state
         return out
 
-class SimpleRNNModel(nn.Module):
+class LSTMModel_2hidden(nn.Module):
     def __init__(self, input_dim, hidden_dim=64, output_dim=1, num_layers=2):
-        super().__init__()
-        self.rnn = nn.RNN(input_dim, hidden_dim, num_layers, batch_first=True)
-        
-        # 중간 hidden layer 추가
-        self.hidden_layer = nn.Linear(hidden_dim, hidden_dim // 2)
+        super(LSTMModel_2hidden, self).__init__()
+        self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, batch_first=True)
         self.relu = nn.ReLU()
 
-        self.fc = nn.Linear(hidden_dim // 2, output_dim)
-
-    def forward(self, x):
-        _, h_n = self.rnn(x)
-       
-        # 추가 hidden layer 통과
-        h_n = self.hidden_layer(h_n[-1])     # (batch, hidden_dim//2)
-        h_n = self.relu(h_n)
-
-        out = self.fc(h_n)
-        return out
-
-class GRUModel(nn.Module):
-    def __init__(self, input_dim, hidden_dim=64, output_dim=1, num_layers=2):
-        super().__init__()
-        self.gru = nn.GRU(input_dim, hidden_dim, num_layers, batch_first=True)
         self.fc = nn.Linear(hidden_dim, output_dim)
+        self.fc1 = nn.Linear(hidden_dim, 64)
+        self.fc2 = nn.Linear(64, output_dim)
 
     def forward(self, x):
-        _, h_n = self.gru(x)
-        out = self.fc(h_n[-1])
+        _, (h_n, _) = self.lstm(x)
+        out = h_n[-1]
+        # out = self.fc(out)
+
+        out = self.fc1(h_n[-1])
+        out = self.relu(out)
+        out = self.fc2(out)  # 마지막 hidden state
         return out
+    
+class LSTMModel_1hidden_32(nn.Module):
+    def __init__(self, input_dim, hidden_dim=64, output_dim=1, num_layers=2):
+        super(LSTMModel_1hidden_32, self).__init__()
+        self.lstm = nn.LSTM(input_dim, 32, num_layers, batch_first=True)
+        self.relu = nn.ReLU()
 
-# feature embedding → Transformer Encoder → FC regression head
-class TransformerEncoderModel(nn.Module):
-    def __init__(self, input_dim, d_model=64, nhead=4, num_layers=2, output_dim=1):
-        super().__init__()
-        self.input_fc = nn.Linear(input_dim, d_model)
-        encoder_layer = nn.TransformerEncoderLayer(d_model=d_model, nhead=nhead, batch_first=True)
-        self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
-        self.fc = nn.Linear(d_model, output_dim)
+        self.fc = nn.Linear(32, output_dim)
+        self.fc1 = nn.Linear(hidden_dim, 64)
+        self.fc2 = nn.Linear(64, output_dim)
 
     def forward(self, x):
-        x = self.input_fc(x)
-        x = self.transformer(x)
-        # 마지막 시점 선택
-        out = self.fc(x[:, -1, :])
+        _, (h_n, _) = self.lstm(x)
+        out = h_n[-1]
+        out = self.fc(out)
+
+        # out = self.fc1(h_n[-1])
+        # out = self.relu(out)
+        # out = self.fc2(out)  # 마지막 hidden state
+        return out
+    
+class LSTMModel_2hidden_32(nn.Module):
+    def __init__(self, input_dim, hidden_dim=64, output_dim=1, num_layers=2):
+        super(LSTMModel_2hidden_32, self).__init__()
+        self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, batch_first=True)
+        self.relu = nn.ReLU()
+
+        self.fc = nn.Linear(hidden_dim, output_dim)
+        self.fc1 = nn.Linear(hidden_dim, 32)
+        self.fc2 = nn.Linear(32, output_dim)
+
+    def forward(self, x):
+        _, (h_n, _) = self.lstm(x)
+        out = h_n[-1]
+        # out = self.fc(out)
+
+        out = self.fc1(h_n[-1])
+        out = self.relu(out)
+        out = self.fc2(out)  # 마지막 hidden state
         return out
     
 # ======================
@@ -297,7 +248,14 @@ def train_and_evaluate(model, train_loader, val_loader, epochs=40, lr=1e-3, mode
             best_mae = mae
             best_r2 = r2
             best_state = model.state_dict()
-            torch.save(best_state, f"{model_name}_sales.pth")
+            save_path = f"{model_name}_sales.pth"
+            torch.save(best_state, save_path)
+
+            # W&B에도 저장
+            artifact = wandb.Artifact(model_name, type="model")
+            artifact.add_file(save_path)
+            wandb.log_artifact(artifact)
+
             print(f"  👉 Best model saved (epoch {epoch+1}, RMSE={rmse:.2f})")
 
 
@@ -347,10 +305,10 @@ input_dim = len(feature_cols)
 
 # 학습
 models = {
-    "LSTM": LSTMModel(input_dim=len(feature_cols), hidden_dim=64, output_dim=len(target_cols)),
-    "SimpleRNN": SimpleRNNModel(input_dim=len(feature_cols), hidden_dim=64, output_dim=len(target_cols)),
-    "GRU": GRUModel(input_dim=len(feature_cols), hidden_dim=64, output_dim=len(target_cols)),
-    "Transformer": TransformerEncoderModel(input_dim=len(feature_cols), d_model=64, nhead=4, num_layers=2, output_dim=len(target_cols))
+    "LSTM_1hidden": LSTMModel_1hidden(input_dim=len(feature_cols), hidden_dim=64, output_dim=len(target_cols)),
+    "LSTM_1hidden_32": LSTMModel_1hidden_32(input_dim=len(feature_cols), hidden_dim=64, output_dim=len(target_cols)),
+    "LSTM_2hidden": LSTMModel_2hidden(input_dim=len(feature_cols), hidden_dim=64, output_dim=len(target_cols)),
+    "LSTM_2hidden_32": LSTMModel_2hidden_32(input_dim=len(feature_cols), hidden_dim=64, output_dim=len(target_cols)),
 }
 
 results = {}
@@ -359,7 +317,7 @@ for name, model in models.items():
     print(f"\n===== Training {name} =====")
     # 프로젝트명, 엔티티(계정명 또는 팀명), 하이퍼파라미터 기록
     wandb.init(
-        project="DataTide_production_compare_model_3",   # 원하는 프로젝트 이름
+        project="DataTide_production_compare_model_LSTM_1",   # 원하는 프로젝트 이름
         entity=os.getenv("WANDB_ENTITY"),       # 본인 계정명
         config={
             "epochs": 100,
@@ -370,7 +328,7 @@ for name, model in models.items():
             "model":name
         },
         name=name,
-        group="read-df-3_5",
+        group="2",
         reinit=True   # run 새로 시작
     )
     rmse, mae, r2 = train_and_evaluate(model, train_loader, val_loader, 

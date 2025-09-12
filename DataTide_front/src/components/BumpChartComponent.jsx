@@ -12,7 +12,7 @@ const CustomEndLabel = ({series}) => (
             x={lastPoint.x * 1.1}
             y={lastPoint.y}
             alignmentBaseline="middle"
-            fontSize={18}
+            fontSize={25}
             fill={line.color}
             fontWeight="bold"
           >

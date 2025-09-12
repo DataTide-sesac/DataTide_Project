@@ -272,14 +272,13 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
             <div className="comparison-chart" style={{height: '500px'}}>
               <h4>📊 전년 대비 통계 차트</h4>
               <Bar options={chartJsOptions} data={data} />
+
               {/* 통계 차트 추가 */}
-              {/* <div className="comparison-chart"> */}
             </div>
-              <div className="comparison-chart" style={{height: '500px'}}>
+            <div className="comparison-chart" style={{height: '500px'}}>
               <h4>📊 전년 대비 통계 차트</h4>
-              <Bar options={chartJsOptions} data={data} />
-              {/* 통계 차트 추가 */}
-              {/* <div className="comparison-chart"> */}
+            <Bar options={chartJsOptions} data={data} />
+
             </div>
 
           </div>

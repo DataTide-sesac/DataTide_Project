@@ -1,10 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import ChartComponent from '../components/ChartComponent';
+import BumpChartComponent from '../components/BumpChartComponent';
 import Header from '../components/Header';
 import SearchBar from '../components/SearchBar';
 import ResultsTable from '../components/ResultsTable';
 import ChatbotWindow from '../components/ChatbotWindow'; // Import ChatbotWindow
-import { generateMockData, generateMockChartData, convertToCSV, downloadFile } from '../utils/index.js';
+import { generateMockData, generateBumpChartData, generateMockChartData, convertToCSV, downloadFile } from '../utils/index.js';
 import { fetchFisheriesData } from '../api';
 import { FISH_ITEMS, ANALYSIS_OPTIONS, DATA_CATEGORIES } from '../constants';
 import './DashboardPage.css';
@@ -45,7 +46,14 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [isChatbotOpen, setChatbotOpen] = useState(false); // 챗봇 상태 추가
+  const [bumpChartData, setBumpChartData] = useState(null);
   
+  useEffect(() => {
+  const bumpData = generateBumpChartData();
+  setBumpChartData(bumpData);
+                    }, []);
+
+
   // 검색 가능 여부 확인
   const canSearch = useMemo(() => {
     return selectedItem && selectedAnalysis && selectedCategories.length > 0
@@ -177,6 +185,13 @@ export default function DashboardPage() {
             analysisType={selectedAnalysis}
             selectedCategories={selectedCategories}
           />
+        </section>
+      )}
+
+      {bumpChartData && (
+        <section className="chart-section">
+          <h3>📊 품목 순위 변화 (Bump Chart)</h3>
+          <BumpChartComponent data={bumpChartData} />
         </section>
       )}
 

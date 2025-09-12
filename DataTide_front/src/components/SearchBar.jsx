@@ -30,9 +30,9 @@ export default function SearchBar({
           <div className="filter-options horizontal">
             {fishItems.map(item => (
               <button
-                key={item.id}
-                className={`option-btn ${selectedItem === item.id ? 'selected' : ''}`}
-                onClick={() => setSelectedItem(item.id)}
+                key={item.name}
+                className={`option-btn ${selectedItem === item.name ? 'selected' : ''}`}
+                onClick={() => setSelectedItem(item.name)}
                 disabled={item.disabled}
               >
                 {item.kr_name}

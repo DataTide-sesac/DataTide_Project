@@ -110,7 +110,7 @@ export default function StatsView({ selectedItems, selectedLocation }) {
       {chartData && (
         <section className="chart-section">
 
-          <ChartComponent data={chartData} type="comparison" />
+          <ChartComponent data={chartData} analysisType="통계" />
         </section>
       )}
 

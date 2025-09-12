@@ -1,3 +1,4 @@
+# schemas/location.py
 from pydantic import BaseModel
 from typing import Optional
 
@@ -9,6 +10,6 @@ class LocationCreate(LocationBase):
 
 class Location(LocationBase):
     local_pk: int
-
+    
     class Config:
         from_attributes = True

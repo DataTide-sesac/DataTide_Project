@@ -93,3 +93,33 @@
 | 풍속 | wind |
 | 강수량 | rain |
 | 적설량 | snow |
+
+앞으로 유사한 Python 패키지 내의 스크립트를 실행하실 때는 다음 사항들을 참고해 주시기 바랍니다:
+
+1. 모듈 실행 방식 사용
+프로젝트 루트에서 python -m 패키지명.모듈명 형태로 실행
+상대 import 문제를 자연스럽게 해결
+2. 디렉토리 구조 유지
+각 패키지 디렉토리에 __init__.py 파일 존재 확인
+적절한 import 구조 유지
+3. 실행 위치 주의
+항상 프로젝트 루트에서 실행하여 일관성 유지
+
+---
+
+### `ImportError: attempted relative import beyond top-level package` 오류 해결
+
+**문제:**
+`DataTide_back` 폴더 내의 `create_tables.py`와 같이 상대 경로(`from .db.database import ...` 또는 `from ..core.config import ...`)를 사용하는 스크립트를 해당 스크립트가 위치한 폴더(`DataTide_back`)에서 `python create_tables.py`와 같이 직접 실행할 경우 발생합니다. 파이썬이 스크립트의 패키지 구조를 올바르게 인식하지 못해 상대 경로를 해석할 수 없기 때문입니다.
+
+**해결책:**
+해당 스크립트를 파이썬 패키지 내의 모듈로 실행해야 합니다. 이를 위해서는 스크립트가 속한 패키지의 **부모 디렉토리(프로젝트 루트)**에서 `python -m` 명령어를 사용합니다.
+
+**예시:**
+`C:\datatide_workspaceN\DataTide_back\create_tables.py` 스크립트를 실행하려면, 프로젝트 루트 폴더(`C:\datatide_workspaceN`)로 이동한 후 다음 명령어를 실행합니다.
+
+```bash
+python -m DataTide_back.create_tables
+```
+
+이 방식은 파이썬이 `DataTide_back`을 하나의 패키지로 인식하고, 그 안의 `create_tables` 모듈을 올바르게 찾아 실행하도록 합니다.

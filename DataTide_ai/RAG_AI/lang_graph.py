@@ -13,6 +13,7 @@ import langchain
 # 시간 라이브러리
 from datetime import datetime, timedelta
 import os, pickle, time, hashlib
+import re
 import numpy as np
 import json, requests
 from typing import Any, Dict, Optional
@@ -32,7 +33,7 @@ from langchain.chat_models import init_chat_model
 
 # --- 환경변수 불러오기 ---
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../..", ".env"))
-openai_api_key = os.getenv("OPENAI_API_KEY2")
+openai_api_key = os.getenv("OPENAI_API_KEY3")
 openai_api_key2 = os.getenv("OPENAI_API_KEY2")
 
 mysql_user = os.getenv("MYSQL_USER")
@@ -215,6 +216,7 @@ print(tools[0].name, tools[0].description)
 # prompt(agent가 판단할 때 어떤 기준이 있다면? 이걸 프롬프트가 담고 있다.)
 prompt = ChatPromptTemplate.from_messages([
     ('system', '''당신은 품목당(갈치, 오징어, 고등어) 날짜에 따른 생산, 수입, 판매량 데이터베이스 전문가입니다.
+    단위는 톤입니다.
     만약 해당 내용에 대한 질문이 아니라면 저희는 품목당 날짜에 따른 생산, 수입, 판매량만 알려주는 챗봇이라 모른다고 답해줘.
     대답은 친절하게 해주세요.
     다음 도구들을 활용할 수 있어:
@@ -238,7 +240,7 @@ agent_executor = AgentExecutor(agent=agent, tools=tools)
 qa_chain = RetrievalQA.from_chain_type(
     llm=model,
     chain_type="stuff",
-    retriever=vectorstore.as_retriever(search_kwargs={"k": 30}),
+    retriever=vectorstore.as_retriever(search_kwargs={"k": 40}),
     return_source_documents=True,
 )
 
@@ -688,7 +690,7 @@ def classify_query_node(state: AgentState):
     query = state["query"]
     
     # 계산/분석이 필요한 키워드들
-    analysis_keywords = ['최대', '최소', '평균', '합계', '분석', '통계', '계산', '비교', '총합', '가장']
+    analysis_keywords = ['최대', '최소', '평균', '합계', '분석', '통계', '계산', '비교', '총합', '가장', '차이']
     # search_keywords = ['찾아', '검색', '언제', '어떤', '몇', '얼마']
     search_keywords = []
     
@@ -734,11 +736,10 @@ def rag_node(state: AgentState):
         # RAG 프롬프트 구성
         rag_prompt = f"""
             당신은 품목당(갈치, 오징어, 고등어) 날짜에 따른 생산, 수입, 판매량 데이터베이스 전문가입니다.
+            단위는 톤입니다.
             만약 해당 내용에 대한 질문이 아니라면 저희는 품목당 날짜에 따른 생산, 수입, 판매량만 알려주는 챗봇이라 모른다고 답해줘.
-            대답은 친절하게 해주세요.
             필요하다면 다음의 대화 기록을 참고하여 질문에 답변하세요.
             만약 답을 찾을 수 없다면, 모른다고 답하세요.
-            만약 계산이 필요한 거라면 계산하지 말고 계산에 필요한 정보만 보여주세요.
 
             현재 시각: {state["current_time"]}
 
@@ -748,42 +749,97 @@ def rag_node(state: AgentState):
             질문: {state["query"]}
         """
 
-        # rag_prompt = f"""
-        #     You are a SQL generator. 
-        #     Given a request, output ONLY a valid SQL query. 
-        #     Do not include explanations, comments, or any other text.
-        #     하단은 예시입니다. 같은 table과 join을 사용하고 출력은 동일합니다.
-        #     SELECT 
-        #         CASE 
-        #             WHEN i.item_name = 'Calamari' THEN '오징어'
-        #             WHEN i.item_name = 'CutlassFish' THEN '갈치'
-        #             WHEN i.item_name = 'Mackerel' THEN '고등어'
-        #             ELSE i.item_name
-        #         END AS item_name,
-        #     ir.month_date, ir.production, ir.inbound, ir.sales
-        #     FROM item_retail ir
-        #     LEFT JOIN item i ON ir.item_pk = i.item_pk
+        # if state["needs_agent"]:
+        if True:
+        # limit 1을 써야할 경우 대신 limit 3를 씁니다.
+            rag_prompt = f"""
+                You are a MySQL's SQL generator. 
+                Given a request, output ONLY a valid SQL query. 
+                Do not include explanations, comments, or any other text.
+                하단은 예시입니다. 같은 table과 join을 사용하고 출력의 항목은 동일하니 바꾸지 마세요.
+                출력은 item_name, month_date, production, inbound, sales 외엔 없습니다!!
+                UNION 쓰지 마. <<오류 주면 죽인다>>
+                SELECT 
+                    CASE 
+                        WHEN i.item_name = 'Calamari' THEN '오징어'
+                        WHEN i.item_name = 'CutlassFish' THEN '갈치'
+                        WHEN i.item_name = 'Mackerel' THEN '고등어'
+                        ELSE i.item_name
+                    END AS item_name,
+                ir.month_date, ir.production, ir.inbound, ir.sales
+                FROM item_retail ir
+                LEFT JOIN item i ON ir.item_pk = i.item_pk
+                
+                현재 시각: {state["current_time"]}
+
+                대화 기록:
+                {history_str}
+
+                질문: {state["query"]}
+            """
             
-        #     현재 시각: {state["current_time"]}
+            response = qa_chain.invoke({"query": rag_prompt})
+            rag_sql = response['result']
+            print(rag_sql)
 
-        #     대화 기록:
-        #     {history_str}
+            # 세미콜론 기준으로 split
+            queries = [q.strip() for q in rag_sql.split(";") if q.strip()] 
+            rows = []
+            texts = []
+            q_num = 0
+            select_dict = {}
+            for q in queries:
+                cursor.execute(q)
+                rows = cursor.fetchall()
+                start = q.upper().find("SELECT") + len("SELECT")
+                end = q.upper().find("FROM")
+                select_part = q[start:end].strip()
 
-        #     질문: {state["query"]}
-        # """
-        
-        # response = qa_chain.invoke({"query": rag_prompt})
-        # rag_sql = response['result']
-        # cursor.execute(rag_sql)
-        # rows = cursor.fetchall()
+                # 각 컬럼 분리 (쉼표 기준)
+                cols = [col.strip() for col in select_part.split(",") if col.strip()]
+                aliases = []
+                for col in cols:
+                    # AS 뒤에 있는 alias 잡기
+                    m = re.search(r"\s+AS\s+([a-zA-Z0-9_]+)", col, re.IGNORECASE)
+                    if m:
+                        aliases.append(m.group(1))
+                    else:
+                        # AS 없으면 마지막 점(.) 뒤의 부분을 사용
+                        if "." in col:
+                            aliases.append(col.split(".")[-1])
+                        else:
+                            aliases.append(col)
+                print(aliases)
+                for i, al in enumerate(aliases):
+                    if al == 'item_name':
+                        aliases[i] = "품목"
+                    elif al == 'month_date':
+                        aliases[i] = "날짜"
+                    elif al == 'production':
+                        aliases[i] = "생산량"
+                    elif al == 'inbound':
+                        aliases[i] = "수입량"
+                    elif al == 'sales':
+                        aliases[i] = "판매량"
 
-        # texts = [f"""품목: {row[0]}, 날짜: {row[1]}, 생산량: {row[2]}, 수입량: {row[3]}, 판매량: {row[4]}
-        #         """
-        #         for row in rows]
-        # state["rag_result"] = texts
-
-        response = qa_chain.invoke({"query": rag_prompt})
-        state["rag_result"] = response["result"]
+                for row in rows:
+                    sel_text = ""
+                    row_num = 0
+                    for key in aliases:
+                        sel_text += f"{key}: {row[row_num]}, "
+                        # print(sel_text)
+                        row_num += 1
+                    
+                    texts.append(sel_text)
+                
+                # texts += [f"""품목: {row[0]}, 날짜: {row[1]}, 생산량: {row[2]}, 수입량: {row[3]}, 판매량: {row[4]}
+                #         """
+                #         for row in rows]
+                
+            state["rag_result"] = texts
+        else:
+            response = qa_chain.invoke({"query": rag_prompt})
+            state["rag_result"] = response["result"]
         state["source_documents"] = response.get('source_documents', [])
         
         print(f"✅ RAG 검색 완료: {len(state['source_documents'])}개 문서 참조")
@@ -821,7 +877,11 @@ def agent_node(state: AgentState):
         # 대화 기록을 문자열로 변환
         history_str = "\n".join([f"Human: {q}\nAI: {a}" for q, a in state["chat_history"]])
 
+        # 만약 추가적인 데이터 분석이 필요하다면 analyze_data 도구를 사용하고,
         agent_input = f"""
+        아래 검색 결과를 바탕으로 필요한 분석이나 계산을 수행해주세요.
+        여러 품목이 있지 않거나 데이터가 많지 않더라도 검색 결과는 한번 정제해서 주는 데이터입니다. 부족하지 않으니 그걸로 대답해.
+        수학 계산이 필요하다면 calculator 도구를 사용해주세요.
         현재 시각: {state["current_time"]}
 
         검색 결과: {state["rag_result"]}
@@ -830,10 +890,6 @@ def agent_node(state: AgentState):
 
         대화 기록:
         {history_str}
-        
-        위 검색 결과를 바탕으로 필요한 분석이나 계산을 수행해주세요.
-        만약 추가적인 데이터 분석이 필요하다면 analyze_data 도구를 사용하고,
-        수학 계산이 필요하다면 calculator 도구를 사용해주세요.
         """
         
         response = agent_executor.invoke({"input": agent_input})
@@ -856,13 +912,48 @@ def agent_node(state: AgentState):
 def combine_results_node(state: AgentState):
     """결과 통합 노드"""
     print("🔗 결과 통합 중...")
+
+    state["final_answer"] = f"""{state["agent_result"]}
+
+RAG:
+{state["rag_result"]}
+"""
     
-    if state["needs_agent"] and state["agent_result"] and "오류" not in state["agent_result"]:
-        # Agent 결과가 있는 경우
-        state["final_answer"] = f"""{state["agent_result"]}"""
-    else:
-        # RAG만 사용하는 경우
-        state["final_answer"] = state["rag_result"]
+#     if state["needs_agent"] and state["agent_result"] and "오류" not in state["agent_result"]:
+#         # Agent 결과가 있는 경우
+#         state["final_answer"] = f"""{state["agent_result"]}
+
+# RAG:
+# {state["rag_result"]}
+# """
+#     else:
+#         # RAG만 사용하는 경우
+#         state["final_answer"] = state["rag_result"]
+
+    # # 대화 기록을 문자열로 변환
+    # history_str = "\n".join([f"Human: {q}\nAI: {a}" for q, a in state["chat_history"]])
+
+    # prompt = f'''
+    #     필요하다면 다음의 대화 기록을 참고하여 질문에 답변하세요.
+    #     검색 결과: {state["final_answer"]}
+        
+    #     원래 사용자 질문: {query}
+
+    #     대화 기록:
+    #     {history_str}
+    # '''
+
+    # sys_prompt = f'''
+    #     당신은 품목당(갈치, 오징어, 고등어) 날짜에 따른 생산, 수입, 판매량 데이터베이스 전문가입니다.
+    #     만약 해당 내용에 대한 질문이 아니라면 저희는 품목당 날짜에 따른 생산, 수입, 판매량만 알려주는 챗봇이라 모른다고 답해줘.
+    #     필요하다면 다음의 대화 기록을 참고하여 질문에 답변하세요.
+    #     만약 답을 찾을 수 없다면, 모른다고 답하세요.
+    # '''
+
+    # response = model.invoke([{'role':'user', 'content':prompt},
+    #                         {'role':'system', 'content':sys_prompt}])
+
+    # state["final_answer"] = response.content
     
     print("✅ 결과 통합 완료")
     return state
@@ -916,7 +1007,15 @@ def workflow_add_edge_2():
     workflow.add_edge("rag", "combine")
     workflow.add_edge("combine", END)
 
-workflow_add_edge_1()
+def workflow_add_edge_3():
+    workflow.add_edge(START, "classify")
+    workflow.add_edge("classify", "time")
+    workflow.add_edge("time", "rag")
+    workflow.add_edge("rag", "agent")
+    workflow.add_edge("agent", "combine")
+    workflow.add_edge("combine", END)
+
+workflow_add_edge_3()
 
 # 워크플로우 컴파일
 app = workflow.compile()

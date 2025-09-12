@@ -13,3 +13,4 @@ torchaudio
 scikit-learn
 pytest
 httpx
+python-dotenv

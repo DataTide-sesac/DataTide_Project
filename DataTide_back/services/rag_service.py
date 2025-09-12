@@ -19,7 +19,7 @@ def get_rag_response(query: str) -> dict:
         "answer": f"'{query}'에 대한 답변입니다.",
         "source_documents": [
             {"source": "doc_1.pdf", "content": "관련 문서 1의 내용..."},
-            {"source": "doc_2.txt", "content": "관련 문서 2의 내용..."},
+            {"source": "doc_2.txt", "content": "관련 문서 2의 내용..."}
         ]
     }
 

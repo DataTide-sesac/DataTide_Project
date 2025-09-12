@@ -3,6 +3,7 @@ import pandas as pd
 from sqlalchemy import create_engine, text
 func = pf.PublicFunc()
 
+# 테이블 삭제
 def DropTables():
     user = 'team_dt'
     password = 'dt_1234'
@@ -15,10 +16,10 @@ def DropTables():
     with engine.connect() as conn:
         print(f'Connected {user}')
 
-        #외래키 제약 제거
+        # 외래키 제약 제거
         conn.execute(text('SET FOREIGN_KEY_CHECKS = 0;'))
 
-        #테이블 삭제
+        # 테이블 삭제
         conn.execute(text(f'''
                           DROP TABLE 
                           location,
@@ -28,6 +29,7 @@ def DropTables():
                           sea_weather
                           '''))
 
+# 테이블 생성
 def CreateTables():
     user = 'team_dt'
     password = 'dt_1234'
@@ -40,18 +42,23 @@ def CreateTables():
     with engine.connect() as conn:
         print(f'Connected {user}')
 
+        # location
         conn.execute(text(f'''
                     create table location(
                     local_pk INT primary key AUTO_INCREMENT,
                     local_name varchar(30)
                 );
                 '''))
+        
+        # item
         conn.execute(text(f'''
                     CREATE TABLE item(
                     item_pk   INT PRIMARY key AUTO_INCREMENT,
                     item_name VARCHAR(20)
                 );
                 '''))
+        
+        # ground_weather
         conn.execute(text(f'''
                     create table ground_weather(
                     ground_pk BIGINT PRIMARY key AUTO_INCREMENT,
@@ -60,6 +67,8 @@ def CreateTables():
                     rain float
                 );
                 '''))
+        
+        # item_retail
         conn.execute(text(f'''
                     create table item_retail(
                     retail_pk BIGINT PRIMARY key AUTO_INCREMENT,
@@ -73,6 +82,21 @@ def CreateTables():
                 );
                 '''))
         
+        # item_predict
+        conn.execute(text(f'''
+                    create table item_predict(
+                    predict_pk BIGINT PRIMARY key AUTO_INCREMENT,
+                    item_pk int,
+                    month_date date,
+                    production int,
+                    inbound int,
+                    sales int,
+                    
+                    FOREIGN KEY (item_pk) REFERENCES item(item_pk)
+                );
+                '''))
+        
+        # sea_weather
         conn.execute(text(f'''
                     create table sea_weather(
                     sea_pk bigint PRIMARY key AUTO_INCREMENT,
@@ -91,7 +115,7 @@ def CreateTables():
                 );
                 '''))
 
-#ground_weather
+# ground_weather
 def GroundWeatherAdd(filePath):
     itemDic = {
         '일시':'month_date',
@@ -114,6 +138,7 @@ def GroundWeatherAdd(filePath):
 
     df.to_sql(name='ground_weather', con=engine, if_exists='append',index=False)
 
+# sea_weather
 def SeaWeatherAdd(filePath):
     itemDic = {
         '지역':'local_name',
@@ -142,16 +167,17 @@ def SeaWeatherAdd(filePath):
 
     engine = create_engine(f'mysql+pymysql://{user}:{password}@{host}:{port}/{database}')
 
-    #부모테이블에서 키,이름 받기
+    # 부모테이블에서 키,이름 받기
     locationKey = pd.read_sql('SELECT local_pk, local_name FROM location', engine)
 
-    #데이터 합치기
+    # 데이터 합치기
     df_merged = pd.merge(df,locationKey, how='left', on='local_name')
 
     df_insert = df_merged[['local_pk','month_date','temperature','wind','salinity','wave_height','wave_period','wave_speed','rain','snow']]
 
     df_insert.to_sql(name='sea_weather', con=engine, if_exists='append', index=False)
 
+# location
 def LocationAdd(filePath):
     fileName=func.ReadFold(filePath)
     for file in fileName:
@@ -172,7 +198,7 @@ def LocationAdd(filePath):
     df_localName = df['local_name'].drop_duplicates()
     df_localName.to_sql(name='location', con=engine, if_exists='append',index=False)
 
-
+# item
 def ItemAdd(filePath):
     itemDic = {
         '품목명':'item_name'
@@ -202,6 +228,7 @@ def ItemAdd(filePath):
 
     dfFishName.to_sql(name='item', con=engine, if_exists='append',index=False)
 
+# item_retail
 def RetailAdd(filePath):
     itemDic = {
         '품목명':'item_name',
@@ -231,10 +258,10 @@ def RetailAdd(filePath):
 
     engine = create_engine(f'mysql+pymysql://{user}:{password}@{host}:{port}/{database}')
 
-    #부모테이블에서 키,이름 받기
+    # 부모테이블에서 키,이름 받기
     itemKey = pd.read_sql('SELECT item_pk, item_name FROM item', engine)
 
-    #데이터 합치기
+    # 데이터 합치기
     dfMerged = pd.merge(fishList,itemKey, how='left', on='item_name')
 
     dfInsert = dfMerged[['item_pk','production','inbound','sales','month_date']]
@@ -242,15 +269,15 @@ def RetailAdd(filePath):
     dfInsert.to_sql(name='item_retail', con=engine, if_exists='append',index=False)
 
 if __name__ == '__main__':
-    filePath='./DataSet/Total'
+    # 필요한 것만 주석 해제해서 쓰기
+    filePath='../DataSet/Total'
 
     DropTables()
     CreateTables()
-
 
     GroundWeatherAdd(f'{filePath}/GroundWeather')
     LocationAdd(f'{filePath}/SeaWeather')
     SeaWeatherAdd(f'{filePath}/SeaWeather')
     ItemAdd(f'{filePath}/FishData')
     RetailAdd(f'{filePath}/FishData')
-
+    pass

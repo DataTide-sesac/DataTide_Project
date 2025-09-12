@@ -91,19 +91,39 @@ export function generateMockChartData({ analysisType, period, selectedCategories
         });
     }
 
-    const traces = [
-      { x: monthLabels, y: yData.current['수입'], name: `${startYear === endYear ? endYear : `${startYear}~${endYear}`} 수입`, type: 'scatter', mode: 'lines+markers', marker: { color: '#1565C0' } },
-      { x: monthLabels, y: yData.current['판매'], name: `${startYear === endYear ? endYear : `${startYear}~${endYear}`} 판매`, type: 'scatter', mode: 'lines+markers', marker: { color: '#388E3C' } },
-      { x: monthLabels, y: yData.current['생산'], name: `${startYear === endYear ? endYear : `${startYear}~${endYear}`} 생산`, type: 'scatter', mode: 'lines+markers', marker: { color: '#F57C00' } },
-      { x: monthLabels, y: yData.previous['수입'], name: `${startYear === endYear ? endYear - 1 : `${startYear - 1}~${endYear - 1}`} 수입`, type: 'bar', marker: { color: 'rgba(100, 181, 246, 0.6)' } },
-      { x: monthLabels, y: yData.previous['판매'], name: `${startYear === endYear ? endYear - 1 : `${startYear - 1}~${endYear - 1}`} 판매`, type: 'bar', marker: { color: 'rgba(129, 199, 132, 0.60)' } },
-      { x: monthLabels, y: yData.previous['생산'], name: `${startYear === endYear ? endYear - 1 : `${startYear - 1}~${endYear - 1}`} 생산`, type: 'bar', marker: { color: 'rgba(255, 183, 77, 0.60)' } },
-    ];
+    // Prepend previous month's data to connect the line graph
+    if (startMonth > 1) {
+      const prevMonthLabel = allMonths[startMonth - 2];
+      monthLabels.unshift(prevMonthLabel);
 
-    const filteredTraces = traces.filter(trace => selectedCategories.some(category => trace.name.includes(category)));
-    return filteredTraces;
+      ['생산', '판매', '수입'].forEach(cat => {
+        const prevMonthData = fullYData.previous[cat][startMonth - 2];
+        yData.current[cat].unshift(prevMonthData);
+        yData.previous[cat].unshift(null); // Add null to bar data to keep it aligned
+      });
+    }
+
+    const datasets = [
+      { type: 'line', order: 2, label: `${startYear === endYear ? endYear : `${startYear}~${endYear}`} 생산`, data: yData.current['생산'], borderColor: '#1565C0' },
+      { type: 'line', order: 2, label: `${startYear === endYear ? endYear : `${startYear}~${endYear}`} 판매`, data: yData.current['판매'], borderColor: '#388E3C' },
+      { type: 'line', order: 2, label: `${startYear === endYear ? endYear : `${startYear}~${endYear}`} 수입`, data: yData.current['수입'], borderColor: '#F57C00' },
+      { type: 'bar', order: 1, label: `${startYear === endYear ? endYear - 1 : `${startYear - 1}~${endYear - 1}`} 생산`, data: yData.previous['생산'], backgroundColor: 'rgba(100, 181, 246, 1)' },
+      { type: 'bar', order: 1, label: `${startYear === endYear ? endYear - 1 : `${startYear - 1}~${endYear - 1}`} 판매`, data: yData.previous['판매'], backgroundColor: 'rgba(129, 199, 132, 1)' },
+      { type: 'bar', order: 1, label: `${startYear === endYear ? endYear - 1 : `${startYear - 1}~${endYear - 1}`} 수입`, data: yData.previous['수입'], backgroundColor: 'rgba(255, 183, 77, 1)' },
+    ];
+    
+    const filteredDatasets = datasets.filter(dataset => {
+      const category = dataset.label.split(' ').pop();
+      return selectedCategories.includes(category);
+    });
+
+    return {
+      labels: monthLabels,
+      datasets: filteredDatasets,
+    };
   }
 
+  // For prediction chart, keep original Plotly data structure
   if (analysisType === '예측') {
     const { pastX, predictedX, predictionMockData } = generatePredictionChartData();
     const predictionData = [];

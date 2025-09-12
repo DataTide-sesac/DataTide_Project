@@ -12,3 +12,12 @@
   font-weight: 600;
   color: var(--text-color);
 }
+
+.chart-placeholder {
+  position: relative;
+  height: 500px;
+}
+
+.comparison-chart {
+  height: 100%;
+}

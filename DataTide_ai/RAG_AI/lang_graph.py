@@ -757,6 +757,7 @@ def rag_node(state: AgentState):
                 Given a request, output ONLY a valid SQL query. 
                 Do not include explanations, comments, or any other text.
                 하단은 예시입니다. 같은 table과 join을 사용하고 출력의 항목은 동일하니 바꾸지 마세요.
+                출력은 item_name, month_date, production, inbound, sales 외엔 없습니다!!
                 UNION 쓰지 마. <<오류 주면 죽인다>>
                 SELECT 
                     CASE 
@@ -826,6 +827,7 @@ def rag_node(state: AgentState):
                     row_num = 0
                     for key in aliases:
                         sel_text += f"{key}: {row[row_num]}, "
+                        # print(sel_text)
                         row_num += 1
                     
                     texts.append(sel_text)
@@ -910,17 +912,23 @@ def agent_node(state: AgentState):
 def combine_results_node(state: AgentState):
     """결과 통합 노드"""
     print("🔗 결과 통합 중...")
-    
-    if state["needs_agent"] and state["agent_result"] and "오류" not in state["agent_result"]:
-        # Agent 결과가 있는 경우
-        state["final_answer"] = f"""{state["agent_result"]}
+
+    state["final_answer"] = f"""{state["agent_result"]}
 
 RAG:
 {state["rag_result"]}
 """
-    else:
-        # RAG만 사용하는 경우
-        state["final_answer"] = state["rag_result"]
+    
+#     if state["needs_agent"] and state["agent_result"] and "오류" not in state["agent_result"]:
+#         # Agent 결과가 있는 경우
+#         state["final_answer"] = f"""{state["agent_result"]}
+
+# RAG:
+# {state["rag_result"]}
+# """
+#     else:
+#         # RAG만 사용하는 경우
+#         state["final_answer"] = state["rag_result"]
 
     # # 대화 기록을 문자열로 변환
     # history_str = "\n".join([f"Human: {q}\nAI: {a}" for q, a in state["chat_history"]])

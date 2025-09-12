@@ -13,7 +13,7 @@ import os
 from dotenv import load_dotenv
 
 # --- 환경변수 불러오기 ---
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../..", ".env"))
+load_dotenv(dotenv_path='C:/datatide_workspaceN/DataTide_back/api/endpoints/.env')
 openai_api_key = os.getenv("OPENAI_API_KEY")
 
 mysql_user = os.getenv("MYSQL_USER")

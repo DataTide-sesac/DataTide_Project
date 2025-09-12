@@ -1,4 +1,4 @@
-from db.session import db_session
+from DataTide_back.db.session import db_session
 from DataTide_back.schemas.sea_weather import SeaWeatherCreate
 from DataTide_back.services.location_crud import get_location_by_name
 

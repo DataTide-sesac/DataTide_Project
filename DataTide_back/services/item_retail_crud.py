@@ -1,10 +1,10 @@
-from db.session import db_session
+from DataTide_back.db.session import db_session
 from DataTide_back.schemas.item_retail import ItemRetailCreate
 
 def get_item_pk_by_name(item_name: str):
     """Helper function to get item_pk from item_name."""
     with db_session() as cursor:
-        sql = "SELECT item_pk FROM item WHERE item_name = %s"
+        sql = "SELECT item_pk FROM item_retail WHERE item_name = %s"
         cursor.execute(sql, (item_name,))
         result = cursor.fetchone()
         return result['item_pk'] if result else None

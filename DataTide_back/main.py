@@ -2,8 +2,19 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from DataTide_back.api.router import api_router
+from DataTide_back.services import rag_service # Import the service
 
 app = FastAPI()
+
+@app.on_event("startup")
+async def startup_event():
+    """
+    Application startup event handler.
+    Initializes the RAG pipeline.
+    """
+    print("Application startup: Initializing RAG pipeline...")
+    rag_service.initialize_rag_pipeline()
+    print("Application startup: RAG pipeline initialization complete.")
 
 # CORS 미들웨어 추가
 app.add_middleware(

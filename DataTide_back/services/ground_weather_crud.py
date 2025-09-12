@@ -1,4 +1,4 @@
-from db.session import db_session
+from DataTide_back.db.session import db_session
 from DataTide_back.schemas.ground_weather import GroundWeatherCreate
 from typing import List
 

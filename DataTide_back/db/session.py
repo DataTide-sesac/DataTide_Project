@@ -1,5 +1,5 @@
 import contextlib
-from db.database import get_connection, close_connection
+from DataTide_back.db.database import get_connection, close_connection
 
 @contextlib.contextmanager
 def db_session():

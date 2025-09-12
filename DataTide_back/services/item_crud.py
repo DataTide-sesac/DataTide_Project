@@ -1,5 +1,5 @@
 # services/item_crud.py
-from db.session import db_session
+from DataTide_back.db.session import db_session
 from DataTide_back.schemas.item import ItemCreate
 
 def get_item(item_pk: int):

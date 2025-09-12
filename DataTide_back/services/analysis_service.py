@@ -1,4 +1,4 @@
-from db.session import db_session
+from DataTide_back.db.session import db_session
 from typing import List
 
 def get_fisheries_analysis_data(item_pk: int, years_to_query: List[int]):

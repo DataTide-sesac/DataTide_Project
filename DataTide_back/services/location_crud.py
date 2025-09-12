@@ -1,4 +1,4 @@
-from db.session import db_session
+from DataTide_back.db.session import db_session
 from DataTide_back.schemas.location import LocationCreate
 
 def get_locations(skip: int = 0, limit: int = 100):

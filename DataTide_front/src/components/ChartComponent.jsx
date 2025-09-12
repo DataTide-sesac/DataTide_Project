@@ -1,5 +1,31 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import Plot from 'react-plotly.js';
+import { Bar } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+} from 'chart.js';
+
+// Register Chart.js components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+);
 
 export default function ChartComponent({ data, analysisType, selectedCategories }) {
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -10,6 +36,39 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // --- Chart.js Options for Statistics Chart ---
+  const chartJsOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+      title: {
+        display: false, // Using custom title outside the chart
+      },
+      tooltip: {
+        mode: 'index',
+        intersect: false,
+      },
+    },
+    scales: {
+      x: {
+        stacked: true,
+      },
+      y: {
+        stacked: true,
+        ticks: {
+          callback: function(value) {
+            return value + '톤';
+          }
+        }
+      },
+    },
+  };
+
+
+  // --- Plotly Layouts for Prediction Chart (Kept for compatibility) ---
   const baseComparisonLayout = {
     xaxis: { title: '월' },
     yaxis: { title: { text: '' } }, // Y축 제목을 비워서 보이지 않게 처리
@@ -35,8 +94,9 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
         showarrow: false,
         xref: 'paper',
         yref: 'paper',
-        x: -0.02,
-        y: 1.21,
+        x: -0.038,
+        y: 1.24,
+
         xanchor: 'left',
         yanchor: 'top',
         font: {
@@ -50,8 +110,6 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
     ...baseComparisonLayout,
     legend: {
       bgcolor: 'rgba(255, 255, 255, 0.7)',
-      // bordercolor: '#E2E2E2',
-      // borderwidth: 1,
       font: {
         size: 14
       },
@@ -73,13 +131,9 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
     margin: windowWidth < 768 ? { b: 100 } : { t: 80 } // Adjusted margin for top legend
   };
 
-
-
-
-
-  // Mock data for prediction chart (주석 처리)
-  const pastX = ['2023년 01월', '2023년 02월', '2023년 03월', '2023년 04월', '2023년 05월', '2023년 06월', '2023년 07월', '2023년 08월', '2023년 09월', '2023년 10월', '2023년 11월', '2023년 12월'];
-  const predictedX = ['2024년 01월', '2024년 02월', '2024년 03월', '2024년 04월', '2024년 05월', '2024년 06월', '2024년 07월', '2024년 08월', '2024년 09월', '2024년 10월', '2024년 11월', '2024년 12월'];
+  // --- Plotly Data and Layout for Prediction Chart (User's Code - UNTOUCHED) ---
+  const fullPastX = ['2023년 01월', '2023년 02월', '2023년 03월', '2023년 04월', '2023년 05월', '2023년 06월', '2023년 07월', '2023년 08월', '2023년 09월', '2023년 10월', '2023년 11월', '2023년 12월'];
+  const fullPredictedX = ['2024년 01월', '2024년 02월', '2024년 03월', '2024년 04월', '2024년 05월', '2024년 06월', '2024년 07월', '2024년 08월', '2024년 09월', '2024년 10월', '2024년 11월', '2024년 12월'];
 
   const predictionMockData = {
     '생산': {
@@ -102,12 +156,17 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
     }
   };
 
+  const pastX = fullPastX.slice(-6);
+  const predictedX = fullPredictedX.slice(0, 6);
+
   const predictionData = [];
   selectedCategories.forEach(category => {
     const trimmedCategory = category.trim();
     const categoryData = predictionMockData[trimmedCategory];
     if (categoryData) {
-      const { pastY, predictedY, color, fill } = categoryData;
+      const { color, fill } = categoryData;
+      const pastY = categoryData.pastY.slice(-6);
+      const predictedY = categoryData.predictedY.slice(0, 6);
       const pastXConnected = [...pastX, predictedX[0]];
       const pastYConnected = [...pastY, predictedY[0]];
 
@@ -126,6 +185,8 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
         type: 'scatter',
         mode: 'lines',
         line: { color: color, dash: 'dash' },
+        fill:'tozeroy',
+        fillcolor:fill,
       });
       predictionData.push({
         x: [...predictedX, ...[...predictedX].reverse()],
@@ -140,20 +201,27 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
     }
   });
 
-
+  //
+  const rankChartOptions = {
+              type: 'line',
+              data: data,
+              options: {
+                responsive: true,
+                plugins: {
+                  title: {
+                    display: true,
+                    text: (ctx) => 'Point Style: ' + ctx.chart.data.datasets[0].pointStyle,
+                  }
+                }
+              }
+            };
+  //
   const allX = [...pastX, ...predictedX];
   const ticktext = allX.map((label, index) => {
     const [year, month] = label.split(' ');
-
-    if (index === 0) {
-      return label;
-    }
-
+    if (index === 0) return label;
     const [prevYear] = allX[index - 1].split(' ');
-    if (year !== prevYear) {
-      return label;
-    }
-
+    if (year !== prevYear) return label;
     return month;
   });
 
@@ -163,17 +231,11 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
       tickvals: allX,
       ticktext: ticktext,
     },
-    yaxis: {
-      title: { text: '' } // Y축 제목을 비워서 보이지 않게 처리
-    },
-    legend: {
-      font: {
-        size: 14
-      }
-    },
+    yaxis: { title: { text: '' } },
+    legend: { font: { size: 14 } },
     annotations: [
       {
-        text: '단위(톤)', // 어노테이션으로 Y축 제목 추가
+        text: '단위(톤)',
         align: 'left',
         showarrow: false,
         xref: 'paper',
@@ -182,9 +244,7 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
         y: 0.99,
         xanchor: 'left',
         yanchor: 'bottom',
-        font: {
-          size: 14
-        }
+        font: { size: 14 }
       },
       {
         text: '<b>예측</b>',
@@ -192,13 +252,11 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
         showarrow: false,
         xref: 'paper',
         yref: 'paper',
-        x: -0.02,
-        y: 1.21,
+        x: -0.038,
+        y: 1.24,
         xanchor: 'left',
         yanchor: 'top',
-        font: {
-          size: 30
-        },
+        font: { size: 30 },
       }
     ]
   };
@@ -207,15 +265,19 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
     <div className="chart-container">
       <div className="chart-placeholder">
         {analysisType === '통계' ? (
-          <div className="comparison-chart">
-            <h4>📊 전년 대비 통계 차트</h4>
-            <Plot
-              key={JSON.stringify(data)}
-              data={data}
-              layout={comparisonLayout}
-              style={{ width: '100%', height: '100%' }}
-              useResizeHandler={true}
-            />
+          <div>
+            <div className="comparison-chart" style={{height: '500px'}}>
+              <h4>📊 전년 대비 통계 차트</h4>
+              <Bar options={chartJsOptions} data={data} />
+              {/* 통계 차트 추가 */}
+              {/* <div className="comparison-chart"> */}
+            </div>
+              <div className="comparison-chart" style={{height: '500px'}}>
+              <h4>📊 전년 대비 통계 차트</h4>
+              <Bar options={chartJsOptions} data={data} />
+              {/* 통계 차트 추가 */}
+              {/* <div className="comparison-chart"> */}
+            </div>
           </div>
         ) : (
           <div className="prediction-chart">
@@ -233,8 +295,8 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
 
       {/* 🔥 차트 데이터 출처 표시 */}
       <div className="chart-data-source">
-        <p><strong>📡 차트 데이터:</strong> {analysisType === '통계' ? '시계열 통계 분석 결과' : 'LSTM 예측 모델 출력'}</p>
-        <p><strong>🔄 실시간 연동:</strong> 서버 DB에서 자동 업데이트</p>
+        {/* <p><strong>📡 차트 데이터:</strong> {analysisType === '통계' ? '시계열 통계 분석 결과' : 'LSTM 예측 모델 출력'}</p>
+        <p><strong>🔄 실시간 연동:</strong> 서버 DB에서 자동 업데이트</p> */}
       </div>
     </div>
   );

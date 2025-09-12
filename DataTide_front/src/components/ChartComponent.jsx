@@ -69,67 +69,67 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
 
 
   // --- Plotly Layouts for Prediction Chart (Kept for compatibility) ---
-  const baseComparisonLayout = {
-    xaxis: { title: '월' },
-    yaxis: { title: { text: '' } }, // Y축 제목을 비워서 보이지 않게 처리
-    barmode: 'stack',
-    annotations: [
-      {
-        text: '단위(톤)', // 어노테이션으로 Y축 제목 추가
-        align: 'left',
-        showarrow: false,
-        xref: 'paper',
-        yref: 'paper',
-        x: -0.035,
-        y: 0.99,
-        xanchor: 'left',
-        yanchor: 'bottom',
-        font: {
-          size: 14
-        }
-      },
-      {
-        text: '<b>통계</b>',
-        align: 'left',
-        showarrow: false,
-        xref: 'paper',
-        yref: 'paper',
-        x: -0.038,
-        y: 1.24,
+  // const baseComparisonLayout = {
+  //   xaxis: { title: '월' },
+  //   yaxis: { title: { text: '' } }, // Y축 제목을 비워서 보이지 않게 처리
+  //   barmode: 'stack',
+  //   annotations: [
+  //     {
+  //       text: '단위(톤)', // 어노테이션으로 Y축 제목 추가
+  //       align: 'left',
+  //       showarrow: false,
+  //       xref: 'paper',
+  //       yref: 'paper',
+  //       x: -0.035,
+  //       y: 0.99,
+  //       xanchor: 'left',
+  //       yanchor: 'bottom',
+  //       font: {
+  //         size: 14
+  //       }
+  //     },
+  //     {
+  //       text: '<b>통계</b>',
+  //       align: 'left',
+  //       showarrow: false,
+  //       xref: 'paper',
+  //       yref: 'paper',
+  //       x: -0.038,
+  //       y: 1.24,
 
-        xanchor: 'left',
-        yanchor: 'top',
-        font: {
-          size: 30
-        },
-      }
-    ],
-  };
+  //       xanchor: 'left',
+  //       yanchor: 'top',
+  //       font: {
+  //         size: 30
+  //       },
+  //     }
+  //   ],
+  // };
 
-  const comparisonLayout = {
-    ...baseComparisonLayout,
-    legend: {
-      bgcolor: 'rgba(255, 255, 255, 0.7)',
-      font: {
-        size: 14
-      },
-      ...(windowWidth < 768
-        ? { // Mobile
-            orientation: 'h',
-            x: 0.5,
-            xanchor: 'center',
-            y: -0.2
-          }
-        : { // Desktop
-            orientation: 'h',
-            y: 1,
-            yanchor: 'bottom',
-            x: 1,
-            xanchor: 'right'
-          })
-    },
-    margin: windowWidth < 768 ? { b: 100 } : { t: 80 } // Adjusted margin for top legend
-  };
+  // const comparisonLayout = {
+  //   ...baseComparisonLayout,
+  //   legend: {
+  //     bgcolor: 'rgba(255, 255, 255, 0.7)',
+  //     font: {
+  //       size: 14
+  //     },
+  //     ...(windowWidth < 768
+  //       ? { // Mobile
+  //           orientation: 'h',
+  //           x: 0.5,
+  //           xanchor: 'center',
+  //           y: -0.2
+  //         }
+  //       : { // Desktop
+  //           orientation: 'h',
+  //           y: 1,
+  //           yanchor: 'bottom',
+  //           x: 1,
+  //           xanchor: 'right'
+  //         })
+  //   },
+  //   margin: windowWidth < 768 ? { b: 100 } : { t: 80 } // Adjusted margin for top legend
+  // };
 
   // --- Plotly Data and Layout for Prediction Chart (User's Code - UNTOUCHED) ---
   const fullPastX = ['2023년 01월', '2023년 02월', '2023년 03월', '2023년 04월', '2023년 05월', '2023년 06월', '2023년 07월', '2023년 08월', '2023년 09월', '2023년 10월', '2023년 11월', '2023년 12월'];
@@ -277,7 +277,7 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
             </div>
             <div className="comparison-chart" style={{height: '500px'}}>
               <h4>📊 전년 대비 통계 차트</h4>
-            <Bar options={chartJsOptions} data={data} />
+              <Bar options={chartJsOptions} data={data} />
 
             </div>
 

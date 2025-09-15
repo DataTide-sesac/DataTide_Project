@@ -96,6 +96,9 @@ class TimeSeriesDataset(Dataset):
         self.features = self.scaler_x.fit_transform(self.features)
         self.targets = self.scaler_y.fit_transform(self.targets)
 
+        joblib.dump(self.scaler_x, "production_scaler_x.pkl")
+        joblib.dump(self.scaler_y, "production_scaler_y.pkl")
+
     def __len__(self):
         return len(self.features) - self.window_size
 
@@ -248,7 +251,7 @@ def train_and_evaluate(model, train_loader, val_loader, epochs=40, lr=1e-3, mode
             best_mae = mae
             best_r2 = r2
             best_state = model.state_dict()
-            save_path = f"{model_name}_sales.pth"
+            save_path = f"{model_name}_production.pth"
             torch.save(best_state, save_path)
 
             # W&B에도 저장
@@ -328,7 +331,7 @@ for name, model in models.items():
             "model":name
         },
         name=name,
-        group="4",
+        group="11",
         reinit=True   # run 새로 시작
     )
     rmse, mae, r2 = train_and_evaluate(model, train_loader, val_loader, 

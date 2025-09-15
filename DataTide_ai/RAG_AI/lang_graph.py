@@ -240,7 +240,7 @@ agent_executor = AgentExecutor(agent=agent, tools=tools)
 qa_chain = RetrievalQA.from_chain_type(
     llm=model,
     chain_type="stuff",
-    retriever=vectorstore.as_retriever(search_kwargs={"k": 40}),
+    retriever=vectorstore.as_retriever(search_kwargs={"k": 1}),
     return_source_documents=True,
 )
 
@@ -758,7 +758,7 @@ def rag_node(state: AgentState):
                 Do not include explanations, comments, or any other text.
                 하단은 예시입니다. 같은 table과 join을 사용하고 출력의 항목은 동일하니 바꾸지 마세요.
                 출력은 item_name, month_date, production, inbound, sales 외엔 없습니다!!
-                UNION 쓰지 마. <<오류 주면 죽인다>>
+                UNION 쓰지 마.
                 SELECT 
                     CASE 
                         WHEN i.item_name = 'Calamari' THEN '오징어'

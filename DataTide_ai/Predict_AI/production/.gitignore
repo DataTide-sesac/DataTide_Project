@@ -1,4 +1,2 @@
-sales/wandb
-sales/__pycache__
-production/wandb
+LSTM_models/wandb
 *.csv

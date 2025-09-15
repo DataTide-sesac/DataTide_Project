@@ -14,11 +14,9 @@ from dotenv import load_dotenv
 import seaborn as sns
 import matplotlib.pyplot as plt
 import wandb
-from sklearn.preprocessing import LabelEncoder
-import joblib
 
 # --- 환경변수 불러오기 ---
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../../../..", ".env"))
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../../..", ".env"))
 
 # ======================
 # 1. MySQL 연결
@@ -51,34 +49,20 @@ print(item_retail.head())
 # ======================
 # 3. 테이블 머지 (JOIN)
 # ======================
-def read_df_2():
-    item_retail = pd.read_sql("SELECT * FROM item_retail", engine)
-    sea_weather = pd.read_sql("SELECT * FROM sea_weather", engine)
-    ground_weather = pd.read_sql("SELECT * FROM ground_weather", engine)
-    location = pd.read_sql("SELECT * FROM location", engine)
-    item = pd.read_sql("SELECT * FROM item", engine)
-    
-    # sea_weather wide-format 변환
-    sea_weather = sea_weather.merge(location, on="local_pk", how="left")
+# 컬럼명 정리
+df = item_retail.merge(ground_weather, on="month_date", how="left")
+df = df.merge(item, on="item_pk", how="left")
 
-    df = item_retail.merge(sea_weather, on="month_date", how="left")
-    # df = df.merge(ground_weather, on="month_date", how="left")
-    df = df.merge(item, on="item_pk", how="left")
+# 날짜 정렬
+df["month_date"] = pd.to_datetime(df["month_date"])
+df = df.sort_values(["month_date"]).reset_index(drop=True)
+df["month_num"] = df["month_date"].dt.year * 12 + df["month_date"].dt.month
+df = pd.get_dummies(df, columns=['item_name'])
 
-    # 날짜 정렬
-    df["month_date"] = pd.to_datetime(df["month_date"])
-    df = df.sort_values(["month_date"]).reset_index(drop=True)
-    df["month_num"] = df["month_date"].dt.year * 12 + df["month_date"].dt.month
-    df = pd.get_dummies(df, columns=['item_name'])
-    df = pd.get_dummies(df, columns=['local_name'])
+print("Merged DataFrame:")
+print(df.head())
+df.to_csv("compare_sales.csv", index=False, encoding="utf-8-sig")
 
-    print("Merged DataFrame:")
-    print(df.head())
-    df.to_csv("compare_production2.csv", index=False, encoding="utf-8-sig")
-
-    return df
-
-df = read_df_2()
 
 # ======================
 # 4. 시계열 윈도우 데이터셋 생성
@@ -107,10 +91,10 @@ class TimeSeriesDataset(Dataset):
 # ======================
 # 5. PyTorch 모델 정의
 # ======================
-class LSTMModel_1hidden(nn.Module):
-    def __init__(self, input_dim, hidden_dim=64, output_dim=1, num_layers=2):
-        super(LSTMModel_1hidden, self).__init__()
-        self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, batch_first=True)
+class GRUModel_1hidden(nn.Module):
+    def __init__(self, input_dim, hidden_dim=64, output_dim=2, num_layers=2):
+        super().__init__()
+        self.gru = nn.GRU(input_dim, hidden_dim, num_layers, batch_first=True)
         self.relu = nn.ReLU()
 
         self.fc = nn.Linear(hidden_dim, output_dim)
@@ -118,7 +102,7 @@ class LSTMModel_1hidden(nn.Module):
         self.fc2 = nn.Linear(64, output_dim)
 
     def forward(self, x):
-        _, (h_n, _) = self.lstm(x)
+        _, h_n = self.gru(x)
         out = h_n[-1]
         out = self.fc(out)
 
@@ -127,10 +111,10 @@ class LSTMModel_1hidden(nn.Module):
         # out = self.fc2(out)  # 마지막 hidden state
         return out
 
-class LSTMModel_2hidden(nn.Module):
-    def __init__(self, input_dim, hidden_dim=64, output_dim=1, num_layers=2):
-        super(LSTMModel_2hidden, self).__init__()
-        self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, batch_first=True)
+class GRUModel_2hidden(nn.Module):
+    def __init__(self, input_dim, hidden_dim=64, output_dim=2, num_layers=2):
+        super().__init__()
+        self.gru = nn.GRU(input_dim, hidden_dim, num_layers, batch_first=True)
         self.relu = nn.ReLU()
 
         self.fc = nn.Linear(hidden_dim, output_dim)
@@ -138,19 +122,19 @@ class LSTMModel_2hidden(nn.Module):
         self.fc2 = nn.Linear(64, output_dim)
 
     def forward(self, x):
-        _, (h_n, _) = self.lstm(x)
+        _, h_n = self.gru(x)
         out = h_n[-1]
         # out = self.fc(out)
 
-        out = self.fc1(h_n[-1])
+        out = self.fc1(out)
         out = self.relu(out)
         out = self.fc2(out)  # 마지막 hidden state
         return out
-    
-class LSTMModel_1hidden_32(nn.Module):
-    def __init__(self, input_dim, hidden_dim=64, output_dim=1, num_layers=2):
-        super(LSTMModel_1hidden_32, self).__init__()
-        self.lstm = nn.LSTM(input_dim, 32, num_layers, batch_first=True)
+
+class GRUModel_1hidden_32(nn.Module):
+    def __init__(self, input_dim, hidden_dim=64, output_dim=2, num_layers=2):
+        super().__init__()
+        self.gru = nn.GRU(input_dim, 32, num_layers, batch_first=True)
         self.relu = nn.ReLU()
 
         self.fc = nn.Linear(32, output_dim)
@@ -158,19 +142,19 @@ class LSTMModel_1hidden_32(nn.Module):
         self.fc2 = nn.Linear(64, output_dim)
 
     def forward(self, x):
-        _, (h_n, _) = self.lstm(x)
+        _, h_n = self.gru(x)
         out = h_n[-1]
         out = self.fc(out)
 
-        # out = self.fc1(h_n[-1])
+        # out = self.fc1(out)
         # out = self.relu(out)
         # out = self.fc2(out)  # 마지막 hidden state
         return out
-    
-class LSTMModel_2hidden_32(nn.Module):
-    def __init__(self, input_dim, hidden_dim=64, output_dim=1, num_layers=2):
-        super(LSTMModel_2hidden_32, self).__init__()
-        self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, batch_first=True)
+
+class GRUModel_2hidden_32(nn.Module):
+    def __init__(self, input_dim, hidden_dim=64, output_dim=2, num_layers=2):
+        super().__init__()
+        self.gru = nn.GRU(input_dim, hidden_dim, num_layers, batch_first=True)
         self.relu = nn.ReLU()
 
         self.fc = nn.Linear(hidden_dim, output_dim)
@@ -178,21 +162,21 @@ class LSTMModel_2hidden_32(nn.Module):
         self.fc2 = nn.Linear(32, output_dim)
 
     def forward(self, x):
-        _, (h_n, _) = self.lstm(x)
+        _, h_n = self.gru(x)
         out = h_n[-1]
         # out = self.fc(out)
 
-        out = self.fc1(h_n[-1])
+        out = self.fc1(out)
         out = self.relu(out)
         out = self.fc2(out)  # 마지막 hidden state
         return out
-    
+
 # ======================
 # 6. 학습 루프
 # ======================
 def train_and_evaluate(model, train_loader, val_loader, epochs=40, lr=1e-3, model_name="model.pth"):
     criterion = nn.MSELoss()
-    optimizer = optim.Adam(model.parameters(), lr=lr)
+    optimizer = optim.RMSprop(model.parameters(), lr=lr)
 
     best_rmse = float("inf")  # 아주 큰 값으로 초기화
     best_mae = float("inf")  # 아주 큰 값으로 초기화
@@ -248,9 +232,9 @@ def train_and_evaluate(model, train_loader, val_loader, epochs=40, lr=1e-3, mode
             best_mae = mae
             best_r2 = r2
             best_state = model.state_dict()
-            save_path = f"{model_name}_sales.pth"
+            save_path = f"./GRU_models/{model_name}_sales.pth"
             torch.save(best_state, save_path)
-
+            
             # W&B에도 저장
             artifact = wandb.Artifact(model_name, type="model")
             artifact.add_file(save_path)
@@ -266,30 +250,11 @@ def train_and_evaluate(model, train_loader, val_loader, epochs=40, lr=1e-3, mode
 # 7. 실행
 # ======================
 
-# # 사용할 컬럼 정의 (예시)
-target_cols = ["production"]
-feature_cols = [x for x in df.columns if x not in ["month_date", "production", "sales", "item_pk", "retail_pk", "item_pk", "local_pk", "sea_pk",
-                                                   "item_name", "local_name"]]
+# 사용할 컬럼 정의 (예시)
+target_cols = ["sales"]
+feature_cols = [x for x in df.columns if x not in ["month_date", "production", "sales", "ground_pk", "item_pk", "retail_pk", "inbound"]]
 
-def do_pca():
-    from sklearn.decomposition import PCA
-    X = df[feature_cols].values  # sklearn은 numpy 입력
-
-    # 표준화 (TimeSeriesDataset에서도 StandardScaler 했지만 PCA용 별도)
-    from sklearn.preprocessing import StandardScaler
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
-    print("X_scaled의 shape:", X_scaled.shape)
-
-    # PCA 적용
-    pca = PCA(n_components=21)  # 원하는 주성분 개수
-    X_pca = pca.fit_transform(X_scaled)
-
-    # shape 확인
-    print(X_pca.shape)  # (num_samples, 20)
-
-# # Dataset 준비
-# dataset = TimeSeriesDataset(df, feature_cols, target_cols, window_size=6)
+# Dataset 준비
 dataset = TimeSeriesDataset(df, feature_cols, target_cols, window_size=6)
 
 # Train / Validation Split
@@ -305,10 +270,10 @@ input_dim = len(feature_cols)
 
 # 학습
 models = {
-    "LSTM_1hidden": LSTMModel_1hidden(input_dim=len(feature_cols), hidden_dim=64, output_dim=len(target_cols)),
-    "LSTM_1hidden_32": LSTMModel_1hidden_32(input_dim=len(feature_cols), hidden_dim=64, output_dim=len(target_cols)),
-    "LSTM_2hidden": LSTMModel_2hidden(input_dim=len(feature_cols), hidden_dim=64, output_dim=len(target_cols)),
-    "LSTM_2hidden_32": LSTMModel_2hidden_32(input_dim=len(feature_cols), hidden_dim=64, output_dim=len(target_cols)),
+    "GRU_1hidden": GRUModel_1hidden(input_dim=len(feature_cols), hidden_dim=64, output_dim=len(target_cols)),
+    "GRU_1hidden_32": GRUModel_1hidden_32(input_dim=len(feature_cols), hidden_dim=64, output_dim=len(target_cols)),
+    "GRU_2hidden": GRUModel_2hidden(input_dim=len(feature_cols), hidden_dim=64, output_dim=len(target_cols)),
+    "GRU_2hidden_32": GRUModel_2hidden_32(input_dim=len(feature_cols), hidden_dim=64, output_dim=len(target_cols)),
 }
 
 results = {}
@@ -317,7 +282,7 @@ for name, model in models.items():
     print(f"\n===== Training {name} =====")
     # 프로젝트명, 엔티티(계정명 또는 팀명), 하이퍼파라미터 기록
     wandb.init(
-        project="DataTide_production_compare_model_LSTM_1",   # 원하는 프로젝트 이름
+        project="DataTide_sales_compare_model_GRU_RMSprop_2",   # 원하는 프로젝트 이름
         entity=os.getenv("WANDB_ENTITY"),       # 본인 계정명
         config={
             "epochs": 100,
@@ -328,7 +293,6 @@ for name, model in models.items():
             "model":name
         },
         name=name,
-        group="4",
         reinit=True   # run 새로 시작
     )
     rmse, mae, r2 = train_and_evaluate(model, train_loader, val_loader, 
@@ -347,7 +311,7 @@ def drawHitmap():
     print(correlation_matrix[:10])
 
     # 2. 히트맵 그리기
-    annot = False    # 차트에 줄 속성. 히트맵의 셀에 값을 표시한다. False면 표시 안 함.
+    annot = True    # 차트에 줄 속성. 히트맵의 셀에 값을 표시한다. False면 표시 안 함.
     cmap = 'coolwarm'   # 히트맵에서 가장 많이 사용하는 색상. 양의관계는 빨간색, 음의관계는 파란색
     fmt = '.2f'     # 표시될 숫자의 소수점 자리수 지정
     sns.heatmap(correlation_matrix,

@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 
 import seaborn as sns
 import matplotlib.pyplot as plt
+import joblib
 import wandb
 
 # --- 환경변수 불러오기 ---
@@ -79,6 +80,9 @@ class TimeSeriesDataset(Dataset):
 
         self.features = self.scaler_x.fit_transform(self.features)
         self.targets = self.scaler_y.fit_transform(self.targets)
+
+        joblib.dump(self.scaler_x, "sales_scaler_x.pkl")
+        joblib.dump(self.scaler_y, "sales_scaler_y.pkl")
 
     def __len__(self):
         return len(self.features) - self.window_size
@@ -282,7 +286,7 @@ for name, model in models.items():
     print(f"\n===== Training {name} =====")
     # 프로젝트명, 엔티티(계정명 또는 팀명), 하이퍼파라미터 기록
     wandb.init(
-        project="DataTide_sales_compare_model_GRU_RMSprop_2",   # 원하는 프로젝트 이름
+        project="DataTide_sales_compare_model_GRU_RMSprop_3",   # 원하는 프로젝트 이름
         entity=os.getenv("WANDB_ENTITY"),       # 본인 계정명
         config={
             "epochs": 100,
@@ -293,6 +297,7 @@ for name, model in models.items():
             "model":name
         },
         name=name,
+        group="2",
         reinit=True   # run 새로 시작
     )
     rmse, mae, r2 = train_and_evaluate(model, train_loader, val_loader, 

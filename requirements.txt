@@ -14,6 +14,7 @@ matplotlib
 seaborn
 IPython
 @nivo/bump
+@nivo/scatterplot
 
 # 실험 편의
 tqdm

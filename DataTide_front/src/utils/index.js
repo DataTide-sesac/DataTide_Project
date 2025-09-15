@@ -78,6 +78,159 @@ export function generateBumpChartData(){
 }
 
 
+//// 산포도 차트
+export function generateScatterChartData(){
+  const now = new Date();
+
+  // x축(시간)
+  const months = [];
+  for (let i = 6; i > 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push(`${d.getFullYear()}년 ${d.getMonth() + 1}월`);
+  }
+
+  // 데이터 예시: 고등어, 오징어, 갈치 3개 품목
+  // const predictionMockData = {
+  //   '고등어': [1, 3, 2, 2, 3, 2],
+  //   '오징어': [2, 1, 3, 3, 1, 1],
+  //   '갈치': [3, 2, 1, 1, 2, 3],
+  // };
+
+  const predictionMockData =
+    [
+      {
+        id : '고등어',
+        data:[
+          {x : 0, y: 1},
+          {x : 1, y: 4},
+          {x : 2, y: 5},
+          {x : 3, y: 6},
+          {x : 4, y: 2},
+          {x : 5, y: 3},
+        ]
+      },
+      {
+        id : '오징어',
+        data:[
+          {x : 0, y: 4},
+          {x : 1, y: 5},
+          {x : 2, y: 7},
+          {x : 3, y: 2},
+          {x : 4, y: 3},
+          {x : 5, y: 1},
+        ]
+      },
+      {
+        id : '갈치',
+        data:[
+          {x : 0, y: 6},
+          {x : 1, y: 2},
+          {x : 2, y: 1},
+          {x : 3, y: 9},
+          {x : 4, y: 6},
+          {x : 5, y: 2},
+        ]
+      }
+    ]
+
+  // const data = Object.entries(predictionMockData).map(([key, values]) => ({
+  // id: key,
+  // data: values.map((value, idx) => ({
+  //   x: idx,           // 또는 months[idx]가 숫자로 변환 가능한 경우
+  //   y: value
+  //   }))
+  // }));
+
+  return predictionMockData;
+}
+////
+
+//// 버블 차트
+export function generateBubbleChartData(){
+  const now = new Date();
+
+  // x축(시간)
+  const months = [];
+  for (let i = 6; i > 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push(`${d.getFullYear()}년 ${d.getMonth() + 1}월`);
+  }
+
+  // 데이터 예시: 고등어, 오징어, 갈치 3개 품목
+  // const predictionMockData = {
+  //   '고등어': [1, 3, 2, 2, 3, 2],
+  //   '오징어': [2, 1, 3, 3, 1, 1],
+  //   '갈치': [3, 2, 1, 1, 2, 3],
+  // };
+
+  const predictionMockData =
+    [
+      {
+        id : '고등어',
+        data:[
+          {x : 1, y: 1, size: 30},
+          {x : 2, y: 4, size: 10},
+          {x : 3, y: 5, size: 80},
+          {x : 4, y: 6, size: 20},
+          {x : 5, y: 2, size: 60},
+          {x : 6, y: 3, size: 40},
+          {x : 7, y: 6, size: 35},
+          {x : 8, y: 2, size: 33},
+          {x : 9, y: 1, size: 50},
+          {x : 10, y: 9, size: 20},
+          {x : 11, y: 6, size: 27},
+          {x : 12, y: 2, size: 16}
+        ]
+      },
+      {
+        id : '오징어',
+        data:[
+          {x : 1, y: 4, size: 15},
+          {x : 2, y: 5, size: 30},
+          {x : 3, y: 7, size: 20},
+          {x : 4, y: 2, size: 10},
+          {x : 5, y: 3, size: 40},
+          {x : 6, y: 1, size: 47},
+          {x : 7, y: 1, size: 30},
+          {x : 8, y: 4, size: 10},
+          {x : 9, y: 5, size: 80},
+          {x : 10, y: 6, size: 20},
+          {x : 11, y: 2, size: 60},
+          {x : 12, y: 3, size: 40}
+          
+        ]
+      },
+      {
+        id : '갈치',
+        data:[
+          {x : 1, y: 6, size: 35},
+          {x : 2, y: 2, size: 33},
+          {x : 3, y: 1, size: 50},
+          {x : 4, y: 0, size: 20},
+          {x : 5, y: 6, size: 27},
+          {x : 6, y: 2, size: 16},
+          {x : 7, y: 4, size: 15},
+          {x : 8, y: 5, size: 30},
+          {x : 9, y: 7, size: 20},
+          {x : 10, y: 2, size: 10},
+          {x : 11, y: 3, size: 40},
+          {x : 12, y: 1, size: 47}
+        ]
+      }
+    ]
+
+  // const data = Object.entries(predictionMockData).map(([key, values]) => ({
+  // id: key,
+  // data: values.map((value, idx) => ({
+  //   x: idx,           // 또는 months[idx]가 숫자로 변환 가능한 경우
+  //   y: value
+  //   }))
+  // }));
+
+  return predictionMockData;
+}
+////
+
 export function generateMockChartData({ analysisType, period, selectedCategories }) {
   if (analysisType === '통계') {
     const { startYear, endYear, startMonth, endMonth } = period;
@@ -135,9 +288,9 @@ export function generateMockChartData({ analysisType, period, selectedCategories
     }
 
     const datasets = [
-      { type: 'line', order: 2, label: `${startYear === endYear ? endYear : `${startYear}~${endYear}`} 생산`, data: yData.current['생산'], borderColor: '#1565C0' },
-      { type: 'line', order: 2, label: `${startYear === endYear ? endYear : `${startYear}~${endYear}`} 판매`, data: yData.current['판매'], borderColor: '#388E3C' },
-      { type: 'line', order: 2, label: `${startYear === endYear ? endYear : `${startYear}~${endYear}`} 수입`, data: yData.current['수입'], borderColor: '#F57C00' },
+      { type: 'line',tension: 0.35, order: 2, label: `${startYear === endYear ? endYear : `${startYear}~${endYear}`} 생산`, data: yData.current['생산'], borderColor: '#1565C0' },
+      { type: 'line',tension: 0.35, order: 2, label: `${startYear === endYear ? endYear : `${startYear}~${endYear}`} 판매`, data: yData.current['판매'], borderColor: '#388E3C' },
+      { type: 'line',tension: 0.35, order: 2, label: `${startYear === endYear ? endYear : `${startYear}~${endYear}`} 수입`, data: yData.current['수입'], borderColor: '#F57C00' },
       { type: 'bar', order: 1, label: `${startYear === endYear ? endYear - 1 : `${startYear - 1}~${endYear - 1}`} 생산`, data: yData.previous['생산'], backgroundColor: 'rgba(100, 181, 246, 1)' },
       { type: 'bar', order: 1, label: `${startYear === endYear ? endYear - 1 : `${startYear - 1}~${endYear - 1}`} 판매`, data: yData.previous['판매'], backgroundColor: 'rgba(129, 199, 132, 1)' },
       { type: 'bar', order: 1, label: `${startYear === endYear ? endYear - 1 : `${startYear - 1}~${endYear - 1}`} 수입`, data: yData.previous['수입'], backgroundColor: 'rgba(255, 183, 77, 1)' },

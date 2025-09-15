@@ -1,11 +1,13 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import ChartComponent from '../components/ChartComponent';
 import BumpChartComponent from '../components/BumpChartComponent';
+import ScatterChartComponent from '../components/ScatterChartComponent';
+import BubbleChartComponent from '../components/BubbleChartComponent';
 import Header from '../components/Header';
 import SearchBar from '../components/SearchBar';
 import ResultsTable from '../components/ResultsTable';
 import ChatbotWindow from '../components/ChatbotWindow'; // Import ChatbotWindow
-import { generateMockData, generateBumpChartData, generateMockChartData, convertToCSV, downloadFile } from '../utils/index.js';
+import { generateMockData, generateBubbleChartData, generateScatterChartData, generateBumpChartData, generateMockChartData, convertToCSV, downloadFile } from '../utils/index.js';
 import { fetchFisheriesData } from '../api';
 import { FISH_ITEMS, ANALYSIS_OPTIONS, DATA_CATEGORIES } from '../constants';
 import './DashboardPage.css';
@@ -47,12 +49,25 @@ export default function DashboardPage() {
   const [error, setError] = useState('')
   const [isChatbotOpen, setChatbotOpen] = useState(false); // 챗봇 상태 추가
   const [bumpChartData, setBumpChartData] = useState(null);
+  const [scatterChartData, setScatterChartData] = useState(null);
+  const [bubbleChartData, setBubbleChartData] = useState(null);
   
+  useEffect(() => {
+  const bubbleData = generateBubbleChartData();
+  setBubbleChartData(bubbleData);
+                    }, []);
+
   useEffect(() => {
   const bumpData = generateBumpChartData();
   setBumpChartData(bumpData);
                     }, []);
-
+  
+  //// 스켈터 차트
+  useEffect(() => {
+  const scatterData = generateScatterChartData();
+  setScatterChartData(scatterData);
+                    }, []);
+  ////
 
   // 검색 가능 여부 확인
   const canSearch = useMemo(() => {
@@ -185,15 +200,35 @@ export default function DashboardPage() {
             analysisType={selectedAnalysis}
             selectedCategories={selectedCategories}
           />
+          {selectedAnalysis === '통계' &&(
+            <>
+            {bumpChartData && (
+              <section className="chart-section">
+                <h3>📊 품목 순위 변화 (Bump Chart)</h3>
+                <BumpChartComponent data={bumpChartData} />
+              </section>
+            )}
+
+            {/*스켈터 차트*/}
+            {scatterChartData && (
+              <section className="chart-section">
+                <h3>📊 산포도 (Scatter Chart)</h3>
+                <ScatterChartComponent data={scatterChartData} />
+              </section>
+            )}
+
+            {/*버블 차트*/}
+            {bubbleChartData && (
+              <section className="chart-section">
+                <h3>📊 포도송이 (Bubble Chart)</h3>
+                <BubbleChartComponent data={bubbleChartData} />
+              </section>
+            )}
+            </>
+          )}
         </section>
       )}
 
-      {bumpChartData && (
-        <section className="chart-section">
-          <h3>📊 품목 순위 변화 (Bump Chart)</h3>
-          <BumpChartComponent data={bumpChartData} />
-        </section>
-      )}
 
       <ResultsTable 
         tableData={tableData}

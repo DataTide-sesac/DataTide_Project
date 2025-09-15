@@ -16,7 +16,7 @@ const CustomEndLabel = ({series}) => (
             fill={line.color}
             fontWeight="bold"
           >
-            {line.id}                 {/* 화면에 표시할 텍스트도 line.id 사용 */}
+            {line.id}
           </text>
         );
       })}
@@ -55,17 +55,18 @@ export default function BumpChartComponent({ data }) {
             }
           }
         }}
-        axisBottom={{
-          tickSize: 10,
-          tickPadding: 5,
-          tickRotation: 0,
-          tickTextColor: '#333',
-          tick: {
-            text: {
-              fontSize: 30,
-            }
-          }
-        }}
+        axisBottom={null}
+        // axisBottom={{
+        //   tickSize: 10,
+        //   tickPadding: 5,
+        //   tickRotation: 0,
+        //   tickTextColor: '#333',
+        //   tick: {
+        //     text: {
+        //       fontSize: 30,
+        //     }
+        //   }
+        // }}
 
         //
         theme={{
@@ -91,6 +92,9 @@ export default function BumpChartComponent({ data }) {
             }
           }
         }}
+        enableGridX ={false}
+        enableGridY ={false}
+
         //
         layers={['grid', 'axes', 'lines','series', 'points', CustomEndLabel]}
       />

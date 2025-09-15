@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Plot from 'react-plotly.js';
-import { Bar } from 'react-chartjs-2';
+import { Bar, Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -202,6 +202,7 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
   });
 
 
+
   //
   const rankChartOptions = {
               type: 'line',
@@ -276,11 +277,13 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
             
             </div>
             {/* 통계 차트 추가 */}
+
             <div className="comparison-chart" style={{height: '500px'}}>
               <h4>📊 전년 대비 통계 차트</h4>
               <Bar options={chartJsOptions} data={data} />
 
             </div>
+
 
           </div>
         ) : (

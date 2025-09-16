@@ -241,7 +241,7 @@ def train_and_evaluate(model, train_loader, val_loader, epochs=40, lr=1e-3, mode
             
             # W&B에도 저장
             artifact = wandb.Artifact(model_name, type="model")
-            artifact.add_file(save_path)
+            # artifact.add_file(save_path)
             wandb.log_artifact(artifact)
 
             print(f"  👉 Best model saved (epoch {epoch+1}, RMSE={rmse:.2f})")
@@ -282,33 +282,33 @@ models = {
 
 results = {}
 
-for name, model in models.items():
-    print(f"\n===== Training {name} =====")
-    # 프로젝트명, 엔티티(계정명 또는 팀명), 하이퍼파라미터 기록
-    wandb.init(
-        project="DataTide_sales_compare_model_GRU_RMSprop_3",   # 원하는 프로젝트 이름
-        entity=os.getenv("WANDB_ENTITY"),       # 본인 계정명
-        config={
-            "epochs": 100,
-            "learning_rate": 1e-3,
-            "batch_size": 32,
-            "window_size": 6,
-            "hidden_dim": 64,
-            "model":name
-        },
-        name=name,
-        group="2",
-        reinit=True   # run 새로 시작
-    )
-    rmse, mae, r2 = train_and_evaluate(model, train_loader, val_loader, 
-                                       epochs=wandb.config.epochs, 
-                                       lr=wandb.config.learning_rate, 
-                                       model_name=name)
-    results[name] = {"RMSE": rmse, "MAE": mae, "R2": r2}
+# for name, model in models.items():
+#     print(f"\n===== Training {name} =====")
+#     # 프로젝트명, 엔티티(계정명 또는 팀명), 하이퍼파라미터 기록
+#     wandb.init(
+#         project="DataTide_sales_compare_model_GRU_RMSprop_3",   # 원하는 프로젝트 이름
+#         entity=os.getenv("WANDB_ENTITY"),       # 본인 계정명
+#         config={
+#             "epochs": 80,
+#             "learning_rate": 1e-3,
+#             "batch_size": 32,
+#             "window_size": 6,
+#             "hidden_dim": 64,
+#             "model":name
+#         },
+#         name=name,
+#         group="24",
+#         reinit=True   # run 새로 시작
+#     )
+#     rmse, mae, r2 = train_and_evaluate(model, train_loader, val_loader, 
+#                                        epochs=wandb.config.epochs, 
+#                                        lr=wandb.config.learning_rate, 
+#                                        model_name=name)
+#     results[name] = {"RMSE": rmse, "MAE": mae, "R2": r2}
 
-print("\n===== Model Comparison =====")
-for name, metric in results.items():
-    print(f"{name}: RMSE={metric['RMSE']:.2f}, MAE={metric['MAE']:.2f}, R²={metric['R2']:.2f}")
+# print("\n===== Model Comparison =====")
+# for name, metric in results.items():
+#     print(f"{name}: RMSE={metric['RMSE']:.2f}, MAE={metric['MAE']:.2f}, R²={metric['R2']:.2f}")
 
 def drawHitmap():
     # 히트맵.
@@ -327,3 +327,4 @@ def drawHitmap():
     plt.tight_layout()      # 레이블 겹침 방지. 다시 그려라
     plt.show()
 
+drawHitmap()

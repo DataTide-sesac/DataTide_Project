@@ -195,7 +195,7 @@ class LSTMModel_2hidden_32(nn.Module):
 # ======================
 def train_and_evaluate(model, train_loader, val_loader, epochs=40, lr=1e-3, model_name="model.pth"):
     criterion = nn.MSELoss()
-    optimizer = optim.Adam(model.parameters(), lr=lr)
+    optimizer = optim.RMSprop(model.parameters(), lr=lr, alpha=0.99)
 
     best_rmse = float("inf")  # 아주 큰 값으로 초기화
     best_mae = float("inf")  # 아주 큰 값으로 초기화
@@ -251,12 +251,12 @@ def train_and_evaluate(model, train_loader, val_loader, epochs=40, lr=1e-3, mode
             best_mae = mae
             best_r2 = r2
             best_state = model.state_dict()
-            save_path = f"{model_name}_production.pth"
+            save_path = f"RMSprop/{model_name}_production.pth"
             torch.save(best_state, save_path)
 
             # W&B에도 저장
             artifact = wandb.Artifact(model_name, type="model")
-            artifact.add_file(save_path)
+            # artifact.add_file(save_path)
             wandb.log_artifact(artifact)
 
             print(f"  👉 Best model saved (epoch {epoch+1}, RMSE={rmse:.2f})")
@@ -271,7 +271,7 @@ def train_and_evaluate(model, train_loader, val_loader, epochs=40, lr=1e-3, mode
 
 # # 사용할 컬럼 정의 (예시)
 target_cols = ["production"]
-feature_cols = [x for x in df.columns if x not in ["month_date", "production", "sales", "item_pk", "retail_pk", "item_pk", "local_pk", "sea_pk",
+feature_cols = [x for x in df.columns if x not in ["month_date", "production", "sales", "inbound", "item_pk", "retail_pk", "item_pk", "local_pk", "sea_pk",
                                                    "item_name", "local_name"]]
 
 def do_pca():
@@ -320,10 +320,10 @@ for name, model in models.items():
     print(f"\n===== Training {name} =====")
     # 프로젝트명, 엔티티(계정명 또는 팀명), 하이퍼파라미터 기록
     wandb.init(
-        project="DataTide_production_compare_model_LSTM_1",   # 원하는 프로젝트 이름
+        project="DataTide_production_compare_model_LSTM_RMSprop",   # 원하는 프로젝트 이름
         entity=os.getenv("WANDB_ENTITY"),       # 본인 계정명
         config={
-            "epochs": 100,
+            "epochs": 80,
             "learning_rate": 1e-3,
             "batch_size": 32,
             "window_size": 6,
@@ -331,7 +331,7 @@ for name, model in models.items():
             "model":name
         },
         name=name,
-        group="11",
+        group="6",
         reinit=True   # run 새로 시작
     )
     rmse, mae, r2 = train_and_evaluate(model, train_loader, val_loader, 
@@ -350,7 +350,7 @@ def drawHitmap():
     print(correlation_matrix[:10])
 
     # 2. 히트맵 그리기
-    annot = False    # 차트에 줄 속성. 히트맵의 셀에 값을 표시한다. False면 표시 안 함.
+    annot = True    # 차트에 줄 속성. 히트맵의 셀에 값을 표시한다. False면 표시 안 함.
     cmap = 'coolwarm'   # 히트맵에서 가장 많이 사용하는 색상. 양의관계는 빨간색, 음의관계는 파란색
     fmt = '.2f'     # 표시될 숫자의 소수점 자리수 지정
     sns.heatmap(correlation_matrix,
@@ -361,3 +361,4 @@ def drawHitmap():
     plt.tight_layout()      # 레이블 겹침 방지. 다시 그려라
     plt.show()
 
+drawHitmap()

@@ -51,7 +51,9 @@ monthly_avg = pd.read_sql("""SELECT MONTH(month_date) AS month,
                             GROUP BY MONTH(month_date)
                             ORDER BY month""", engine)
 
-past_month = pd.read_sql("""SELECT * FROM sea_weather
+past_month = pd.read_sql("""SELECT local_pk, month_date, temperature,
+                          wind, salinity, wave_height, wave_period, wave_speed, rain, snow
+                          FROM sea_weather
                           WHERE YEAR(month_date) IN (2025)"""
                           , engine)
 # ======================
@@ -66,7 +68,7 @@ monthly_avg.loc[monthly_avg['month_date'] == pd.Timestamp('2025-01-01'), 'month_
 monthly_avg.loc[monthly_avg['month_date'] == pd.Timestamp('2025-02-01'), 'month_date'] = pd.Timestamp('2026-02-01')
 
 # 2. 2025-08부터 6개월치 계산
-start_date = pd.Timestamp('2025-07-01')
+start_date = pd.Timestamp('2025-08-01')
 end_date = pd.Timestamp('2025-08-01') + pd.DateOffset(months=7)
 
 monthly_avg_filtered = monthly_avg[(monthly_avg['month_date'] >= start_date) & 
@@ -75,15 +77,26 @@ monthly_avg_filtered = monthly_avg[(monthly_avg['month_date'] >= start_date) &
 # 3. 기존 month 컬럼 제거
 monthly_avg_filtered = monthly_avg_filtered.drop('month', axis=1)
 
-print(monthly_avg_filtered)
+monthly_avg_filtered['key'] = 1
+location['key'] = 1
+monthly_avg_filtered = monthly_avg_filtered.merge(location, on='key').drop('key', axis=1)
+print(monthly_avg_filtered.head())
+location = location.drop('key', axis=1)
+past_month = past_month.merge(location, on="local_pk", how="left")
 
-print("최근 3년간 월별 평균 기온 및 강수량:")
-print(monthly_avg_filtered)
+monthly_avg_filtered['key'] = 1
+item['key'] = 1
+monthly_avg_filtered = monthly_avg_filtered.merge(item, on='key').drop('key', axis=1)
+print(monthly_avg_filtered.head())
+item = item.drop('key', axis=1)
 
-df = pd.concat([past_month, monthly_avg_filtered], ignore_index=True)
-df = df.merge(location, on="local_pk", how="left")
-df = df.merge(item_retail, on="month_date", how="left")
+df = item_retail.merge(past_month, on="month_date", how="right")
 df = df.merge(item, on="item_pk", how="left")
+
+print("past_month 컬럼 : ", past_month.columns)
+print("monthly_avg_filtered 컬럼 : ", monthly_avg_filtered.columns)
+df = pd.concat([past_month, monthly_avg_filtered], ignore_index=True)
+print(df.head())
 
 # 날짜 정렬 
 df["month_date"] = pd.to_datetime(df["month_date"]) 
@@ -113,14 +126,44 @@ class LSTMModel_1hidden(nn.Module):
         # out = self.relu(out)
         # out = self.fc2(out)  # 마지막 hidden state
         return out
+    
+class LSTMModel_1hidden_32(nn.Module):
+    def __init__(self, input_dim, hidden_dim=64, output_dim=1, num_layers=2):
+        super(LSTMModel_1hidden_32, self).__init__()
+        self.lstm = nn.LSTM(input_dim, 32, num_layers, batch_first=True)
+        self.relu = nn.ReLU()
+
+        self.fc = nn.Linear(32, output_dim)
+        self.fc1 = nn.Linear(hidden_dim, 64)
+        self.fc2 = nn.Linear(64, output_dim)
+
+    def forward(self, x):
+        _, (h_n, _) = self.lstm(x)
+        out = h_n[-1]
+        out = self.fc(out)
+
+        # out = self.fc1(h_n[-1])
+        # out = self.relu(out)
+        # out = self.fc2(out)  # 마지막 hidden state
+        return out
 
 target_cols = ["production"]
-feature_cols = [x for x in df.columns if x not in ["month_date", "production", "sales", "item_pk", "retail_pk", "item_pk", "local_pk", "sea_pk",
+feature_cols = [x for x in df.columns if x not in ["month_date", "production", "sales", "inbound", "item_pk", "retail_pk", "item_pk", "local_pk", "sea_pk",
                                                    "item_name", "local_name"]]
 
-model = LSTMModel_1hidden(input_dim=len(feature_cols), hidden_dim=64, output_dim=1)
-model.load_state_dict(torch.load("./LSTM_1hidden_production.pth"))
-model.eval()  # 평가 모드
+def model_1hidden():
+    model = LSTMModel_1hidden(input_dim=len(feature_cols), hidden_dim=64, output_dim=1)
+    model.load_state_dict(torch.load("./LSTM_1hidden_production.pth"))
+    model.eval()  # 평가 모드
+    return model
+
+def model_1_32():
+    model = LSTMModel_1hidden_32(input_dim=len(feature_cols), hidden_dim=64, output_dim=1)
+    model.load_state_dict(torch.load("./LSTM_1hidden_32_production.pth"))
+    model.eval()  # 평가 모드
+    return model
+
+model = model_1_32()
 
 # 미래 데이터에서 feature_cols에 해당하는 컬럼들만 추출
 future_features = df[feature_cols]
@@ -130,7 +173,7 @@ features = df[feature_cols].values
 
 # 표준화
 scaler_x = joblib.load("production_scaler_x.pkl")
-features = scaler_x.fit_transform(features)
+features = scaler_x.transform(features)
 
 print(f"\n예측용 특성 데이터 형태: {future_features.shape}")
 print("특성 컬럼들:", feature_cols[:5], "..." if len(feature_cols) > 5 else "")
@@ -214,45 +257,24 @@ results_df.to_csv('future_6months_prediction.csv', index=False, encoding='utf-8-
 print(f"\n예측 결과가 'future_6months_prediction.csv'로 저장되었습니다.")
 
 def predictAdd(results_df: pd.DataFrame):
-    with engine.begin() as conn:  # 트랜잭션 자동 처리
-        #외래키 제약 제거
-        conn.execute(text('SET FOREIGN_KEY_CHECKS = 0;'))
-
-        #테이블 삭제
-        conn.execute(text(f'''
-                            DROP TABLE 
-                            item_predict
-                            '''))
-        
-        # item_predict
-        conn.execute(text(f'''
-                    create table item_predict(
-                    predict_pk BIGINT PRIMARY key AUTO_INCREMENT,
-                    item_pk int,
-                    month_date date,
-                    production int,
-                    inbound int,
-                    sales int,
-                    
-                    FOREIGN KEY (item_pk) REFERENCES item(item_pk)
-                );
-                '''))
 
     # --- 기존 테이블 불러오기 ---
-    existing_df = pd.read_sql("SELECT * FROM item_predict", con=engine)
+    existing_df = pd.read_sql("SELECT item_pk, month_date, sales FROM item_predict", con=engine)
 
-    cols_to_keep = ['item_pk', 'month_date', 'sales']
+    cols_to_keep = ['item_pk', 'month_date', 'production']
     results_df = results_df[cols_to_keep]
 
-    # --- 기존 데이터와 합치기 ---
-    combined_df = pd.concat([existing_df, results_df])
-    # --- 중복 제거 (month_date + item_pk 기준) ---
-    combined_df = combined_df.drop_duplicates(subset=['month_date', 'item_pk'], keep='last')
-    
-    # --- DB에 저장 (덮어쓰기) ---
-    combined_df.to_sql('item_predict', con=engine, if_exists='replace', index=False)
+    # DB에 upsert (중복 시 update)
+    with engine.begin() as conn:
+        for _, row in results_df.iterrows():
+            conn.execute(text("""
+                INSERT INTO item_predict (item_pk, month_date, production)
+                VALUES (:item_pk, :month_date, :production)
+                ON DUPLICATE KEY UPDATE
+                    production = VALUES(production)
+            """), row.to_dict())
 
-    print("예측 데이터가 기존 테이블에 추가/업데이트 되었습니다.")
+    print("예측 데이터가 item_predict 테이블에 upsert 되었습니다.")
 
 
 # predictAdd(results_df)

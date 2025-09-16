@@ -111,7 +111,27 @@ class GRUModel_1hidden(nn.Module):
         # out = self.relu(out)
         # out = self.fc2(out)  # 마지막 hidden state
         return out
-    
+
+class GRUModel_2hidden(nn.Module):
+    def __init__(self, input_dim, hidden_dim=64, output_dim=2, num_layers=2):
+        super().__init__()
+        self.gru = nn.GRU(input_dim, hidden_dim, num_layers, batch_first=True)
+        self.relu = nn.ReLU()
+
+        self.fc = nn.Linear(hidden_dim, output_dim)
+        self.fc1 = nn.Linear(hidden_dim, 64)
+        self.fc2 = nn.Linear(64, output_dim)
+
+    def forward(self, x):
+        _, h_n = self.gru(x)
+        out = h_n[-1]
+        # out = self.fc(out)
+
+        out = self.fc1(out)
+        out = self.relu(out)
+        out = self.fc2(out)  # 마지막 hidden state
+        return out
+
 class GRUModel_1hidden_32(nn.Module):
     def __init__(self, input_dim, hidden_dim=64, output_dim=2, num_layers=2):
         super().__init__()
@@ -132,10 +152,30 @@ class GRUModel_1hidden_32(nn.Module):
         # out = self.fc2(out)  # 마지막 hidden state
         return out
 
+class GRUModel_2hidden_32(nn.Module):
+    def __init__(self, input_dim, hidden_dim=64, output_dim=2, num_layers=2):
+        super().__init__()
+        self.gru = nn.GRU(input_dim, hidden_dim, num_layers, batch_first=True)
+        self.relu = nn.ReLU()
+
+        self.fc = nn.Linear(hidden_dim, output_dim)
+        self.fc1 = nn.Linear(hidden_dim, 32)
+        self.fc2 = nn.Linear(32, output_dim)
+
+    def forward(self, x):
+        _, h_n = self.gru(x)
+        out = h_n[-1]
+        # out = self.fc(out)
+
+        out = self.fc1(out)
+        out = self.relu(out)
+        out = self.fc2(out)  # 마지막 hidden state
+        return out
+
 # target_cols = ["sales"]
 feature_cols = [x for x in df.columns if x not in ["month_date", "production", "sales", "ground_pk", "item_pk", "retail_pk", "inbound"]]
 
-def model_32():
+def model_1_32():
     model = GRUModel_1hidden_32(input_dim=len(feature_cols), hidden_dim=64, output_dim=1)
     model.load_state_dict(torch.load("./GRU_models/GRU_1hidden_32_sales.pth"))
     model.eval()  # 평가 모드
@@ -144,6 +184,18 @@ def model_32():
 def model_1hidden():
     model = GRUModel_1hidden(input_dim=len(feature_cols), hidden_dim=64, output_dim=1)
     model.load_state_dict(torch.load("./GRU_models/GRU_1hidden_sales.pth"))
+    model.eval()  # 평가 모드
+    return model
+
+def model_2_32():
+    model = GRUModel_2hidden_32(input_dim=len(feature_cols), hidden_dim=64, output_dim=1)
+    model.load_state_dict(torch.load("./GRU_models/GRU_2hidden_32_sales.pth"))
+    model.eval()  # 평가 모드
+    return model
+
+def model_2hidden():
+    model = GRUModel_2hidden(input_dim=len(feature_cols), hidden_dim=64, output_dim=1)
+    model.load_state_dict(torch.load("./GRU_models/GRU_2hidden_sales.pth"))
     model.eval()  # 평가 모드
     return model
 
@@ -157,7 +209,7 @@ features = df[feature_cols].values
 
 # 표준화
 scaler_x = joblib.load("sales_scaler_x.pkl")
-features = scaler_x.fit_transform(features)
+features = scaler_x.transform(features)
 
 print(f"\n예측용 특성 데이터 형태: {future_features.shape}")
 print("특성 컬럼들:", feature_cols[:5], "..." if len(feature_cols) > 5 else "")
@@ -213,8 +265,7 @@ results_df['item_pk'] = results_df['item_name'].map(item_map)
 print("\n=== 미래 6개월 예측 결과 ===")
 for idx, row in results_df.iterrows():
     print(f"{row['month_date'].strftime('%Y년 %m월')}: "
-          f"기온 {row['temperature']:.1f}°C, "
-          f"강수량 {row['rain']:.1f}mm, "
+          f"품목 {row['item_name']}, "
           f"예상 판매량(복구) {row['sales']:.2f}")
 
 # CSV로 저장
@@ -258,7 +309,7 @@ def predictAdd(results_df: pd.DataFrame):
     combined_df = combined_df.drop_duplicates(subset=['month_date', 'item_pk'], keep='last')
     
     # --- DB에 저장 (덮어쓰기) ---
-    combined_df.to_sql('item_predict', con=engine, if_exists='replace', index=False)
+    combined_df.to_sql('item_predict', con=engine, if_exists='append', index=False)
 
     print("예측 데이터가 기존 테이블에 추가/업데이트 되었습니다.")
 

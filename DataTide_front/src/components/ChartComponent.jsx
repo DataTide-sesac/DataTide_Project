@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import Plot from 'react-plotly.js';
 import { Bar, Line } from 'react-chartjs-2';
+import ChartDataLabels from 'chartjs-plugin-datalabels'; //데이터 숫자 표기
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -13,6 +13,7 @@ import {
   Legend,
   Filler,
 } from 'chart.js';
+import { color } from 'chart.js/helpers';
 
 // Register Chart.js components
 ChartJS.register(
@@ -24,7 +25,8 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  Filler
+  Filler,
+  ChartDataLabels //데이터 숫자 표기
 );
 
 export default function ChartComponent({ data, analysisType, selectedCategories }) {
@@ -43,7 +45,14 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
     plugins: {
       legend: {
         position: 'top',
+        align: 'end',
+        labels: {
+          font: {
+            size: 14, // 사용자가 요청한 크기
+          },
+        },
       },
+
       title: {
         display: false, // Using custom title outside the chart
       },
@@ -51,10 +60,19 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
         mode: 'index',
         intersect: false,
       },
+      datalabels: {
+        display: false, // ➡️ 모든 라벨을 기본적으로 숨김
+      },
     },
     scales: {
       x: {
         stacked: true,
+        ticks: {
+          font: {
+            size: 14,
+            weight: 'bold'
+          },
+        },
       },
       y: {
         stacked: true,
@@ -67,71 +85,7 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
     },
   };
 
-
-  // --- Plotly Layouts for Prediction Chart (Kept for compatibility) ---
-  // const baseComparisonLayout = {
-  //   xaxis: { title: '월' },
-  //   yaxis: { title: { text: '' } }, // Y축 제목을 비워서 보이지 않게 처리
-  //   barmode: 'stack',
-  //   annotations: [
-  //     {
-  //       text: '단위(톤)', // 어노테이션으로 Y축 제목 추가
-  //       align: 'left',
-  //       showarrow: false,
-  //       xref: 'paper',
-  //       yref: 'paper',
-  //       x: -0.035,
-  //       y: 0.99,
-  //       xanchor: 'left',
-  //       yanchor: 'bottom',
-  //       font: {
-  //         size: 14
-  //       }
-  //     },
-  //     {
-  //       text: '<b>통계</b>',
-  //       align: 'left',
-  //       showarrow: false,
-  //       xref: 'paper',
-  //       yref: 'paper',
-  //       x: -0.038,
-  //       y: 1.24,
-
-  //       xanchor: 'left',
-  //       yanchor: 'top',
-  //       font: {
-  //         size: 30
-  //       },
-  //     }
-  //   ],
-  // };
-
-  // const comparisonLayout = {
-  //   ...baseComparisonLayout,
-  //   legend: {
-  //     bgcolor: 'rgba(255, 255, 255, 0.7)',
-  //     font: {
-  //       size: 14
-  //     },
-  //     ...(windowWidth < 768
-  //       ? { // Mobile
-  //           orientation: 'h',
-  //           x: 0.5,
-  //           xanchor: 'center',
-  //           y: -0.2
-  //         }
-  //       : { // Desktop
-  //           orientation: 'h',
-  //           y: 1,
-  //           yanchor: 'bottom',
-  //           x: 1,
-  //           xanchor: 'right'
-  //         })
-  //   },
-  //   margin: windowWidth < 768 ? { b: 100 } : { t: 80 } // Adjusted margin for top legend
-  // };
-
-  // --- Plotly Data and Layout for Prediction Chart (User's Code - UNTOUCHED) ---
+  // --- Chart.js Data and Options for Prediction Chart ---
   const fullPastX = ['2023년 01월', '2023년 02월', '2023년 03월', '2023년 04월', '2023년 05월', '2023년 06월', '2023년 07월', '2023년 08월', '2023년 09월', '2023년 10월', '2023년 11월', '2023년 12월'];
   const fullPredictedX = ['2024년 01월', '2024년 02월', '2024년 03월', '2024년 04월', '2024년 05월', '2024년 06월', '2024년 07월', '2024년 08월', '2024년 09월', '2024년 10월', '2024년 11월', '2024년 12월'];
 
@@ -158,67 +112,6 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
 
   const pastX = fullPastX.slice(-6);
   const predictedX = fullPredictedX.slice(0, 6);
-
-  const predictionData = [];
-  selectedCategories.forEach(category => {
-    const trimmedCategory = category.trim();
-    const categoryData = predictionMockData[trimmedCategory];
-    if (categoryData) {
-      const { color, fill } = categoryData;
-      const pastY = categoryData.pastY.slice(-6);
-      const predictedY = categoryData.predictedY.slice(0, 6);
-      const pastXConnected = [...pastX, predictedX[0]];
-      const pastYConnected = [...pastY, predictedY[0]];
-
-      predictionData.push({
-        x: pastXConnected,
-        y: pastYConnected,
-        name: `과거 데이터(${category})`,
-        type: 'scatter',
-        mode: 'lines',
-        line: { color: color },
-      });
-      predictionData.push({
-        x: predictedX,
-        y: predictedY,
-        name: `예측 데이터(${category})`,
-        type: 'scatter',
-        mode: 'lines',
-        line: { color: color, dash: 'dash' },
-        fill:'tozeroy',
-        fillcolor:fill,
-      });
-      predictionData.push({
-        x: [...predictedX, ...[...predictedX].reverse()],
-        y: [...predictedY.map(y => y - 2), ...[...predictedY].reverse().map(y => y + 2)],
-        fill: 'toself',
-        fillcolor: fill,
-        line: { color: 'transparent' },
-        name: `신뢰구간(${category})`,
-        showlegend: false,
-        type: 'scatter',
-      });
-    }
-  });
-
-
-
-  //
-  const rankChartOptions = {
-              type: 'line',
-              data: data,
-              options: {
-                responsive: true,
-                plugins: {
-                  title: {
-                    display: true,
-                    text: (ctx) => 'Point Style: ' + ctx.chart.data.datasets[0].pointStyle,
-                  }
-                }
-              }
-            };
-  //
-
   const allX = [...pastX, ...predictedX];
   const ticktext = allX.map((label, index) => {
     const [year, month] = label.split(' ');
@@ -228,82 +121,185 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
     return month;
   });
 
-  const predictionLayout = {
-    xaxis: {
-      title: '날짜',
-      tickvals: allX,
-      ticktext: ticktext,
+  const predictionChartJsData = {
+    labels: allX,
+    datasets: []
+  };
+
+  selectedCategories.forEach(category => {
+    const trimmedCategory = category.trim();
+    const categoryData = predictionMockData[trimmedCategory];
+    if (categoryData) {
+      const { color, fill } = categoryData;
+      const pastY = categoryData.pastY.slice(-6);
+      const predictedY = categoryData.predictedY.slice(0, 6);
+
+      // Past data connected to predicted
+      predictionChartJsData.datasets.push({
+        label: `과거 ${category}`,
+        data: [...pastY, predictedY[0], ...Array(predictedY.length - 1).fill(null)],
+        borderColor: color,
+        backgroundColor: color,
+        fill: false,
+        type: 'line',
+        tension: 0.1,
+        pointRadius: 6,
+        pointHoverRadius: 7,
+        borderWidth:3.5,
+      });
+
+      // Predicted data
+      predictionChartJsData.datasets.push({
+        label: `예측 ${category}`,
+        data: [...Array(pastY.length).fill(null), ...predictedY],
+        borderColor: color,
+        backgroundColor: 'transparent',
+        borderDash: [5, 5],
+        fill: false,
+        type: 'line',
+        tension: 0.1,
+        // pointBorderDash: [5, 5],
+        pointRadius: 12,
+        pointHoverRadius: 15,
+        pointBorderWidth: 5,
+        pointBorderColor: color,
+      });
+
+      // Confidence Interval - upper bound
+      predictionChartJsData.datasets.push({
+        label: `신뢰구간(${category})`,
+        data: [...Array(pastY.length).fill(null), ...predictedY.map(y => y + 2)],
+        borderColor: 'transparent',
+        backgroundColor: 'transparent',
+        pointRadius: 0,
+        fill: false,
+      });
+
+      // Confidence Interval - lower bound
+      predictionChartJsData.datasets.push({
+        label: `신뢰구간(${category})`,
+        data: [...Array(pastY.length).fill(null), ...predictedY.map(y => y - 2)],
+        borderColor: 'transparent',
+        backgroundColor: fill,
+        pointRadius: 0,
+        fill: '-1', // Fill to previous dataset (upper bound)
+      });
+    }
+  });
+
+  const predictionChartJsOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    elements: {
+        line: {
+            borderWidth: 8
+        }
     },
-    yaxis: { title: { text: '' } },
-    legend: { font: { size: 14 } },
-    annotations: [
-      {
-        text: '단위(톤)',
-        align: 'left',
-        showarrow: false,
-        xref: 'paper',
-        yref: 'paper',
-        x: -0.035,
-        y: 0.99,
-        xanchor: 'left',
-        yanchor: 'bottom',
-        font: { size: 14 }
+    plugins: {
+      legend: {
+        position: 'top',
+        align: 'end',
+        onClick: function(e, legendItem, legend) {
+            const chart = legend.chart;
+            const index = legendItem.datasetIndex;
+
+            // Determine the new hidden state from the clicked item's metadata
+            const meta = chart.getDatasetMeta(index);
+            const newHiddenState = meta.hidden === null ? !chart.data.datasets[index].hidden : null;
+
+            // Find the start index of the group of 4 datasets for this category
+            const groupStartIndex = Math.floor(index / 4) * 4;
+
+            const linkedIndices = [
+                groupStartIndex,     // Past
+                groupStartIndex + 1, // Prediction
+                groupStartIndex + 2, // CI Upper
+                groupStartIndex + 3  // CI Lower
+            ];
+
+            linkedIndices.forEach(function(i) {
+                const datasetMeta = chart.getDatasetMeta(i);
+                if (datasetMeta) {
+                    datasetMeta.hidden = newHiddenState;
+                }
+            });
+
+            chart.update();
+        },
+        labels: {
+            filter: function(legendItem) {
+                return !legendItem.text.includes('신뢰구간');
+            }
+        }
       },
-      {
-        text: '<b>예측</b>',
-        align: 'left',
-        showarrow: false,
-        xref: 'paper',
-        yref: 'paper',
-        x: -0.038,
-        y: 1.24,
-        xanchor: 'left',
-        yanchor: 'top',
-        font: { size: 30 },
+      // title: {
+      //   display: true,
+      //   // text: '🔮 AI 예측 차트',
+      //   font: { size: 20 }
+      // },
+      tooltip: {
+        mode: 'index',
+        intersect: false,
+      },
+      datalabels: {
+        display: function(context) {
+          const datasetLabel = context.dataset.label;
+          return (datasetLabel.includes('과거') || datasetLabel.includes('예측'));
+        },
+        align: 'top',
+        color: 'black',
+        padding:{bottom:15},
+        
+        font: {
+          // weight: 'bold',
+          size: 15
+        },
+        formatter: Math.round
       }
-    ]
+    },
+    scales: {
+      x: {
+        ticks: {
+            callback: function(value, index) {
+                return ticktext[index];
+            },
+            font: {
+                weight: 'bold'
+            }
+        }
+      },
+      y: {
+        title: {
+            display: true,
+            text: '단위(톤)',
+            font: {
+                size: 15
+            }
+        }
+      },
+    },
   };
 
   return (
     <div className="chart-container">
       <div className="chart-placeholder">
         {analysisType === '통계' ? (
-
           <div>
             <div className="comparison-chart" style={{height: '500px'}}>
-              <h4>📊 전년 대비 통계 차트</h4>
-
               <Bar options={chartJsOptions} data={data} />
-            
             </div>
-            {/* 통계 차트 추가 */}
-
-            <div className="comparison-chart" style={{height: '500px'}}>
+            {/* <div className="comparison-chart" style={{height: '500px'}}>
               <h4>📊 전년 대비 통계 차트</h4>
               <Bar options={chartJsOptions} data={data} />
-
-            </div>
-
-
+            </div> */}
           </div>
         ) : (
-          <div className="prediction-chart">
-            <h4>🔮 AI 예측 차트</h4>
-            <Plot
-              key={JSON.stringify(predictionData)}
-              data={predictionData}
-              layout={predictionLayout}
-              style={{ width: '100%', height: '100%' }}
-              useResizeHandler={true}
-            />
+          <div className="prediction-chart" style={{height: '500px'}}>
+            <Line options={predictionChartJsOptions} data={predictionChartJsData} />
           </div>
         )}
       </div>
-
-      {/* 🔥 차트 데이터 출처 표시 */}
       <div className="chart-data-source">
-        {/* <p><strong>📡 차트 데이터:</strong> {analysisType === '통계' ? '시계열 통계 분석 결과' : 'LSTM 예측 모델 출력'}</p>
-        <p><strong>🔄 실시간 연동:</strong> 서버 DB에서 자동 업데이트</p> */}
       </div>
     </div>
   );

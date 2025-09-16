@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+pymysql
+numpy
+pandas
+matplotlib
+seaborn
+tqdm
+torch
+torchvision
+torchaudio
+scikit-learn

@@ -89,7 +89,7 @@
 ---
 
 ## ⚙️ 워크 플로우
-![00_워크플로우_1](https://github.com/user-attachments/assets/ddab7376-647b-44c3-aa76-29a554bd6886)
+<img width="786" height="825" alt="00_워크플로우_2" src="https://github.com/user-attachments/assets/be0bee73-f4fc-4f25-8c8d-eebd98971a8d" />
 
 ---
 

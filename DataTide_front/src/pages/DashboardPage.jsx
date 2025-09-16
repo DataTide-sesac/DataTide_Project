@@ -52,6 +52,8 @@ export default function DashboardPage() {
   const [scatterChartData, setScatterChartData] = useState(null);
   const [bubbleChartData, setBubbleChartData] = useState(null);
 
+  const [appliedCategories, setAppliedCategories] = useState(['생산', '판매', '수입']);
+
   useEffect(()=>{
     setChartData(null);
   }, [selectedAnalysis]);
@@ -95,6 +97,8 @@ export default function DashboardPage() {
       setLoading(true)
       setError('')
       setChartData(null); // 검색 시작 시 차트 초기화
+
+      setAppliedCategories(selectedCategories);
       
       // 실제 API 호출로 변경 (주석 처리)
       // const selectedItemName = FISH_ITEMS.find(f => f.id === selectedItem)?.name; // Changed to .name
@@ -202,7 +206,8 @@ export default function DashboardPage() {
           <ChartComponent 
             data={chartData} 
             analysisType={selectedAnalysis}
-            selectedCategories={selectedCategories}
+            // selectedCategories={selectedCategories}
+            selectedCategories={appliedCategories}
           />
           {selectedAnalysis === '통계' &&(
             <>

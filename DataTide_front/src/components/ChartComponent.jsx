@@ -14,6 +14,7 @@ import {
   Filler,
 } from 'chart.js';
 import { color } from 'chart.js/helpers';
+import { isValidChartData} from '../utils/index';
 
 // Register Chart.js components
 ChartJS.register(
@@ -284,6 +285,7 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
     <div className="chart-container">
       <div className="chart-placeholder">
         {analysisType === '통계' ? (
+          isValidChartData(data)?(
           <div>
             <div className="comparison-chart" style={{height: '500px'}}>
               <Bar options={chartJsOptions} data={data} />
@@ -293,6 +295,7 @@ export default function ChartComponent({ data, analysisType, selectedCategories 
               <Bar options={chartJsOptions} data={data} />
             </div> */}
           </div>
+          ):(console.log('데이터없음'))
         ) : (
           <div className="prediction-chart" style={{height: '500px'}}>
             <Line options={predictionChartJsOptions} data={predictionChartJsData} />

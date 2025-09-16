@@ -20,14 +20,11 @@ def DropTables():
         conn.execute(text('SET FOREIGN_KEY_CHECKS = 0;'))
 
         # 테이블 삭제
-        conn.execute(text(f'''
-                          DROP TABLE 
-                          location,
-                          item,
-                          item_retail,
-                          ground_weather,
-                          sea_weather
-                          '''))
+        conn.execute(text('DROP TABLE IF EXISTS sea_weather'))
+        conn.execute(text('DROP TABLE IF EXISTS item_retail'))
+        conn.execute(text('DROP TABLE IF EXISTS ground_weather'))
+        conn.execute(text('DROP TABLE IF EXISTS item'))
+        conn.execute(text('DROP TABLE IF EXISTS location'))
 
 # 테이블 생성
 def CreateTables():
@@ -83,18 +80,18 @@ def CreateTables():
                 '''))
         
         # item_predict
-        conn.execute(text(f'''
-                    create table item_predict(
-                    predict_pk BIGINT PRIMARY key AUTO_INCREMENT,
-                    item_pk int,
-                    month_date date,
-                    production int,
-                    inbound int,
-                    sales int,
+        # conn.execute(text(f'''
+        #             create table item_predict(
+        #             predict_pk BIGINT PRIMARY key AUTO_INCREMENT,
+        #             item_pk int,
+        #             month_date date,
+        #             production int,
+        #             inbound int,
+        #             sales int,
                     
-                    FOREIGN KEY (item_pk) REFERENCES item(item_pk)
-                );
-                '''))
+        #             FOREIGN KEY (item_pk) REFERENCES item(item_pk)
+        #         );
+                # '''))
         
         # sea_weather
         conn.execute(text(f'''
@@ -268,17 +265,33 @@ def RetailAdd(filePath):
 
     dfInsert.to_sql(name='item_retail', con=engine, if_exists='append',index=False)
 
+def DropAlembicVersionTable():
+      user = 'team_dt'
+      password = 'dt_1234'
+      host = 'localhost'
+      port = 3306
+      database = 'datatide_db'
+
+      engine = create_engine(f'mysql+pymysql://{user}:{password}@{host}:{port}/{database}')
+
+      with engine.connect() as conn:
+          print(f'Connected {user}')
+          conn.execute(text('SET FOREIGN_KEY_CHECKS = 0;'))
+          conn.execute(text('DROP TABLE IF EXISTS alembic_version;'))
+          conn.execute(text('SET FOREIGN_KEY_CHECKS = 1;'))
+          print("alembic_version table dropped successfully.")
+
 if __name__ == '__main__':
     # 필요한 것만 주석 해제해서 쓰기
-    filePath='./DataSet/Total'
-
-    # DropTables()
-    # CreateTables()
+    filePath='../DataSet/Total'
+    # DropAlembicVersionTable()
+    DropTables()
+    CreateTables()
 
     GroundWeatherAdd(f'{filePath}/GroundWeather')
-    # LocationAdd(f'{filePath}/SeaWeather')
-    # SeaWeatherAdd(f'{filePath}/SeaWeather')
-    # ItemAdd(f'{filePath}/FishData')
-    # RetailAdd(f'{filePath}/FishData')
+    LocationAdd(f'{filePath}/SeaWeather')
+    SeaWeatherAdd(f'{filePath}/SeaWeather')
+    ItemAdd(f'{filePath}/FishData')
+    RetailAdd(f'{filePath}/FishData')
 
 

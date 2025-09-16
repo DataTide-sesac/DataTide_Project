@@ -3,6 +3,6 @@ from fastapi.testclient import TestClient
 
 def test_get_sample(client: TestClient):
     """Test the sample endpoint."""
-    response = client.get("/sample/")
+    response = client.get("/api/sample/")
     assert response.status_code == 200
-    assert response.json() == {"message": "테스트 샘플 router입니다. from sample.py"}
+    assert response.json() == {"message": "이것은 sample router입니다. from sample.py"}

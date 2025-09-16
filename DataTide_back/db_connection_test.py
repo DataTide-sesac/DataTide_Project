@@ -1,5 +1,4 @@
 import pymysql
-from sqlalchemy import create_engine, text
 import sys
 
 # 데이터베이스 연결 정보

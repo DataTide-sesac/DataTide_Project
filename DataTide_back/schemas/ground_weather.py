@@ -15,4 +15,4 @@ class GroundWeather(GroundWeatherBase):
     ground_pk: int
 
     class Config:
-        from_attributes = True
+        pass

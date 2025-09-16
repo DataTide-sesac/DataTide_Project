@@ -21,4 +21,4 @@ class SeaWeather(SeaWeatherBase):
     local_pk: int # For response, we'll have local_pk
 
     class Config:
-        from_attributes = True
+        pass

@@ -12,4 +12,4 @@ class Location(LocationBase):
     local_pk: int
     
     class Config:
-        from_attributes = True
+        pass

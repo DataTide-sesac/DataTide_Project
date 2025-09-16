@@ -16,4 +16,4 @@ class ItemRetail(ItemRetailBase):
     item_pk: int # For response, we'll have item_pk
 
     class Config:
-        from_attributes = True
+        pass

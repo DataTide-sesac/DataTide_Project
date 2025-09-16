@@ -1,0 +1,40 @@
+# Environments (가상환경)
+# Conda와 venv 가상환경 폴더를 모두 무시합니다.
+.env
+.venv
+env/
+venv/
+ENV/
+datatide_env/
+
+# Python cache (파이썬 캐시 파일)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Logs (로그 파일)
+*.log
+
+# IDE settings (개발 도구 설정 파일)
+.vscode/
+.idea/
+
+# OS generated files (운영체제 생성 파일)
+.DS_Store
+Thumbs.db
+
+# Jupyter Notebook Checkpoints
+.ipynb_checkpoints
+
+# AI/Data files (AI 데이터 및 임시 파일)
+# 생성된 FAISS DB와 임시 CSV 파일 등은 제외합니다.
+faiss_index_storage/
+*.csv
+*.pkl
+
+# Dependencies (라이브러리 폴더 - 필요한 경우)
+# 예: /site-packages/
+# 필요시 주석 해제하여 사용
+# /lib
+# /lib64

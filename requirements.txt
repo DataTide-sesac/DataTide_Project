@@ -39,6 +39,8 @@ openai
 langchain-community
 langchain-huggingface
 langgraph
+langchain_experimental
+tabulate
 
 # 토큰화
 tiktoken

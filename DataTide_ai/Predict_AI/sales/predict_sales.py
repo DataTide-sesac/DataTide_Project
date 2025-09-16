@@ -293,7 +293,8 @@ def predictAdd(results_df: pd.DataFrame):
                     inbound int,
                     sales int,
                     
-                    FOREIGN KEY (item_pk) REFERENCES item(item_pk)
+                    FOREIGN KEY (item_pk) REFERENCES item(item_pk),
+                    UNIQUE KEY uniq_item_month (item_pk, month_date)
                 );
                 '''))
 

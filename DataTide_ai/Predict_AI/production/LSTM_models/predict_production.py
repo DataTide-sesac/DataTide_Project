@@ -38,14 +38,14 @@ item = pd.read_sql("SELECT * FROM item", engine)
 location = pd.read_sql("SELECT * FROM location", engine)
 item_retail = pd.read_sql("SELECT * FROM item_retail", engine)
 monthly_avg = pd.read_sql("""SELECT MONTH(month_date) AS month,
-                                AVG(temperature) AS temperature,
-                                AVG(wind) AS wind,
-                                AVG(salinity) AS salinity,
-                                AVG(wave_height) AS wave_height,
-                                AVG(wave_period) AS wave_period,
-                                AVG(wave_speed) AS wave_speed,
-                                AVG(rain) AS rain,
-                                AVG(snow) AS snow
+                                ROUND(AVG(temperature), 1) AS temperature,
+                                ROUND(AVG(wind), 1) AS wind,
+                                ROUND(AVG(salinity), 1) AS salinity,
+                                ROUND(AVG(wave_height), 1) AS wave_height,
+                                ROUND(AVG(wave_period), 1) AS wave_period,
+                                ROUND(AVG(wave_speed), 1) AS wave_speed,
+                                ROUND(AVG(rain), 1) AS rain,
+                                ROUND(AVG(snow), 1) AS snow
                             FROM sea_weather
                             WHERE YEAR(month_date) IN (2022, 2023, 2024, 2025)
                             GROUP BY MONTH(month_date)
@@ -159,7 +159,7 @@ def model_1hidden():
 
 def model_1_32():
     model = LSTMModel_1hidden_32(input_dim=len(feature_cols), hidden_dim=64, output_dim=1)
-    model.load_state_dict(torch.load("./LSTM_1hidden_32_production.pth"))
+    model.load_state_dict(torch.load("./RMSprop/LSTM_1hidden_32_production.pth"))
     model.eval()  # 평가 모드
     return model
 
@@ -243,30 +243,30 @@ local_map = {
 # item_name 컬럼 숫자로 변환
 results_df['item_pk'] = results_df['item_name'].map(item_map)
 results_df['local_pk'] = results_df['local_name'].map(local_map)
+results_df = results_df.drop('predicted_production', axis=1)
+
+df_grouped = results_df.groupby(["month_date", "item_pk"], as_index=False)["production"].mean()
 
 
 print("\n=== 미래 6개월 예측 결과 ===")
-for idx, row in results_df.iterrows():
+for idx, row in df_grouped.iterrows():
     print(f"{row['month_date'].strftime('%Y년 %m월')}: "
-          f"품목 {row['item_name']}, "
-          f"지역 {row['local_name']}, "
+          f"품목 {row['item_pk']}, "
           f"예상 생산량(복구) {row['production']:.2f}")
 
 # CSV로 저장
-results_df.to_csv('future_6months_prediction.csv', index=False, encoding='utf-8-sig')
-print(f"\n예측 결과가 'future_6months_prediction.csv'로 저장되었습니다.")
+print(df_grouped.head())
+df_grouped.to_csv('grouped_future.csv', index=False, encoding='utf-8-sig')
+# results_df.to_csv('future_6months_prediction.csv', index=False, encoding='utf-8-sig')
+print(f"\n예측 결과가 'grouped_future.csv'로 저장되었습니다.")
 
-def predictAdd(results_df: pd.DataFrame):
-
-    # --- 기존 테이블 불러오기 ---
-    existing_df = pd.read_sql("SELECT item_pk, month_date, sales FROM item_predict", con=engine)
-
+def predictAdd(df_grouped: pd.DataFrame):
     cols_to_keep = ['item_pk', 'month_date', 'production']
-    results_df = results_df[cols_to_keep]
+    df_grouped = df_grouped[cols_to_keep]
 
     # DB에 upsert (중복 시 update)
     with engine.begin() as conn:
-        for _, row in results_df.iterrows():
+        for _, row in df_grouped.iterrows():
             conn.execute(text("""
                 INSERT INTO item_predict (item_pk, month_date, production)
                 VALUES (:item_pk, :month_date, :production)
@@ -277,4 +277,42 @@ def predictAdd(results_df: pd.DataFrame):
     print("예측 데이터가 item_predict 테이블에 upsert 되었습니다.")
 
 
-# predictAdd(results_df)
+predictAdd(df_grouped)
+
+def predictInbound():
+    import math
+
+    # --- 기존 테이블 불러오기 ---
+    existing_df = pd.read_sql("SELECT item_pk, month_date, production, sales FROM item_predict", con=engine)
+
+    # DB에 upsert (중복 시 update)
+    with engine.begin() as conn:
+        for _, row in existing_df.iterrows():
+            values = row.to_dict()
+            # NaN 안전 처리
+            sales = values.get('sales', 0)
+            production = values.get('production', 0)
+
+            # NaN이면 0으로 대체
+            if sales is None or (isinstance(sales, float) and math.isnan(sales)):
+                sales = 0
+            if production is None or (isinstance(production, float) and math.isnan(production)):
+                production = 0
+
+            values['inbound'] = sales - production
+            if values['inbound'] < 0:
+                values['inbound'] = 0
+
+            cols_to_keep = ['item_pk', 'month_date', 'inbound']
+            values = {k: values[k] for k in cols_to_keep}
+            print(values)
+            conn.execute(text("""
+                INSERT INTO item_predict (item_pk, month_date, inbound)
+                VALUES (:item_pk, :month_date, :inbound)
+                ON DUPLICATE KEY UPDATE
+                    inbound = VALUES(inbound)
+            """), values)
+
+    print("예측 데이터가 item_predict 테이블에 upsert 되었습니다.")
+
+predictInbound()

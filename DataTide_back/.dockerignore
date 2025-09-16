@@ -1,0 +1,13 @@
+# .dockerignore
+
+# 파이썬 가상환경 폴더
+datatide_env/
+.venv/
+
+# 파이썬 캐시 파일
+__pycache__/
+*.pyc
+
+# IDE 및 Git 설정 폴더
+.vscode/
+.git/

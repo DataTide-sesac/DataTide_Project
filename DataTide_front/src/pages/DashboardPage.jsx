@@ -51,7 +51,11 @@ export default function DashboardPage() {
   const [bumpChartData, setBumpChartData] = useState(null);
   const [scatterChartData, setScatterChartData] = useState(null);
   const [bubbleChartData, setBubbleChartData] = useState(null);
-  
+
+  useEffect(()=>{
+    setChartData(null);
+  }, [selectedAnalysis]);
+
   useEffect(() => {
   const bubbleData = generateBubbleChartData();
   setBubbleChartData(bubbleData);
@@ -181,14 +185,14 @@ export default function DashboardPage() {
       {/* 차트 영역 */}
       {chartData && (
         <section className="chart-section">
-          <h3>
-            📈 {FISH_ITEMS.find(f => f.id === selectedItem)?.kr_name} {selectedAnalysis} 분석 결과
+          <h2>
+            📈 {FISH_ITEMS.find(f => f.name === selectedItem)?.kr_name} {selectedAnalysis}
             {selectedAnalysis === '통계' && (
               period.startYear === period.endYear
                 ? ` (${period.startYear}년)`
                 : ` (${period.startYear}~${period.endYear}년)`
             )}
-          </h3>
+          </h2>
           <div className="chart-description">
             {selectedAnalysis === '통계' ? 
               '• 올해 데이터: 선 그래프  • 전년 데이터: 막대 그래프 ' :

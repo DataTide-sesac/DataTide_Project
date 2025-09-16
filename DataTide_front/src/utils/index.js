@@ -366,3 +366,12 @@ export function downloadFile(content, fileName, contentType) {
   link.click()
   window.URL.revokeObjectURL(url)
 }
+
+export function isValidChartData(data) {
+  return (
+    data &&
+    typeof data === 'object' &&
+    Array.isArray(data.datasets) &&
+    data.datasets.length > 0
+  );
+}

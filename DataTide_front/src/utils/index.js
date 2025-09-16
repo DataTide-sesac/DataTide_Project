@@ -288,13 +288,12 @@ export function generateMockChartData({ analysisType, period, selectedCategories
     }
 
     const datasets = [
-
-      { type: 'line',tension: 0.35, order: 2, label: `${startYear === endYear ? endYear : `${startYear}~${endYear}`} 생산`, data: yData.current['생산'], borderColor: '#1565C0' },
-      { type: 'line',tension: 0.35, order: 2, label: `${startYear === endYear ? endYear : `${startYear}~${endYear}`} 판매`, data: yData.current['판매'], borderColor: '#388E3C' },
-      { type: 'line',tension: 0.35, order: 2, label: `${startYear === endYear ? endYear : `${startYear}~${endYear}`} 수입`, data: yData.current['수입'], borderColor: '#F57C00' },
-      { type: 'bar', order: 1, label: `${startYear === endYear ? endYear - 1 : `${startYear - 1}~${endYear - 1}`} 생산`, data: yData.previous['생산'], backgroundColor: 'rgba(100, 181, 246, 1)' },
-      { type: 'bar', order: 1, label: `${startYear === endYear ? endYear - 1 : `${startYear - 1}~${endYear - 1}`} 판매`, data: yData.previous['판매'], backgroundColor: 'rgba(129, 199, 132, 1)' },
-      { type: 'bar', order: 1, label: `${startYear === endYear ? endYear - 1 : `${startYear - 1}~${endYear - 1}`} 수입`, data: yData.previous['수입'], backgroundColor: 'rgba(255, 183, 77, 1)' },
+      { type: 'line', tension:0.35, fill:true, order: 2, label: `${startYear === endYear ? endYear : `${startYear}~${endYear}`} 생산`, data: yData.current['생산'], borderColor: '#ffffffff', backgroundColor: '#4acfc6ff',borderWidth: 1 }, //#c2dcffff
+      { type: 'line', tension:0.35, fill:true, order: 2, label: `${startYear === endYear ? endYear : `${startYear}~${endYear}`} 판매`, data: yData.current['판매'], borderColor: '#ffffffff' , backgroundColor: '#b5e7f1ff',borderWidth: 1}, //a3e9b5ff
+      { type: 'line', tension:0.35, fill:true, order: 2, label: `${startYear === endYear ? endYear : `${startYear}~${endYear}`} 수입`, data: yData.current['수입'], borderColor: '#ffffffff',backgroundColor:'#abcddfff',borderWidth: 1},//F57C00 31326F #fdeebfff
+      { type: 'bar', order: 1, label: `${startYear === endYear ? endYear - 1 : `${startYear - 1}~${endYear - 1}`} 생산`, data: yData.previous['생산'], backgroundColor: '#006AC0', borderColor:'#ffffffff', borderWidth: 1 }, //'#34345fff'
+      { type: 'bar', order: 1, label: `${startYear === endYear ? endYear - 1 : `${startYear - 1}~${endYear - 1}`} 판매`, data: yData.previous['판매'], backgroundColor: '#FFDE47', borderColor:'#ffffffff', borderWidth: 1 }, //'#4d8d8bff'
+      { type: 'bar', order: 1, label: `${startYear === endYear ? endYear - 1 : `${startYear - 1}~${endYear - 1}`} 수입`, data: yData.previous['수입'], backgroundColor: '#FF8410', borderColor:'#ffffffff', borderWidth: 1 }, //'#6bd4a1ff'
     ];
     
     const filteredDatasets = datasets.filter(dataset => {

@@ -23,10 +23,17 @@ Thumbs.db
 
 # Specific to this project
 *.zip
+*.npz
 gemini.md
 
 ENV/
 env.bak/
 venv.bak/
 .log
+*.exe
+# 가상환경venv
+*.dll
+*.lib
+site-packages/
+DataTideV/
 

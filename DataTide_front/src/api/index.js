@@ -10,18 +10,30 @@ async function handleApiResponse(response) {
 export async function fetchFisheriesData(params) {
   const queryParams = new URLSearchParams();
   
+  
   queryParams.append('item', params.selectedItem);
   queryParams.append('analysis_type', params.selectedAnalysis);
   queryParams.append('categories', params.selectedCategories.join(','));
-
+  
   if (params.selectedAnalysis === '통계') {
     queryParams.append('start_year', params.period.startYear);
     queryParams.append('end_year', params.period.endYear);
+    queryParams.append('start_month', params.period.startMonth);
+    queryParams.append('end_month', params.period.endMonth);
   } else {
     queryParams.append('base_date', '2025-07-30');
   }
-
+  
   const response = await fetch(`${API_BASE}/api/fisheries-analysis?${queryParams}`);
+  return handleApiResponse(response);
+}
+
+export async function fetchBumpChartData(period) {
+  const queryParams = new URLSearchParams();
+  queryParams.append('start_year', period.startYear);
+  queryParams.append('end_year', period.endYear);
+  
+  const response = await fetch(`${API_BASE}/api/analysis/bump-chart?${queryParams}`);
   return handleApiResponse(response);
 }
 
@@ -31,7 +43,7 @@ export async function fetchPredictionDataApi(params) {
   if (params.selectedLocation) queryParams.append('location', params.selectedLocation);
   queryParams.append('base_date', params.baseDate);
   queryParams.append('type', 'prediction');
-
+  
   const response = await fetch(`${API_BASE}/api/prediction-data?${queryParams}`);
   return handleApiResponse(response);
 }

@@ -20,7 +20,8 @@ export default function ChatbotWindow({ onClose }) {
 
     const newUserMessage = { text: inputValue, sender: 'user' };
     const loadingMessageId = Date.now(); // Unique ID for the loading message
-    const loadingBotMessage = { id: loadingMessageId, text: '• • •', sender: 'bot' };
+    // Add isLoading: true to identify the loading message
+    const loadingBotMessage = { id: loadingMessageId, text: '• • •', sender: 'bot', isLoading: true };
 
     setMessages((prevMessages) => [...prevMessages, newUserMessage, loadingBotMessage]);
     setInputValue('');
@@ -37,7 +38,7 @@ export default function ChatbotWindow({ onClose }) {
       );
     } catch (error) {
       console.error('Error sending message to chatbot:', error);
-      const fallbackBotMessage = { text: '네. 안녕하세요.', sender: 'bot' };
+      const fallbackBotMessage = { text: '연결되지 않았습니다.', sender: 'bot' };
       setMessages((prevMessages) =>
         prevMessages.map((msg) =>
           msg.id === loadingMessageId ? fallbackBotMessage : msg
@@ -55,13 +56,18 @@ export default function ChatbotWindow({ onClose }) {
   return (
     <div className="chatbot-window">
       <div className="chatbot-header">
-        <h3>AI 챗봇</h3>
+        <h3>Datatide 챗봇</h3>
         <button onClick={onClose} className="close-btn">&times;</button>
       </div>
       <div className="chatbot-messages">
         {messages.map((msg, index) => (
           <div key={msg.id || index} className={`message ${msg.sender}`}>
-            {msg.text}
+            {/* Check for msg.isLoading to apply animation */}
+            {msg.isLoading ? (
+              <span className="loading-dots-animation">{msg.text}</span>
+            ) : (
+              msg.text
+            )}
           </div>
         ))}
         <div ref={messagesEndRef} /> {/* This is the element to scroll to */}
@@ -69,7 +75,7 @@ export default function ChatbotWindow({ onClose }) {
       <div className="chatbot-input">
         <input
           type="text"
-          placeholder="메시지를 입력하세요..."
+          placeholder="메시지를 입력하세요."
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}

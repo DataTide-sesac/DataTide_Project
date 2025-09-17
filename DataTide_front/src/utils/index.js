@@ -22,46 +22,292 @@ export function generateMockData() {
   return data
 }
 
-function generateComparisonChartData() {
-  const months = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
-  const production2024 = [18, 12, 20, 30, 25, 40, 28, 32, 35, 28, 35, 38];
-  const sales2024 = [15, 10, 18, 25, 20, 35, 25, 28, 30, 25, 30, 33];
-  const imports2024 = [12, 8, 15, 20, 18, 30, 22, 25, 28, 22, 28, 30];
-
-  return [
-    { x: months, y: production2024.map(d => d + Math.floor(Math.random() * 10) + 5), name: '2025(생산)', type: 'scatter', mode: 'lines+markers', marker: { color: '#1565C0' } },
-    { x: months, y: sales2024.map(d => d + Math.floor(Math.random() * 10) + 5), name: '2025(판매)', type: 'scatter', mode: 'lines+markers', marker: { color: '#388E3C' } },
-    { x: months, y: imports2024.map(d => d + Math.floor(Math.random() * 10) + 5), name: '2025(수입)', type: 'scatter', mode: 'lines+markers', marker: { color: '#F57C00' } },
-    { x: months, y: production2024, name: '2024(생산)', type: 'bar', marker: { color: '#64B5F6' } },
-    { x: months, y: sales2024, name: '2024(판매)', type: 'bar', marker: { color: '#81C784' } },
-    { x: months, y: imports2024, name: '2024(수입)', type: 'bar', marker: { color: '#FFB74D' } },
-  ];
-}
-
 function generatePredictionChartData() {
-  const pastX = ['2023년 01월', '2023년 02월', '2023년 03월', '2023년 04월', '2023년 05월', '2023년 06월', '2023년 07월', '2023년 08월', '2023년 09월', '2023년 10월', '2023년 11월', '2023년 12월'];
-  const predictedX = ['2024년 01월', '2024년 02월', '2024년 03월', '2024년 04월', '2024년 05월', '2024년 06월', '2024년 07월', '2024년 08월', '2024년 09월', '2024년 10월', '2024년 11월', '2024년 12월'];
+  const now = new Date();
+  const pastX = [];
+  const predictedX = [];
+
+  // Generate past 6 months
+  for (let i = 6; i > 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    pastX.push(`${d.getFullYear()}년 ${d.getMonth() + 1}월`);
+  }
+
+  // Generate future 6 months
+  for (let i = 0; i < 6; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    predictedX.push(`${d.getFullYear()}년 ${d.getMonth() + 1}월`);
+  }
+
   const predictionMockData = {
-    '생산': { pastY: [10, 12, 15, 13, 16, 18, 20, 19, 22, 21, 24, 23], predictedY: [25, 27, 26, 28, 30, 29, 32, 31, 33, 35, 34, 36], color: '#5C6BC0', fill: 'rgba(92, 107, 192, 0.1)' },
-    '판매': { pastY: [8, 10, 13, 11, 14, 16, 18, 17, 20, 19, 22, 21], predictedY: [23, 25, 24, 26, 28, 27, 30, 29, 31, 33, 32, 34], color: '#7CB342', fill: 'rgba(124, 179, 66, 0.1)' },
-    '수입': { pastY: [5, 7, 9, 8, 10, 12, 14, 13, 16, 15, 18, 17], predictedY: [19, 21, 20, 22, 24, 23, 26, 25, 27, 29, 28, 30], color: '#FF8A65', fill: 'rgba(255, 138, 101, 0.1)' }
+    '생산': { pastY: [10, 12, 15, 13, 16, 18], predictedY: [25, 27, 26, 28, 30, 29], color: '#5C6BC0', fill: 'rgba(92, 107, 192, 0.1)' },
+    '판매': { pastY: [8, 10, 13, 11, 14, 16], predictedY: [23, 25, 24, 26, 28, 27], color: '#7CB342', fill: 'rgba(124, 179, 66, 0.1)' },
+    '수입': { pastY: [5, 7, 9, 8, 10, 12], predictedY: [19, 21, 20, 22, 24, 23], color: '#FF8A65', fill: 'rgba(255, 138, 101, 0.1)' }
   };
   return { pastX, predictedX, predictionMockData };
 }
 
-export function generateMockChartData({ analysisType, selectedCategories }) {
-  if (analysisType === '통계') {
-    const allData = generateComparisonChartData();
-    return allData.filter(trace => {
-      if (!trace.name) return false;
-      const categoryMatch = trace.name.match(/\(([^)]+)\)/);
-      if (categoryMatch && selectedCategories.includes(categoryMatch[1])) {
-        return true;
-      }
-      return false;
-    });
+export function generateBumpChartData(){
+  const now = new Date();
+
+  // x축(시간)
+  const months = [];
+  for (let i = 6; i > 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push(`${d.getFullYear()}년 ${d.getMonth() + 1}월`);
   }
 
+  // 데이터 예시: 고등어, 오징어, 갈치 3개 품목
+  const predictionMockData = {
+    '고등어': [1, 3, 2, 2, 3, 2],
+    '오징어': [2, 1, 3, 3, 1, 1],
+    '갈치': [3, 2, 1, 1, 2, 3],
+  };
+
+
+  // nivo/bump에 맞게 변환
+  const data = Object.entries(predictionMockData).map(([key, values]) => ({
+    id: key,
+    data: months.map((month, idx) => ({
+      x: month,
+      y: values[idx]
+    }))
+  }));
+
+  return data;
+}
+
+
+//// 산포도 차트
+export function generateScatterChartData(){
+  const now = new Date();
+
+  // x축(시간)
+  const months = [];
+  for (let i = 6; i > 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push(`${d.getFullYear()}년 ${d.getMonth() + 1}월`);
+  }
+
+  // 데이터 예시: 고등어, 오징어, 갈치 3개 품목
+  // const predictionMockData = {
+  //   '고등어': [1, 3, 2, 2, 3, 2],
+  //   '오징어': [2, 1, 3, 3, 1, 1],
+  //   '갈치': [3, 2, 1, 1, 2, 3],
+  // };
+
+  const predictionMockData =
+    [
+      {
+        id : '고등어',
+        data:[
+          {x : 0, y: 1},
+          {x : 1, y: 4},
+          {x : 2, y: 5},
+          {x : 3, y: 6},
+          {x : 4, y: 2},
+          {x : 5, y: 3},
+        ]
+      },
+      {
+        id : '오징어',
+        data:[
+          {x : 0, y: 4},
+          {x : 1, y: 5},
+          {x : 2, y: 7},
+          {x : 3, y: 2},
+          {x : 4, y: 3},
+          {x : 5, y: 1},
+        ]
+      },
+      {
+        id : '갈치',
+        data:[
+          {x : 0, y: 6},
+          {x : 1, y: 2},
+          {x : 2, y: 1},
+          {x : 3, y: 9},
+          {x : 4, y: 6},
+          {x : 5, y: 2},
+        ]
+      }
+    ]
+
+  // const data = Object.entries(predictionMockData).map(([key, values]) => ({
+  // id: key,
+  // data: values.map((value, idx) => ({
+  //   x: idx,           // 또는 months[idx]가 숫자로 변환 가능한 경우
+  //   y: value
+  //   }))
+  // }));
+
+  return predictionMockData;
+}
+////
+
+//// 버블 차트
+export function generateBubbleChartData(){
+  const now = new Date();
+
+  // x축(시간)
+  const months = [];
+  for (let i = 6; i > 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push(`${d.getFullYear()}년 ${d.getMonth() + 1}월`);
+  }
+
+  // 데이터 예시: 고등어, 오징어, 갈치 3개 품목
+  // const predictionMockData = {
+  //   '고등어': [1, 3, 2, 2, 3, 2],
+  //   '오징어': [2, 1, 3, 3, 1, 1],
+  //   '갈치': [3, 2, 1, 1, 2, 3],
+  // };
+
+  const predictionMockData =
+    [
+      {
+        id : '고등어',
+        data:[
+          {x : 1, y: 1, size: 30},
+          {x : 2, y: 4, size: 10},
+          {x : 3, y: 5, size: 80},
+          {x : 4, y: 6, size: 20},
+          {x : 5, y: 2, size: 60},
+          {x : 6, y: 3, size: 40},
+          {x : 7, y: 6, size: 35},
+          {x : 8, y: 2, size: 33},
+          {x : 9, y: 1, size: 50},
+          {x : 10, y: 9, size: 20},
+          {x : 11, y: 6, size: 27},
+          {x : 12, y: 2, size: 16}
+        ]
+      },
+      {
+        id : '오징어',
+        data:[
+          {x : 1, y: 4, size: 15},
+          {x : 2, y: 5, size: 30},
+          {x : 3, y: 7, size: 20},
+          {x : 4, y: 2, size: 10},
+          {x : 5, y: 3, size: 40},
+          {x : 6, y: 1, size: 47},
+          {x : 7, y: 1, size: 30},
+          {x : 8, y: 4, size: 10},
+          {x : 9, y: 5, size: 80},
+          {x : 10, y: 6, size: 20},
+          {x : 11, y: 2, size: 60},
+          {x : 12, y: 3, size: 40}
+          
+        ]
+      },
+      {
+        id : '갈치',
+        data:[
+          {x : 1, y: 6, size: 35},
+          {x : 2, y: 2, size: 33},
+          {x : 3, y: 1, size: 50},
+          {x : 4, y: 0, size: 20},
+          {x : 5, y: 6, size: 27},
+          {x : 6, y: 2, size: 16},
+          {x : 7, y: 4, size: 15},
+          {x : 8, y: 5, size: 30},
+          {x : 9, y: 7, size: 20},
+          {x : 10, y: 2, size: 10},
+          {x : 11, y: 3, size: 40},
+          {x : 12, y: 1, size: 47}
+        ]
+      }
+    ]
+
+  // const data = Object.entries(predictionMockData).map(([key, values]) => ({
+  // id: key,
+  // data: values.map((value, idx) => ({
+  //   x: idx,           // 또는 months[idx]가 숫자로 변환 가능한 경우
+  //   y: value
+  //   }))
+  // }));
+
+  return predictionMockData;
+}
+////
+
+export function generateMockChartData({ analysisType, period, selectedCategories }) {
+  if (analysisType === '통계') {
+    const { startYear, endYear, startMonth, endMonth } = period;
+    const allMonths = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+    
+    const fullYData = {
+      current: {
+        '생산': [25, 18, 27, 38, 33, 49, 36, 40, 43, 37, 44, 47],
+        '판매': [21, 16, 25, 33, 28 , 43, 32, 35, 38, 31, 39, 41],
+        '수입': [18, 13, 22, 27, 24, 38, 29, 33, 35, 28, 36, 39]
+      },
+      previous: {
+        '생산': [18, 12, 20, 30, 25, 40, 28, 32, 35, 28, 35, 38],
+        '판매': [15, 10, 18, 25, 20, 35, 25, 28, 30, 25, 30, 33],
+        '수입': [12, 8, 15, 20, 18, 30, 22, 25, 28, 22, 28, 30]
+      }
+    };
+
+    let monthLabels = [];
+    const yData = { current: {}, previous: {} };
+    ['생산', '판매', '수입'].forEach(cat => {
+        yData.current[cat] = [];
+        yData.previous[cat] = [];
+    });
+
+    if (startYear === endYear) {
+        monthLabels = allMonths.slice(startMonth - 1, endMonth);
+        ['생산', '판매', '수입'].forEach(cat => {
+            yData.current[cat] = fullYData.current[cat].slice(startMonth - 1, endMonth);
+            yData.previous[cat] = fullYData.previous[cat].slice(startMonth - 1, endMonth);
+        });
+    } else { 
+        monthLabels.push(...allMonths.slice(startMonth - 1));
+        ['생산', '판매', '수입'].forEach(cat => {
+            yData.current[cat].push(...fullYData.current[cat].slice(startMonth - 1));
+            yData.previous[cat].push(...fullYData.previous[cat].slice(startMonth - 1));
+        });
+        monthLabels.push(...allMonths.slice(0, endMonth));
+        ['생산', '판매', '수입'].forEach(cat => {
+            yData.current[cat].push(...fullYData.current[cat].slice(0, endMonth));
+            yData.previous[cat].push(...fullYData.previous[cat].slice(0, endMonth));
+        });
+    }
+
+    // Prepend previous month's data to connect the line graph
+    if (startMonth > 1) {
+      const prevMonthLabel = allMonths[startMonth - 2];
+      monthLabels.unshift(prevMonthLabel);
+
+      ['생산', '판매', '수입'].forEach(cat => {
+        const prevMonthData = fullYData.previous[cat][startMonth - 2];
+        yData.current[cat].unshift(prevMonthData);
+        yData.previous[cat].unshift(null); // Add null to bar data to keep it aligned
+      });
+    }
+
+    const datasets = [
+      { type: 'line', tension:0.35, fill:true, order: 2, label: `${startYear === endYear ? endYear : `${startYear}~${endYear}`} 생산`, data: yData.current['생산'], borderColor: '#ffffffff', backgroundColor: '#4acfc6ff',borderWidth: 1 }, //#c2dcffff
+      { type: 'line', tension:0.35, fill:true, order: 2, label: `${startYear === endYear ? endYear : `${startYear}~${endYear}`} 판매`, data: yData.current['판매'], borderColor: '#ffffffff' , backgroundColor: '#b5e7f1ff',borderWidth: 1}, //a3e9b5ff
+      { type: 'line', tension:0.35, fill:true, order: 2, label: `${startYear === endYear ? endYear : `${startYear}~${endYear}`} 수입`, data: yData.current['수입'], borderColor: '#ffffffff',backgroundColor:'#abcddfff',borderWidth: 1},//F57C00 31326F #fdeebfff
+      { type: 'bar', order: 1, label: `${startYear === endYear ? endYear - 1 : `${startYear - 1}~${endYear - 1}`} 생산`, data: yData.previous['생산'], backgroundColor: '#006AC0', borderColor:'#ffffffff', borderWidth: 1 }, //'#34345fff'
+      { type: 'bar', order: 1, label: `${startYear === endYear ? endYear - 1 : `${startYear - 1}~${endYear - 1}`} 판매`, data: yData.previous['판매'], backgroundColor: '#FFDE47', borderColor:'#ffffffff', borderWidth: 1 }, //'#4d8d8bff'
+      { type: 'bar', order: 1, label: `${startYear === endYear ? endYear - 1 : `${startYear - 1}~${endYear - 1}`} 수입`, data: yData.previous['수입'], backgroundColor: '#FF8410', borderColor:'#ffffffff', borderWidth: 1 }, //'#6bd4a1ff'
+    ];
+    
+    const filteredDatasets = datasets.filter(dataset => {
+      const category = dataset.label.split(' ').pop();
+      return selectedCategories.includes(category);
+    });
+
+    return {
+      labels: monthLabels,
+      datasets: filteredDatasets,
+    };
+  }
+
+  // For prediction chart, keep original Plotly data structure
   if (analysisType === '예측') {
     const { pastX, predictedX, predictionMockData } = generatePredictionChartData();
     const predictionData = [];
@@ -71,9 +317,9 @@ export function generateMockChartData({ analysisType, selectedCategories }) {
         const { pastY, predictedY, color, fill } = categoryData;
         const pastXConnected = [...pastX, predictedX[0]];
         const pastYConnected = [...pastY, predictedY[0]];
-        predictionData.push({ x: pastXConnected, y: pastYConnected, name: `과거 데이터(${category})`, type: 'scatter', mode: 'lines', line: { color: color } });
-        predictionData.push({ x: predictedX, y: predictedY, name: `예측 데이터(${category})`, type: 'scatter', mode: 'lines', line: { color: color, dash: 'dash' } });
-        predictionData.push({ x: [...predictedX, ...[...predictedX].reverse()], y: [...predictedY.map(y => y - 2), ...[...predictedY].reverse().map(y => y + 2)], fill: 'toself', fillcolor: fill, line: { color: 'transparent' }, name: `신뢰구간(${category})`, showlegend: false, type: 'scatter' });
+        predictionData.push({ x: pastXConnected, y: pastYConnected, name: `과거 데이터 ${category}`, type: 'scatter', mode: 'lines', line: { color: color } });
+        predictionData.push({ x: predictedX, y: predictedY, name: `예측 데이터 ${category}`, type: 'scatter', mode: 'lines', line: { color: color, dash: 'dash' } });
+        predictionData.push({ x: [...predictedX, ...[...predictedX].reverse()], y: [...predictedY.map(y => y - 2), ...[...predictedY].reverse().map(y => y + 2)], fill: 'toself', fillcolor: fill, line: { color: 'transparent' }, name: `신뢰구간 ${category}`, showlegend: false, type: 'scatter' });
       }
     });
     return predictionData;
@@ -119,4 +365,13 @@ export function downloadFile(content, fileName, contentType) {
   link.download = fileName
   link.click()
   window.URL.revokeObjectURL(url)
+}
+
+export function isValidChartData(data) {
+  return (
+    data &&
+    typeof data === 'object' &&
+    Array.isArray(data.datasets) &&
+    data.datasets.length > 0
+  );
 }

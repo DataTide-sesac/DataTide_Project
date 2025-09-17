@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 
 import seaborn as sns
 import matplotlib.pyplot as plt
+import joblib
 import wandb
 
 # --- 환경변수 불러오기 ---
@@ -80,6 +81,9 @@ class TimeSeriesDataset(Dataset):
         self.features = self.scaler_x.fit_transform(self.features)
         self.targets = self.scaler_y.fit_transform(self.targets)
 
+        joblib.dump(self.scaler_x, "sales_scaler_x.pkl")
+        joblib.dump(self.scaler_y, "sales_scaler_y.pkl")
+
     def __len__(self):
         return len(self.features) - self.window_size
 
@@ -91,48 +95,7 @@ class TimeSeriesDataset(Dataset):
 # ======================
 # 5. PyTorch 모델 정의
 # ======================
-class LSTMModel(nn.Module):
-    def __init__(self, input_dim, hidden_dim=64, output_dim=2, num_layers=2):
-        super(LSTMModel, self).__init__()
-        self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, batch_first=True)
-        self.relu = nn.ReLU()
-
-        self.fc = nn.Linear(hidden_dim, output_dim)
-        self.fc1 = nn.Linear(hidden_dim, 64)
-        self.fc2 = nn.Linear(64, output_dim)
-
-    def forward(self, x):
-        _, (h_n, _) = self.lstm(x)
-        out = h_n[-1]
-        out = self.fc(out)
-
-        # out = self.fc1(out)
-        # out = self.relu(out)
-        # out = self.fc2(out)  # 마지막 hidden state
-
-        return out
-
-class SimpleRNNModel(nn.Module):
-    def __init__(self, input_dim, hidden_dim=64, output_dim=2, num_layers=2):
-        super().__init__()
-        self.rnn = nn.RNN(input_dim, hidden_dim, num_layers, batch_first=True)
-        self.relu = nn.ReLU()
-
-        self.fc = nn.Linear(hidden_dim, output_dim)
-        self.fc1 = nn.Linear(hidden_dim, 64)
-        self.fc2 = nn.Linear(64, output_dim)
-
-    def forward(self, x):
-        _, h_n = self.rnn(x)
-        out = h_n[-1]
-        out = self.fc(out)
-
-        # out = self.fc1(h_n[-1])
-        # out = self.relu(out)
-        # out = self.fc2(out)  # 마지막 hidden state
-        return out
-
-class GRUModel(nn.Module):
+class GRUModel_1hidden(nn.Module):
     def __init__(self, input_dim, hidden_dim=64, output_dim=2, num_layers=2):
         super().__init__()
         self.gru = nn.GRU(input_dim, hidden_dim, num_layers, batch_first=True)
@@ -152,36 +115,72 @@ class GRUModel(nn.Module):
         # out = self.fc2(out)  # 마지막 hidden state
         return out
 
-# feature embedding → Transformer Encoder → FC regression head
-class TransformerEncoderModel(nn.Module):
-    def __init__(self, input_dim, d_model=64, nhead=4, num_layers=2, output_dim=2):
+class GRUModel_2hidden(nn.Module):
+    def __init__(self, input_dim, hidden_dim=64, output_dim=2, num_layers=2):
         super().__init__()
-        self.input_fc = nn.Linear(input_dim, d_model)
-        encoder_layer = nn.TransformerEncoderLayer(d_model=d_model, nhead=nhead, batch_first=True)
-        self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
+        self.gru = nn.GRU(input_dim, hidden_dim, num_layers, batch_first=True)
         self.relu = nn.ReLU()
 
-        self.fc = nn.Linear(d_model, output_dim)
-        self.fc1 = nn.Linear(d_model, 64)
+        self.fc = nn.Linear(hidden_dim, output_dim)
+        self.fc1 = nn.Linear(hidden_dim, 64)
         self.fc2 = nn.Linear(64, output_dim)
 
     def forward(self, x):
-        x = self.input_fc(x)
-        x = self.transformer(x)
-        # 마지막 시점 선택
-        out = self.fc(x[:, -1, :])
+        _, h_n = self.gru(x)
+        out = h_n[-1]
+        # out = self.fc(out)
 
-        # out = self.fc1(x[:, -1, :])
+        out = self.fc1(out)
+        out = self.relu(out)
+        out = self.fc2(out)  # 마지막 hidden state
+        return out
+
+class GRUModel_1hidden_32(nn.Module):
+    def __init__(self, input_dim, hidden_dim=64, output_dim=2, num_layers=2):
+        super().__init__()
+        self.gru = nn.GRU(input_dim, 32, num_layers, batch_first=True)
+        self.relu = nn.ReLU()
+
+        self.fc = nn.Linear(32, output_dim)
+        self.fc1 = nn.Linear(hidden_dim, 64)
+        self.fc2 = nn.Linear(64, output_dim)
+
+    def forward(self, x):
+        _, h_n = self.gru(x)
+        out = h_n[-1]
+        out = self.fc(out)
+
+        # out = self.fc1(out)
         # out = self.relu(out)
         # out = self.fc2(out)  # 마지막 hidden state
         return out
-    
+
+class GRUModel_2hidden_32(nn.Module):
+    def __init__(self, input_dim, hidden_dim=64, output_dim=2, num_layers=2):
+        super().__init__()
+        self.gru = nn.GRU(input_dim, hidden_dim, num_layers, batch_first=True)
+        self.relu = nn.ReLU()
+
+        self.fc = nn.Linear(hidden_dim, output_dim)
+        self.fc1 = nn.Linear(hidden_dim, 32)
+        self.fc2 = nn.Linear(32, output_dim)
+
+    def forward(self, x):
+        _, h_n = self.gru(x)
+        out = h_n[-1]
+        # out = self.fc(out)
+
+        out = self.fc1(out)
+        out = self.relu(out)
+        out = self.fc2(out)  # 마지막 hidden state
+        return out
+
 # ======================
 # 6. 학습 루프
 # ======================
 def train_and_evaluate(model, train_loader, val_loader, epochs=40, lr=1e-3, model_name="model.pth"):
     criterion = nn.MSELoss()
-    optimizer = optim.Adam(model.parameters(), lr=lr)
+    optimizer = optim.RMSprop(model.parameters(), lr=lr)
 
     best_rmse = float("inf")  # 아주 큰 값으로 초기화
     best_mae = float("inf")  # 아주 큰 값으로 초기화
@@ -237,7 +236,14 @@ def train_and_evaluate(model, train_loader, val_loader, epochs=40, lr=1e-3, mode
             best_mae = mae
             best_r2 = r2
             best_state = model.state_dict()
-            torch.save(best_state, f"{model_name}_sales.pth")
+            save_path = f"./GRU_models/{model_name}_sales.pth"
+            torch.save(best_state, save_path)
+            
+            # W&B에도 저장
+            artifact = wandb.Artifact(model_name, type="model")
+            # artifact.add_file(save_path)
+            wandb.log_artifact(artifact)
+
             print(f"  👉 Best model saved (epoch {epoch+1}, RMSE={rmse:.2f})")
 
 
@@ -268,40 +274,41 @@ input_dim = len(feature_cols)
 
 # 학습
 models = {
-    "LSTM": LSTMModel(input_dim=len(feature_cols), hidden_dim=64, output_dim=len(target_cols)),
-    "SimpleRNN": SimpleRNNModel(input_dim=len(feature_cols), hidden_dim=64, output_dim=len(target_cols)),
-    "GRU": GRUModel(input_dim=len(feature_cols), hidden_dim=64, output_dim=len(target_cols)),
-    "Transformer": TransformerEncoderModel(input_dim=len(feature_cols), d_model=64, nhead=4, num_layers=2, output_dim=len(target_cols))
+    "GRU_1hidden": GRUModel_1hidden(input_dim=len(feature_cols), hidden_dim=64, output_dim=len(target_cols)),
+    "GRU_1hidden_32": GRUModel_1hidden_32(input_dim=len(feature_cols), hidden_dim=64, output_dim=len(target_cols)),
+    "GRU_2hidden": GRUModel_2hidden(input_dim=len(feature_cols), hidden_dim=64, output_dim=len(target_cols)),
+    "GRU_2hidden_32": GRUModel_2hidden_32(input_dim=len(feature_cols), hidden_dim=64, output_dim=len(target_cols)),
 }
 
 results = {}
 
-for name, model in models.items():
-    print(f"\n===== Training {name} =====")
-    # 프로젝트명, 엔티티(계정명 또는 팀명), 하이퍼파라미터 기록
-    wandb.init(
-        project="DataTide_sales_compare_model_1hidden_2",   # 원하는 프로젝트 이름
-        entity=os.getenv("WANDB_ENTITY"),       # 본인 계정명
-        config={
-            "epochs": 100,
-            "learning_rate": 1e-3,
-            "batch_size": 32,
-            "window_size": 6,
-            "hidden_dim": 64,
-            "model":name
-        },
-        name=name,
-        reinit=True   # run 새로 시작
-    )
-    rmse, mae, r2 = train_and_evaluate(model, train_loader, val_loader, 
-                                       epochs=wandb.config.epochs, 
-                                       lr=wandb.config.learning_rate, 
-                                       model_name=name)
-    results[name] = {"RMSE": rmse, "MAE": mae, "R2": r2}
+# for name, model in models.items():
+#     print(f"\n===== Training {name} =====")
+#     # 프로젝트명, 엔티티(계정명 또는 팀명), 하이퍼파라미터 기록
+#     wandb.init(
+#         project="DataTide_sales_compare_model_GRU_RMSprop_3",   # 원하는 프로젝트 이름
+#         entity=os.getenv("WANDB_ENTITY"),       # 본인 계정명
+#         config={
+#             "epochs": 80,
+#             "learning_rate": 1e-3,
+#             "batch_size": 32,
+#             "window_size": 6,
+#             "hidden_dim": 64,
+#             "model":name
+#         },
+#         name=name,
+#         group="24",
+#         reinit=True   # run 새로 시작
+#     )
+#     rmse, mae, r2 = train_and_evaluate(model, train_loader, val_loader, 
+#                                        epochs=wandb.config.epochs, 
+#                                        lr=wandb.config.learning_rate, 
+#                                        model_name=name)
+#     results[name] = {"RMSE": rmse, "MAE": mae, "R2": r2}
 
-print("\n===== Model Comparison =====")
-for name, metric in results.items():
-    print(f"{name}: RMSE={metric['RMSE']:.2f}, MAE={metric['MAE']:.2f}, R²={metric['R2']:.2f}")
+# print("\n===== Model Comparison =====")
+# for name, metric in results.items():
+#     print(f"{name}: RMSE={metric['RMSE']:.2f}, MAE={metric['MAE']:.2f}, R²={metric['R2']:.2f}")
 
 def drawHitmap():
     # 히트맵.
@@ -320,3 +327,4 @@ def drawHitmap():
     plt.tight_layout()      # 레이블 겹침 방지. 다시 그려라
     plt.show()
 
+drawHitmap()

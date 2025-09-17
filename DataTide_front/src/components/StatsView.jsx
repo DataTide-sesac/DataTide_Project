@@ -109,8 +109,8 @@ export default function StatsView({ selectedItems, selectedLocation }) {
       {/* 차트 영역 */}
       {chartData && (
         <section className="chart-section">
-          <h3>📈 전년 대비 통계 (올해: 선그래프, 작년: 막대그래프)</h3>
-          <ChartComponent data={chartData} type="comparison" />
+
+          <ChartComponent data={chartData} analysisType="통계" />
         </section>
       )}
 

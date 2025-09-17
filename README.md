@@ -35,8 +35,7 @@
     - DataTide_back
   - **실행 방법**
     - cd DataTide_back
-    - *(처음 실행할 시)* pip install -r requirements.txt
-    - *(DB 스키마 최신으로 적용)* alembic upgrade head
+        - *(처음 실행할 시)* pip install -r requirements.txt
     - python -m uvicorn main:app --reload
 
 ---
@@ -107,9 +106,9 @@
 ## ⚙️ 개발 환경
 
 - **파이썬 버전** : 3.10.18
-  - **데이터 관련 라이브러리** : sqlalchemy pymysql numpy pandas matplotlib seaborn tqdm
+  - **데이터 관련 라이브러리** : pymysql numpy pandas matplotlib seaborn tqdm
   - **AI 관련 라이브러리** : torch torchvision torchaudio scikit-learn
-  - **웹 관련 라이브러리** : fastapi, alembic
+  - **웹 관련 라이브러리** : fastapi
 
 - **리액트 버전** : 19.1.1
   - **axios** : 1.11.0

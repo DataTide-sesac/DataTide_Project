@@ -94,3 +94,13 @@
 .chatbot-input button:focus {
   outline: none; /* Ensure no outline on focus */
 }
+
+@keyframes loading-fade {
+  0% { opacity: 0.2; }
+  50% { opacity: 1; }
+  100% { opacity: 0.2; }
+}
+
+.loading-dots-animation {
+  animation: loading-fade 1.5s infinite ease-in-out;
+}

@@ -82,13 +82,13 @@ export default function ResultsTable({
                   <th>년도</th>
                   <th>품목</th>
                   {displayedColumns.map(col => (
-                    <th key={col.dataKey}>{col.header}</th>
+                    <th key={`header-${col.dataKey}`}>{col.header}</th>
                   ))}
                   {displayedColumns.map(col => (
-                    <th key={col.prevDataKey}>{col.prevHeader}</th>
+                    <th key={`prev-header-${col.prevDataKey}`}>{col.prevHeader}</th>
                   ))}
                   {displayedColumns.map(col => (
-                    <th key={col.changeDataKey}>{col.changeHeader}</th>
+                    <th key={`change-header-${col.changeDataKey}`}>{col.changeHeader}</th>
                   ))}
                 </>
               ) : (
@@ -117,13 +117,13 @@ export default function ResultsTable({
                   {selectedAnalysis === '통계' ? (
                     <>
                       {displayedColumns.map(col => (
-                        <td key={col.dataKey}>{formatNumber(row[col.dataKey])}</td>
+                        <td key={`data-${col.dataKey}`}>{formatNumber(row[col.dataKey])}</td>
                       ))}
                       {displayedColumns.map(col => (
-                        <td key={col.prevDataKey}>{formatNumber(row[col.prevDataKey])}</td>
+                        <td key={`prev-data-${col.prevDataKey}`}>{formatNumber(row[col.prevDataKey])}</td>
                       ))}
                       {displayedColumns.map(col => (
-                        <td key={col.changeDataKey}>{formatPercent(row[col.changeDataKey])}</td>
+                        <td key={`change-data-${col.changeDataKey}`}>{formatPercent(row[col.changeDataKey])}</td>
                       ))}
                     </>
                   ) : (

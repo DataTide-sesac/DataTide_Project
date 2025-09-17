@@ -115,6 +115,10 @@ export default function DashboardPage() {
 
     // Date validation for '통계' analysis
     if (selectedAnalysis === '통계') {
+      if (period.startYear === period.endYear && period.startMonth > period.endMonth) {
+        alert('시작 월은 종료 월보다 이전이어야 합니다.');
+        return;
+      }
       const totalMonths = (period.endYear - period.startYear) * 12 + (period.endMonth - period.startMonth) + 1;
       if (totalMonths > 13) {
         alert('최대 1년까지 조회 가능합니다.');
@@ -150,9 +154,12 @@ export default function DashboardPage() {
           '판매': { type: 'line', tension:0.35, fill:true, order: 2, borderColor: '#ffffffff' , backgroundColor: '#b5e7f1ff', borderWidth: 1},
           '수입': { type: 'line', tension:0.35, fill:true, order: 2, borderColor: '#ffffffff', backgroundColor:'#abcddfff', borderWidth: 1},
         };
-        const chartLabels = Array.from({ length: 12 }, (_, i) => `${i + 1}월`);
+
+        // Use labels from the API response
+        const chartLabels = result.chartData.length > 0 ? result.chartData[0].x : [];
+
         const formattedDatasets = result.chartData.map(trace => {
-            const isBar = trace.type === 'bar';
+            const isBar = trace.type === 'bar'; // Use the type from the backend
             const categoryMatch = trace.name.match(/\(([^)]+)\)/);
             const category = categoryMatch ? categoryMatch[1] : '생산';
             const styles = isBar ? barStyles[category] : lineStyles[category];
@@ -410,7 +417,7 @@ export default function DashboardPage() {
           </h2>
           <div className="chart-description">
             {selectedAnalysis === '통계' ? 
-              '• 올해 데이터: 선 그래프  • 전년 데이터: 막대 그래프 ' :
+              '  • 선택기간: 막대 그래프            • 전년동기: 선 그래프 ' :
               '• 실제 데이터: 실선 • 예측 데이터: 점선 + 신뢰구간'
             }
           </div>

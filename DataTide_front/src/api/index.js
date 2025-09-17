@@ -17,6 +17,8 @@ export async function fetchFisheriesData(params) {
   if (params.selectedAnalysis === '통계') {
     queryParams.append('start_year', params.period.startYear);
     queryParams.append('end_year', params.period.endYear);
+    queryParams.append('start_month', params.period.startMonth);
+    queryParams.append('end_month', params.period.endMonth);
   } else {
     queryParams.append('base_date', params.base_date);
   }

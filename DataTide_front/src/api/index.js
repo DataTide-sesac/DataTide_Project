@@ -72,5 +72,5 @@ export async function sendChatbotMessage(message) {
     },
     body: JSON.stringify({ message: message }),
   });
-  return handleApiResponse(response);
+  return handleApiResponse(response)
 }

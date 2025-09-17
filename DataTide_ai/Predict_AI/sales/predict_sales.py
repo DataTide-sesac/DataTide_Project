@@ -13,7 +13,7 @@ from datetime import datetime
 import joblib
 
 # --- 환경변수 불러오기 ---
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../../../DataTide_back/api/endpoints", ".env"))
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../../..", ".env"))
 
 # ======================
 # 1. MySQL 연결

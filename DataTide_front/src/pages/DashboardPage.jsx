@@ -141,14 +141,14 @@ export default function DashboardPage() {
 
       if (selectedAnalysis === '통계') {
         const lineStyles = {
-            '생산': { type: 'line', tension:0.35, fill:true, order: 2, borderColor: '#ffffffff', backgroundColor: '#4acfc6ff', borderWidth: 1 },
-            '판매': { type: 'line', tension:0.35, fill:true, order: 2, borderColor: '#ffffffff' , backgroundColor: '#b5e7f1ff', borderWidth: 1},
-            '수입': { type: 'line', tension:0.35, fill:true, order: 2, borderColor: '#ffffffff', backgroundColor:'#abcddfff', borderWidth: 1},
+          '생산': { type: 'bar', order: 1, backgroundColor: '#006AC0', borderColor:'#ffffffff', borderWidth: 1 },
+          '판매': { type: 'bar', order: 1, backgroundColor: '#FFDE47', borderColor:'#ffffffff', borderWidth: 1 },
+          '수입': { type: 'bar', order: 1, backgroundColor: '#FF8410', borderColor:'#ffffffff', borderWidth: 1 },
         };
         const barStyles = {
-            '생산': { type: 'bar', order: 1, backgroundColor: '#006AC0', borderColor:'#ffffffff', borderWidth: 1 },
-            '판매': { type: 'bar', order: 1, backgroundColor: '#FFDE47', borderColor:'#ffffffff', borderWidth: 1 },
-            '수입': { type: 'bar', order: 1, backgroundColor: '#FF8410', borderColor:'#ffffffff', borderWidth: 1 },
+          '생산': { type: 'line', tension:0.35, fill:true, order: 2, borderColor: '#ffffffff', backgroundColor: '#4acfc6ff', borderWidth: 1 },
+          '판매': { type: 'line', tension:0.35, fill:true, order: 2, borderColor: '#ffffffff' , backgroundColor: '#b5e7f1ff', borderWidth: 1},
+          '수입': { type: 'line', tension:0.35, fill:true, order: 2, borderColor: '#ffffffff', backgroundColor:'#abcddfff', borderWidth: 1},
         };
         const chartLabels = Array.from({ length: 12 }, (_, i) => `${i + 1}월`);
         const formattedDatasets = result.chartData.map(trace => {

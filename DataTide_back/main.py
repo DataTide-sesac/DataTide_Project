@@ -1,8 +1,13 @@
 # main.py
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from DataTide_back.api.router import api_router
-from DataTide_back.services import rag_service # Import the service
+from .services.rag_service import initialize_llm
+from dotenv import load_dotenv # Add this line
+
+load_dotenv() # Add this line
+print(f"OPENAI_API_KEY loaded: {os.getenv('OPENAI_API_KEY')}") # Debug print
 
 app = FastAPI()
 
@@ -12,9 +17,9 @@ async def startup_event():
     Application startup event handler.
     Initializes the RAG pipeline.
     """
-    print("Application startup: Initializing RAG pipeline...")
-    rag_service.initialize_rag_pipeline()
-    print("Application startup: RAG pipeline initialization complete.")
+    print("Application startup: Initializing LLM...")
+    initialize_llm()
+    print("Application startup: LLM initialization complete.")
 
 # CORS 미들웨어 추가
 app.add_middleware(

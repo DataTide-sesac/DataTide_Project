@@ -16,6 +16,8 @@ def get_fisheries_analysis(
     categories: str = None, # Comma-separated string
     start_year: Optional[int] = None,
     end_year: Optional[int] = None,
+    start_month: Optional[int] = None, # Added
+    end_month: Optional[int] = None,   # Added
     base_date: Optional[str] = None,
 ):
     if not all([item, analysis_type, categories]):
@@ -38,7 +40,9 @@ def get_fisheries_analysis(
             item_pk=item_pk,
             category_list=category_list,
             start_year=start_year,
-            end_year=end_year
+            end_year=end_year,
+            start_month=start_month, # Passed
+            end_month=end_month      # Passed
         )
 
     elif analysis_type == '예측':

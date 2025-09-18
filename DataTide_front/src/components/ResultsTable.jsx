@@ -62,7 +62,7 @@ export default function ResultsTable({
   return (
     <section className="results-section">
       <div className="results-header">
-        <h3>📋 상세 데이터 ({tableData.length}건)</h3>
+        <h2>📋 상세 데이터 ({tableData.length}건)</h2>
         <div className="download-buttons">
           <button className="download-btn" onClick={downloadCSV}>
             📄 CSV 다운로드
@@ -99,7 +99,7 @@ export default function ResultsTable({
                   <th>판매량(톤)</th>
                   <th>수입량(톤)</th>
                   <th>데이터구분</th>
-                  <th>신뢰도(%)</th>
+                  {/* <th>신뢰도(%)</th> */}
                 </>
               )}
             </tr>
@@ -132,7 +132,7 @@ export default function ResultsTable({
                       <td>{formatNumber(row.sales)}</td>
                       <td>{formatNumber(row.inbound)}</td>
                       <td>{row.dataType}</td>
-                      <td>{row.confidence ? `${row.confidence}%` : '-' }</td>
+                      {/* <td>{row.confidence ? `${row.confidence}%` : '-' }</td> */}
                     </>
                   )}
                 </tr>
@@ -143,10 +143,10 @@ export default function ResultsTable({
       </div>
 
       <div className="data-source-info">
-        <p><strong>데이터 소스:</strong> {selectedAnalysis === '통계' ? '과거 시계열 분석 모델' : 'LSTM 기반 AI 예측 모델'}</p>
-        <p><strong>서버 API:</strong> {apiBaseUrl}/api/fisheries-analysis</p>
+        {/* <p><strong>데이터 소스:</strong> {selectedAnalysis === '통계' ? '과거 시계열 분석 모델' : 'LSTM 기반 AI 예측 모델'}</p>
+        <p><strong>서버 API:</strong> {apiBaseUrl}/api/fisheries-analysis</p> */}
         <p><strong>업데이트 주기:</strong> 매월 1일 자동 갱신</p>
-        <p><strong>데이터 저장:</strong> MySQL 시계열 테이블에 저장 후 분석</p>
+        {/* <p><strong>데이터 저장:</strong> MySQL 시계열 테이블에 저장 후 분석</p> */}
       </div>
     </section>
   );

@@ -47,35 +47,85 @@ function generatePredictionChartData() {
   return { pastX, predictedX, predictionMockData };
 }
 
-export function generateBumpChartData(){
-  const now = new Date();
+export function generateBumpChartData(result, period, allItems = null) {
+    // 1. 데이터 유효성 검사
+    if (!result || !result.chartData || !result.categories || result.chartData.length === 0) {
+      return null;
+    }
 
-  // x축(시간)
-  const months = [];
-  for (let i = 6; i > 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    months.push(`${d.getFullYear()}년 ${d.getMonth() + 1}월`);
+    if (!allItems) {
+      allItems = result.categories;
+    }
+
+    // 2. 기준 라벨 생성 ('YYYY-MM' 형식)
+    const labels = [];
+    let year = period.startYear;
+    let month = period.startMonth;
+    while (year < period.endYear || (year === period.endYear && month <= period.endMonth)) {
+      labels.push(year + '-' + month.toString().padStart(2, '0'));
+      month++;
+      if (month > 12) {
+        month = 1;
+        year++;
+      }
+    }
+
+    // 3. '생산' 데이터만 필터링
+    const productionData = result.chartData.filter(trace => trace.name.includes('(생산)'));
+
+    // 4. 월별/품목별 생산량 데이터 가공
+    const monthData = labels.map(monthLabel => {
+      const monthEntry = {};
+      allItems.forEach(item => {
+        const trace = productionData.find(trace => trace.name.includes(item));
+        if (trace && Array.isArray(trace.x)) {
+          const idx = trace.x.indexOf(monthLabel);
+          monthEntry[item] = idx >= 0 ? trace.y[idx] || 0 : 0;
+        } else {
+          monthEntry[item] = 0;
+        }
+      });
+      return monthEntry;
+    });
+
+    // 5. 월별 순위 계산
+    const ranksByMonth = monthData.map(monthEntry => {
+      const entries = Object.entries(monthEntry);
+      entries.sort((a, b) => b[1] - a[1]);
+      const rankMap = {};
+      entries.forEach(([item], idx) => {
+        rankMap[item] = idx + 1;
+      });
+      return rankMap;
+    });
+
+    // 6. 최종 bumpData 생성 (라벨 생성 로직 수정)
+    const bumpData = allItems.map(item => ({
+      id: item,
+      data: labels.map((monthLabel, idx) => {
+        const parts = monthLabel.split('-');
+        const currentYear = parts[0];
+        const currentMonth = parts[1];
+
+        let displayLabel;
+
+        // 첫 번째 라벨이거나, 이전 라벨과 연도가 다를 경우 'YYYY년 MM월'
+        if (idx === 0 || currentYear !== labels[idx - 1].split('-')[0]) {
+          displayLabel = currentYear + '년 ' + currentMonth + '월';
+        } else {
+          // 그 외에는 'MM월'
+          displayLabel = currentMonth + '월';
+        }
+
+        return {
+          x: displayLabel,
+          y: ranksByMonth[idx][item] || allItems.length,
+        };
+      }),
+    }));
+
+    return bumpData;
   }
-
-  // 데이터 예시: 고등어, 오징어, 갈치 3개 품목
-  const predictionMockData = {
-    '고등어': [1, 3, 2, 2, 3, 2],
-    '오징어': [2, 1, 3, 3, 1, 1],
-    '갈치': [3, 2, 1, 1, 2, 3],
-  };
-
-
-  // nivo/bump에 맞게 변환
-  const data = Object.entries(predictionMockData).map(([key, values]) => ({
-    id: key,
-    data: months.map((month, idx) => ({
-      x: month,
-      y: values[idx]
-    }))
-  }));
-
-  return data;
-}
 
 
 //// 산포도 차트

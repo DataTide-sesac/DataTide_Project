@@ -20,23 +20,6 @@ export default function PredictionView({ selectedItems, selectedLocation }) {
       setLoading(true)
       setError('')
 
-      // 🔥 실제 API 호출 부분 - api/index.js의 함수를 호출하도록 수정
-      /*
-      const result = await fetchPredictionDataApi({
-        selectedItems,
-        selectedLocation,
-        baseDate
-      });
-      setPredictionData(result.predictionData || []);
-      setChartData(result.chartData || null);
-      */
-
-      // 임시 모킹 데이터 (실제 API 연결 전까지 사용)
-      const mockPredictionData = generateMockPredictionData()
-      const mockChartData = generateMockPredictionChartData()
-
-      setPredictionData(mockPredictionData)
-      setChartData(mockChartData)
 
     } catch (err) {
       setError(err.message || '예측 데이터를 가져오는 중 오류가 발생했습니다')

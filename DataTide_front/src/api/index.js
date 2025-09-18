@@ -17,8 +17,10 @@ export async function fetchFisheriesData(params) {
   if (params.selectedAnalysis === '통계') {
     queryParams.append('start_year', params.period.startYear);
     queryParams.append('end_year', params.period.endYear);
+    queryParams.append('start_month', params.period.startMonth);
+    queryParams.append('end_month', params.period.endMonth);
   } else {
-    queryParams.append('base_date', '2025-07-30');
+    queryParams.append('base_date', params.base_date);
   }
 
   const response = await fetch(`${API_BASE}/api/fisheries-analysis?${queryParams}`);
@@ -72,5 +74,5 @@ export async function sendChatbotMessage(message) {
     },
     body: JSON.stringify({ message: message }),
   });
-  return handleApiResponse(response);
+  return handleApiResponse(response)
 }

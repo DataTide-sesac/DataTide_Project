@@ -27,22 +27,36 @@ export default function StatsView({ selectedItems, selectedLocation }) {
       setError('')
 
       // 🔥 실제 API 호출 부분 - api/index.js의 함수를 호출하도록 수정
-      /*
+      
       const result = await fetchStatsDataApi({
         selectedItems,
         selectedLocation,
         yearRange
       });
+
+      const newChartData = {
+                  labels: statsData.map(item => `${item.year}-${item.month}`),
+                  datasets: [
+                    {
+                      label: '생산량',
+                      data: statsData.map(item => item.production),
+                      backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                      borderColor: 'rgb(255, 99, 132)',
+                      barPercentage: 0.8,
+                    },
+                    // ... 판매량, 수입량 데이터셋 추가
+                  ],
+                };
       setStatsData(result.statsData || []);
-      setChartData(result.chartData || null);
-      */
+      setChartData(result.newChartData|| null);
+      
 
       // 임시 모킹 데이터 (실제 API 연결 전까지 사용)
-      const mockStatsData = generateMockStatsData()
-      const mockChartData = generateMockChartData()
+      // const mockStatsData = generateMockStatsData()
+      // const mockChartData = generateMockChartData()
 
-      setStatsData(mockStatsData)
-      setChartData(mockChartData)
+      // setStatsData(mockStatsData)
+      // setChartData(mockChartData)
 
     } catch (err) {
       setError(err.message || '데이터를 가져오는 중 오류가 발생했습니다')

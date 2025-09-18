@@ -1,0 +1,39 @@
+# Gitignore for DataTide_workspaceN
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+
+*.egg-info/
+.pytest_cache/
+
+# IDEs
+.vscode/
+.idea/
+
+# OS generated files
+.DS_Store
+.Trashes
+Thumbs.db
+
+# Specific to this project
+*.zip
+*.npz
+gemini.md
+
+ENV/
+env.bak/
+venv.bak/
+.log
+*.exe
+# 가상환경venv
+*.dll
+*.lib
+site-packages/
+DataTideV/
+DataTideV/Lib/site-packages/

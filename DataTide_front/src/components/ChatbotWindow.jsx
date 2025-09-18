@@ -28,7 +28,7 @@ export default function ChatbotWindow({ onClose }) {
 
     try {
       const response = await sendChatbotMessage(newUserMessage.text);
-      const botResponseText = response.reply || '네. 안녕하세요.'; // Assuming backend sends { reply: "..." }
+      const botResponseText = response.answer || '네. 안녕하세요.'; // Assuming backend sends { reply: "..." }
       const actualBotMessage = { text: botResponseText, sender: 'bot' };
 
       setMessages((prevMessages) =>
@@ -56,7 +56,7 @@ export default function ChatbotWindow({ onClose }) {
   return (
     <div className="chatbot-window">
       <div className="chatbot-header">
-        <h3>Datatide 챗봇</h3>
+        <h3>DataTide 챗봇</h3>
         <button onClick={onClose} className="close-btn">&times;</button>
       </div>
       <div className="chatbot-messages">

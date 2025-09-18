@@ -20,7 +20,7 @@
     - DataTide_front
   - **실행 방법**
     - cd DataTide_front
-    - *(처음 실행할 시)* npm install
+    - *(처음 실행할 시)* npm install --prefix DataTide_front
     - npm run dev
 
 ---
@@ -35,6 +35,7 @@
     - DataTide_back
   - **실행 방법**
     - cd DataTide_back
+        - *(처음 실행할 시)* pip install -r requirements.txt
     - python -m uvicorn main:app --reload
 
 ---
@@ -84,7 +85,7 @@
 ---
 
 ## 🖥️ 화면 레이아웃
-![00_화면레이아웃_1](https://github.com/user-attachments/assets/54d3b725-12f9-4d07-b297-5302553959b1)
+![00_화면레이아웃_2](https://github.com/user-attachments/assets/f026f4e9-8bd2-4f42-9afb-7d1cf97ab95c)
 
 ---
 
@@ -94,7 +95,42 @@
 ---
 
 ## 🗂️ ERD (Entity Relationship Diagram)
-![00_ERD_1](https://github.com/user-attachments/assets/e9459ce4-a720-4a25-ba05-77eeeb291f6e)
+> [!WARNING]
+> 현재 DB 모델이 대규모로 리팩토링되어 아래 ERD는 최신이 아닙니다. 빠른 시일 내에 업데이트가 필요합니다.
+
+![00_ERD_4](https://github.com/user-attachments/assets/013de0ff-6f5e-4b7c-8ea2-9e5d69d1fba7)
+
+
+---
+
+## ⚙️ 개발 환경
+
+- **파이썬 버전** : 3.10.18
+  - **데이터 관련 라이브러리** : pymysql numpy pandas matplotlib seaborn tqdm
+  - **AI 관련 라이브러리** : torch torchvision torchaudio scikit-learn
+  - **웹 관련 라이브러리** : fastapi
+
+- **리액트 버전** : 19.1.1
+  - **axios** : 1.11.0
+  - **bootstrap** : 5.3.8
+  - **react-bootstrap** : 2.10.10
+  - **react-router-dom** : 7.8.2
+ 
+
+---
+
+## 🐍 가상환경 설정
+
+### 1️⃣ 가상환경 생성 및 활성화
+```bash
+conda create -n DataTide python=3.10.18 -y
+conda activate DataTide
+```
+### 2️⃣ 라이브러리 다운로드
+```bash
+cd DataTide_Project
+pip install -r requirements.txt
+```
 
 
 ---

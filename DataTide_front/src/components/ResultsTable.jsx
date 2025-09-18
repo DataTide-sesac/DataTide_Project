@@ -34,9 +34,9 @@ export default function ResultsTable({
       header: '수입량(톤)',
       prevHeader: '전년수입량',
       changeHeader: '수입증감률',
-      dataKey: 'imports',
-      prevDataKey: 'prevImports',
-      changeDataKey: 'importsChange',
+      dataKey: 'inbound',
+      prevDataKey: 'prevInbound',
+      changeDataKey: 'inboundChange',
     },
   };
 
@@ -82,13 +82,13 @@ export default function ResultsTable({
                   <th>년도</th>
                   <th>품목</th>
                   {displayedColumns.map(col => (
-                    <th key={col.dataKey}>{col.header}</th>
+                    <th key={`header-${col.dataKey}`}>{col.header}</th>
                   ))}
                   {displayedColumns.map(col => (
-                    <th key={col.prevDataKey}>{col.prevHeader}</th>
+                    <th key={`prev-header-${col.prevDataKey}`}>{col.prevHeader}</th>
                   ))}
                   {displayedColumns.map(col => (
-                    <th key={col.changeDataKey}>{col.changeHeader}</th>
+                    <th key={`change-header-${col.changeDataKey}`}>{col.changeHeader}</th>
                   ))}
                 </>
               ) : (
@@ -117,20 +117,20 @@ export default function ResultsTable({
                   {selectedAnalysis === '통계' ? (
                     <>
                       {displayedColumns.map(col => (
-                        <td key={col.dataKey}>{formatNumber(row[col.dataKey])}</td>
+                        <td key={`data-${col.dataKey}`}>{formatNumber(row[col.dataKey])}</td>
                       ))}
                       {displayedColumns.map(col => (
-                        <td key={col.prevDataKey}>{formatNumber(row[col.prevDataKey])}</td>
+                        <td key={`prev-data-${col.prevDataKey}`}>{formatNumber(row[col.prevDataKey])}</td>
                       ))}
                       {displayedColumns.map(col => (
-                        <td key={col.changeDataKey}>{formatPercent(row[col.changeDataKey])}</td>
+                        <td key={`change-data-${col.changeDataKey}`}>{formatPercent(row[col.changeDataKey])}</td>
                       ))}
                     </>
                   ) : (
                     <>
                       <td>{formatNumber(row.production)}</td>
                       <td>{formatNumber(row.sales)}</td>
-                      <td>{formatNumber(row.imports)}</td>
+                      <td>{formatNumber(row.inbound)}</td>
                       <td>{row.dataType}</td>
                       <td>{row.confidence ? `${row.confidence}%` : '-' }</td>
                     </>
@@ -142,12 +142,12 @@ export default function ResultsTable({
         </table>
       </div>
 
-      <div className="data-source-info">
+      {/* <div className="data-source-info">
         <p><strong>데이터 소스:</strong> {selectedAnalysis === '통계' ? '과거 시계열 분석 모델' : 'LSTM 기반 AI 예측 모델'}</p>
         <p><strong>서버 API:</strong> {apiBaseUrl}/api/fisheries-analysis</p>
         <p><strong>업데이트 주기:</strong> 매월 1일 자동 갱신</p>
         <p><strong>데이터 저장:</strong> MySQL 시계열 테이블에 저장 후 분석</p>
-      </div>
+      </div> */}
     </section>
   );
 }

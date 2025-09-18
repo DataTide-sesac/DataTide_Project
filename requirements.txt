@@ -9,6 +9,8 @@ seaborn
 tqdm
 fastapi
 IPython
+tabula
+
 
 # 실험 편의
 tqdm
@@ -27,6 +29,7 @@ langchain
 openai
 langchain-community
 langchain-huggingface
+langchain-experimental
 tiktoken
 sentence-transformers
 langgraph

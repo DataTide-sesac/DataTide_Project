@@ -18,7 +18,22 @@ def initialize_llm():
     # --- Load environment variables ---
     
     openai_api_key = os.getenv("OPENAI_API_KEY")
-    df = pd.read_csv("C:\\datatide_workspaceN\\DataTide_back\\services\\read_sql_1.csv")  # CSV 파일을 읽습니다.
+
+    # Get the directory where the current script is located
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # Construct the full path to the CSV files
+    df1_path = os.path.join(script_dir, "read_sql_1.csv")
+    df2_path = os.path.join(script_dir, "read_sql_2.csv")
+
+    df1 = pd.read_csv(df1_path)  # CSV 파일을 읽습니다.
+    print(df1.head())
+    df2 = pd.read_csv(df2_path)  # CSV 파일을 읽습니다.
+    print(df2.head())
+
+    df = pd.concat([df1, df2], ignore_index=True)
+    print(df.head())
+
     # --- Initialize LLM ---
     llm = create_pandas_dataframe_agent(
     ChatOpenAI(model="gpt-4.1-mini", temperature=0),

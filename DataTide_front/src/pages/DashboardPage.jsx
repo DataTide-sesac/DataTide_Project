@@ -446,7 +446,7 @@ export default function DashboardPage() {
             
             {bumpChartData && (
               <section className="chart-section">
-                <h2>📊 품목 순위 변화 (Bump Chart)</h2>
+                <h2>📊 주요 수산물 생산 순위 변동</h2>
                 <BumpChartComponent data={bumpChartData} />
               </section>
             )}

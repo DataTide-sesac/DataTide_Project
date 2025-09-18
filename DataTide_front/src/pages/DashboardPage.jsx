@@ -7,8 +7,8 @@ import Header from '../components/Header';
 import SearchBar from '../components/SearchBar';
 import ResultsTable from '../components/ResultsTable';
 import ChatbotWindow from '../components/ChatbotWindow'; // Import ChatbotWindow
-import { generateBubbleChartData, generateScatterChartData, generateBumpChartData, generateMockChartData, convertToCSV, downloadFile } from '../utils/index.js';
-import { fetchFisheriesData } from '../api';
+import {generateBubbleChartData, generateScatterChartData, generateBumpChartData, convertToCSV, downloadFile } from '../utils/index.js';
+import { fetchFisheriesData, fetchBumpChartData } from '../api';
 import { ANALYSIS_OPTIONS, DATA_CATEGORIES } from '../constants';
 import './DashboardPage.css';
 import '../styles/theme.css';
@@ -77,6 +77,13 @@ export default function DashboardPage() {
       } catch (error) {
         console.error("Failed to fetch items:", error);
         // Optionally set an error state here
+        // 실패했을 때 기본 데이터 강제로 주입
+        const fallbackData = [
+          { name: "Calamari", kr_name: "오징어" },
+          { name: "CutlassFish", kr_name: "갈치" },
+          { name: "Mackerel", kr_name: "고등어" }
+        ];
+        setFishItems(fallbackData);
       }
     };
 
@@ -142,17 +149,24 @@ export default function DashboardPage() {
       });
 
       setTableData(result.tableData);
-
+      
+      
       if (selectedAnalysis === '통계') {
-        const lineStyles = {
+        // Bump Chart를 위한 데이터 API 병렬 호출
+        const bumpResult = await fetchBumpChartData(selectedItem, period);
+        const finalBumpData = generateBumpChartData(bumpResult, period);
+        setBumpChartData(finalBumpData);
+
+        // --- 기존 로직 ---
+        const barStyles = {
           '생산': { type: 'bar', order: 1, backgroundColor: '#006AC0', borderColor:'#ffffffff', borderWidth: 1 },
           '판매': { type: 'bar', order: 1, backgroundColor: '#FFDE47', borderColor:'#ffffffff', borderWidth: 1 },
           '수입': { type: 'bar', order: 1, backgroundColor: '#FF8410', borderColor:'#ffffffff', borderWidth: 1 },
         };
-        const barStyles = {
-          '생산': { type: 'line', tension:0.35, fill:true, order: 2, borderColor: '#ffffffff', backgroundColor: '#4acfc6ff', borderWidth: 1 },
-          '판매': { type: 'line', tension:0.35, fill:true, order: 2, borderColor: '#ffffffff' , backgroundColor: '#b5e7f1ff', borderWidth: 1},
-          '수입': { type: 'line', tension:0.35, fill:true, order: 2, borderColor: '#ffffffff', backgroundColor:'#abcddfff', borderWidth: 1},
+        const lineStyles = {
+          '생산': { type: 'line', tension:0.35, fill:true, order: 2, borderColor: '#ffffffff', backgroundColor: '#4acfc683', borderWidth: 1 },
+          '판매': { type: 'line', tension:0.35, fill:true, order: 3, borderColor: '#ffffffff' , backgroundColor: '#b5e7f1da', borderWidth: 1},
+          '수입': { type: 'line', tension:0.35, fill:true, order: 2, borderColor: '#ffffffff', backgroundColor:'#4fade0bb', borderWidth: 1},
         };
 
         // Use labels from the API response
@@ -162,7 +176,7 @@ export default function DashboardPage() {
             const isBar = trace.type === 'bar'; // Use the type from the backend
             const categoryMatch = trace.name.match(/\(([^)]+)\)/);
             const category = categoryMatch ? categoryMatch[1] : '생산';
-            // The original code had styles inverted, this is now corrected.
+            // The style logic is now corrected to match the intended chart type.
             const styles = isBar ? lineStyles[category] : barStyles[category];
             
             // For bar charts, transform data to [0, value] for floating effect
@@ -441,7 +455,7 @@ export default function DashboardPage() {
                 <BumpChartComponent data={bumpChartData} />
               </section>
             )}
-{/* 
+            {/* 
             스켈터 차트
             {scatterChartData && (
               <section className="chart-section">

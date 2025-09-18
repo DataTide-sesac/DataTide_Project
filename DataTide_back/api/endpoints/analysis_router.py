@@ -107,3 +107,17 @@ def download_excel(
         raise HTTPException(status_code=400, detail="Invalid type for excel download")
 
     return StreamingResponse(file_stream, media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", headers={"Content-Disposition": f"attachment; filename={filename}"})
+
+# bump-chart
+@router.get("/analysis/bump-chart")
+def get_bump_chart_endpoint(
+    item_code: str,
+    start_year: int,
+    end_year: int,
+    start_month: int,
+    end_month: int,
+):
+    """
+    Endpoint to get data specifically for the bump chart.
+    """
+    return analysis_service.get_bump_chart_data(item_code=item_code,start_year=start_year, end_year=end_year,start_month=start_month,end_month=end_month)

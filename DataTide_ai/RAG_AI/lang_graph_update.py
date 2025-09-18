@@ -10,7 +10,12 @@ from datetime import datetime
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../..", ".env"))
 os.environ['OPENAI_API_KEY'] = os.getenv("OPENAI_API_KEY4")
 
-df = pd.read_csv("./read_sql_1.csv")  # CSV 파일을 읽습니다.
+df1 = pd.read_csv("./read_sql_1.csv")  # CSV 파일을 읽습니다.
+print(df1.head())
+df2 = pd.read_csv("./read_sql_2.csv")  # CSV 파일을 읽습니다.
+print(df2.head())
+
+df = pd.concat([df1, df2], ignore_index=True)
 print(df.head())
 
 agent = create_pandas_dataframe_agent(

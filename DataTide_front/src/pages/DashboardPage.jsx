@@ -28,22 +28,6 @@ const itemNameMap = {
   'Calamari': '오징어',
 };
 
-function generateChartLabels(startYear, startMonth, endYear, endMonth) {
-  const labels = [];
-  let year = startYear;
-  let month = startMonth;
-
-  while (year < endYear || (year === endYear && month <= endMonth)) {
-    labels.push(`${year}-${month.toString().padStart(2, '0')}`);
-    month++;
-    if (month > 12) {
-      month = 1;
-      year++;
-    }
-  }
-
-  return labels;
-}
 
 export default function DashboardPage() {
   // 날짜 관련 변수는 여기에서 선언!
@@ -74,7 +58,6 @@ export default function DashboardPage() {
   const [bumpChartData, setBumpChartData] = useState(null);
   const [scatterChartData, setScatterChartData] = useState(null);
   const [bubbleChartData, setBubbleChartData] = useState(null);
-  const [result, setResult] = useState(null);
 
   const [appliedCategories, setAppliedCategories] = useState(['생산', '판매', '수입']);
 
@@ -109,15 +92,10 @@ export default function DashboardPage() {
   setBubbleChartData(bubbleData);
                     }, []);
 
-
-  // useEffect(() => {
-  //   if (!result) return;
-  // // const bumpData = generateBumpChartData();
-  // console.log('result:', result);
-  // console.log('bmp',bumpChartData);
-  // const bumpData = generateBumpChartData(result, period);
-  // setBumpChartData(bumpData);
-  //                   }, [result,period]);
+  useEffect(() => {
+  const bumpData = generateBumpChartData();
+  setBumpChartData(bumpData);
+                    }, []);
   
   //// 스켈터 차트
   useEffect(() => {
@@ -131,406 +109,246 @@ export default function DashboardPage() {
     return selectedItem && selectedAnalysis && selectedCategories.length > 0
   }, [selectedItem, selectedAnalysis, selectedCategories])
 
-////
-async function fetchData() {
-      if (!canSearch) return
+  // 데이터 가져오기 함수
+  async function fetchData() {
+    if (!canSearch) return
 
-      if (selectedAnalysis === '통계') {
-        const totalMonths = (period.endYear - period.startYear) * 12 + (period.endMonth - period.startMonth) + 1;
-        if (totalMonths > 13) {
-          alert('최대 1년까지 조회 가능합니다.');
-          return;
-        }
+    // Date validation for '통계' analysis
+    if (selectedAnalysis === '통계') {
+      if (period.startYear === period.endYear && period.startMonth > period.endMonth) {
+        alert('시작 월은 종료 월보다 이전이어야 합니다.');
+        return;
       }
-
-      try {
-        setLoading(true)
-        setError('')
-        setChartData(null);
-        setBumpChartData(null); // 검색 시작 시 Bump Chart 데이터 초기화
-        setChartOptions(null);
-        setAppliedCategories(selectedCategories);
-
-        // 메인 차트/테이블 데이터 API 호출
-        const result = await fetchFisheriesData({
-          selectedItem: selectedItem,
-          selectedAnalysis,
-          selectedCategories,
-          period,
-          base_date: '2025-08-01'
-        });
-
-        setTableData(result.tableData);
-
-        if (selectedAnalysis === '통계') {
-          // Bump Chart를 위한 데이터 API 병렬 호출
-          const bumpResult = await fetchBumpChartData(selectedItem, period);
-          const finalBumpData = generateBumpChartData(bumpResult, period);
-          setBumpChartData(finalBumpData);
-
-          // --- 기존 메인 차트 로직 ---
-          const lineStyles = {
-            '생산': { type: 'bar', order: 1, backgroundColor: '#006AC0', borderColor:'#ffffffff', borderWidth: 1 },
-            '판매': { type: 'bar', order: 1, backgroundColor: '#FFDE47', borderColor:'#ffffffff', borderWidth: 1 },
-            '수입': { type: 'bar', order: 1, backgroundColor: '#FF8410', borderColor:'#ffffffff', borderWidth: 1 },
-          };
-          const barStyles = {
-            '생산': { type: 'line', tension:0.35, fill:true, order: 2, borderColor: '#ffffffff', backgroundColor: '#4acfc6ff', borderWidth: 1 },
-            '판매': { type: 'line', tension:0.35, fill:true, order: 2, borderColor: '#ffffffff' , backgroundColor: '#b5e7f1ff', borderWidth: 1},
-            '수입': { type: 'line', tension:0.35, fill:true, order: 2, borderColor: '#ffffffff', backgroundColor:'#abcddfff', borderWidth: 1},
-          };
-          const { startYear, startMonth, endYear, endMonth } = period;
-          const chartLabels = generateChartLabels(startYear, startMonth, endYear, endMonth);
-          const formattedDatasets = result.chartData.map(trace => {
-              const isBar = trace.type === 'bar';
-              const categoryMatch = trace.name.match(/\(([^)]+)\)/);
-              const category = categoryMatch ? categoryMatch[1] : '생산';
-              const styles = isBar ? barStyles[category] : lineStyles[category];
-              return { ...trace, ...styles, label: trace.name, data: trace.y };
-          });
-          setChartData({ labels: chartLabels, datasets: formattedDatasets });
-
-        } else { // '예측' 분석 로직
-          // (기존 예측 분석 로직과 동일)
-          const pastTraces = result.chartData.filter(t => t.name.startsWith('과거'));
-          const predictTraces = result.chartData.filter(t => t.name.startsWith('예측'));
-          const allX = [...new Set([...pastTraces.flatMap(t => t.x), ...predictTraces.flatMap(t => t.x)])].sort();
-          const ticktext = allX.map((label, index) => {
-            const [year, month] = label.split('-');
-            if (index === 0) return `${year}년 ${month}월`;
-            const [prevYear] = allX[index - 1].split('-');
-            if (year !== prevYear) return `${year}년 ${month}월`;
-            return `${month}월`;
-          });
-          const predictionChartJsData = { labels: allX, datasets: [] };
-          const categoryMap = {
-            '생산': { color: '#5C6BC0', fill: 'rgba(92, 107, 192, 0.1)' },
-            '판매': { color: '#7CB342', fill: 'rgba(124, 179, 66, 0.1)' },
-            '수입': { color: '#FF8A65', fill: 'rgba(255, 138, 101, 0.1)' }
-          };
-          selectedCategories.forEach(category => {
-            const pastTrace = pastTraces.find(t => t.name.includes(category));
-            const predictTrace = predictTraces.find(t => t.name.includes(category));
-            if (pastTrace && predictTrace) {
-              const { color, fill } = categoryMap[category];
-              const pastDataMap = new Map(pastTrace.x.map((date, i) => [date, pastTrace.y[i]]));
-              const pastY = allX.map(label => pastDataMap.get(label) || null).slice(0, pastTrace.x.length);
-              const predictDataMap = new Map(predictTrace.x.map((date, i) => [date, predictTrace.y[i]]));
-              const predictedY = allX.map(label => predictDataMap.get(label) || null).slice(pastTrace.x.length);
-              predictionChartJsData.datasets.push({
-                label: 과거 `${category}`,
-                data: [...pastY.slice(0, -1), pastY[pastY.length-1], predictedY[0], ...Array(predictedY.length - 1).fill(null)],
-                borderColor: color, backgroundColor: color, fill: false, type: 'line', tension: 0.1, pointRadius: 6, pointHoverRadius: 7, borderWidth:3.5,
-              });
-              predictionChartJsData.datasets.push({
-                label: 예측 `${category}`,
-                data: [...Array(pastY.length).fill(null), ...predictedY],
-                borderColor: color, backgroundColor: 'transparent', borderDash: [5,5], fill: false, type: 'line', tension: 0.1, pointRadius: 12, pointHoverRadius: 15, pointBorderWidth: 5,
-  pointBorderColor: color,
-              });
-              predictionChartJsData.datasets.push({
-                label: 신뢰구간(`${category}`),
-                data: [...Array(pastY.length).fill(null), ...predictedY.map(y => y ? y * 1.2 : null)],
-                borderColor: 'transparent', backgroundColor: 'transparent', pointRadius: 0, fill: false,
-              });
-              predictionChartJsData.datasets.push({
-                label: 신뢰구간(`${category}`),
-                data: [...Array(pastY.length).fill(null), ...predictedY.map(y => y ? y * 0.8 : null)],
-                borderColor: 'transparent', backgroundColor: fill, pointRadius: 0, fill: '-1',
-              });
-            }
-          });
-          const predictionChartJsOptions = {
-            responsive: true, maintainAspectRatio: false, elements: { line: { borderWidth: 8 } },
-            plugins: {
-              legend: {
-                position: 'top', align: 'end',
-                onClick: function(e, legendItem, legend) {
-                    const chart = legend.chart; const index = legendItem.datasetIndex; const meta = chart.getDatasetMeta(index);
-                    const newHiddenState = meta.hidden === null ? !chart.data.datasets[index].hidden : null;
-                    const groupStartIndex = Math.floor(index / 4) * 4;
-                    const linkedIndices = [groupStartIndex, groupStartIndex + 1, groupStartIndex + 2, groupStartIndex + 3];
-                    linkedIndices.forEach(function(i) {
-                        const datasetMeta = chart.getDatasetMeta(i);
-                        if (datasetMeta) { datasetMeta.hidden = newHiddenState; }
-                    });
-                    chart.update();
-                },
-                labels: { filter: function(legendItem) { return !legendItem.text.includes('신뢰구간'); } }
-              },
-              tooltip: { mode: 'index', intersect: false, },
-              datalabels: {
-                display: function(context) { const datasetLabel = context.dataset.label; return (datasetLabel.includes('과거') || datasetLabel.includes('예측')); },
-                align: 'top', color: 'black', padding:{bottom:15}, font: { size: 15 }, formatter: Math.round
-              }
-            },
-            scales: {
-              x: { ticks: { callback: function(value, index) { return ticktext[index]; }, font: { weight: 'bold' } } },
-              y: { title: { display: true, text: '단위(톤)', font: { size: 15 } } },
-            },
-          };
-          setChartData(predictionChartJsData);
-          setChartOptions(predictionChartJsOptions);
-        }
-
-      } catch (err) {
-        setError(err.message || '데이터를 가져오는 중 오류가 발생했습니다')
-        setTableData([])
-        setChartData(null)
-      } finally {
-        setLoading(false)
+      const totalMonths = (period.endYear - period.startYear) * 12 + (period.endMonth - period.startMonth) + 1;
+      if (totalMonths > 13) {
+        alert('최대 1년까지 조회 가능합니다.');
+        return;
       }
     }
 
-////
-  // 데이터 가져오기 함수
-  // async function fetchData() {
-  //   if (!canSearch) return
+    try {
+      setLoading(true)
+      setError('')
+      setChartData(null); // 검색 시작 시 차트 초기화
+      setChartOptions(null);
+      setAppliedCategories(selectedCategories);
+      
+      const result = await fetchFisheriesData({  
+        selectedItem: selectedItem,          
+        selectedAnalysis,
+        selectedCategories,
+        period,
+        base_date: '2025-08-01' // base_date for prediction
+      });
 
-  //   // Date validation for '통계' analysis
-  //   if (selectedAnalysis === '통계') {
-  //     const totalMonths = (period.endYear - period.startYear) * 12 + (period.endMonth - period.startMonth) + 1;
-  //     if (totalMonths > 13) {
-  //       alert('최대 1년까지 조회 가능합니다.');
-  //       return;
-  //     }
-  //   }
+      setTableData(result.tableData);
+      
+      
+      if (selectedAnalysis === '통계') {
+        // Bump Chart를 위한 데이터 API 병렬 호출
+        const bumpResult = await fetchBumpChartData(selectedItem, period);
+        const finalBumpData = generateBumpChartData(bumpResult, period);
+        setBumpChartData(finalBumpData);
 
-  //   try {
-  //     setLoading(true)
-  //     setError('')
-  //     setChartData(null); // 검색 시작 시 차트 초기화
-  //     setChartOptions(null);
-  //     setAppliedCategories(selectedCategories);
+        // --- 기존 로직 ---
+        const lineStyles = {
+          '생산': { type: 'bar', order: 1, backgroundColor: '#006AC0', borderColor:'#ffffffff', borderWidth: 1 },
+          '판매': { type: 'bar', order: 1, backgroundColor: '#FFDE47', borderColor:'#ffffffff', borderWidth: 1 },
+          '수입': { type: 'bar', order: 1, backgroundColor: '#FF8410', borderColor:'#ffffffff', borderWidth: 1 },
+        };
+        const barStyles = {
+          '생산': { type: 'line', tension:0.35, fill:true, order: 2, borderColor: '#ffffffff', backgroundColor: '#4acfc6ff', borderWidth: 1 },
+          '판매': { type: 'line', tension:0.35, fill:true, order: 2, borderColor: '#ffffffff' , backgroundColor: '#b5e7f1ff', borderWidth: 1},
+          '수입': { type: 'line', tension:0.35, fill:true, order: 2, borderColor: '#ffffffff', backgroundColor:'#abcddfff', borderWidth: 1},
+        };
 
-  //     const result = await fetchFisheriesData({  
-  //       selectedItem: selectedItem,          
-  //       selectedAnalysis,
-  //       selectedCategories,
-  //       period,
-  //       base_date: '2025-08-01' // base_date for prediction
-  //     });
+        // Use labels from the API response
+        const chartLabels = result.chartData.length > 0 ? result.chartData[0].x : [];
 
-  //     setResult(result);
+        const formattedDatasets = result.chartData.map(trace => {
+            const isBar = trace.type === 'bar'; // Use the type from the backend
+            const categoryMatch = trace.name.match(/\(([^)]+)\)/);
+            const category = categoryMatch ? categoryMatch[1] : '생산';
+            const styles = isBar ? barStyles[category] : lineStyles[category];
+            return { ...trace, ...styles, label: trace.name, data: trace.y };
+        });
+        setChartData({ labels: chartLabels, datasets: formattedDatasets });
 
-  //     setTableData(result.tableData);
-
-  //     if (selectedAnalysis === '통계') {
-  //       const lineStyles = {
-  //         '생산': { type: 'bar', order: 1, backgroundColor: '#006AC0', borderColor:'#ffffffff', borderWidth: 1 },
-  //         '판매': { type: 'bar', order: 1, backgroundColor: '#FFDE47', borderColor:'#ffffffff', borderWidth: 1 },
-  //         '수입': { type: 'bar', order: 1, backgroundColor: '#FF8410', borderColor:'#ffffffff', borderWidth: 1 },
-  //       };
-  //       const barStyles = {
-  //         '생산': { type: 'line', tension:0.35, fill:true, order: 2, borderColor: '#ffffffff', backgroundColor: '#4acfc6ff', borderWidth: 1 },
-  //         '판매': { type: 'line', tension:0.35, fill:true, order: 2, borderColor: '#ffffffff' , backgroundColor: '#b5e7f1ff', borderWidth: 1},
-  //         '수입': { type: 'line', tension:0.35, fill:true, order: 2, borderColor: '#ffffffff', backgroundColor:'#abcddfff', borderWidth: 1},
-  //       };
-  //       // const chartLabels = Array.from({ length: 12 }, (_, i) => `${i + 1}월`);
-  //       // const filteredIndices = result.chartData[0].y
-  //       // .map((_, i) => i)
-  //       // .filter(i => result.chartData.some(trace => trace.y[i] !== null && trace.y[i] !== undefined));
-
-  //       const { startYear, startMonth, endYear, endMonth } = period;
-
-  //       const chartLabels = generateChartLabels(startYear, startMonth, endYear, endMonth);
-
+      } else { // '예측' case
+        const pastTraces = result.chartData.filter(t => t.name.startsWith('과거'));
+        const predictTraces = result.chartData.filter(t => t.name.startsWith('예측'));
         
+        const allX = [...new Set([...pastTraces.flatMap(t => t.x), ...predictTraces.flatMap(t => t.x)])].sort();
+        const ticktext = allX.map((label, index) => {
+          const [year, month] = label.split('-');
+          if (index === 0) return `${year}년 ${month}월`;
+          const [prevYear] = allX[index - 1].split('-');
+          if (year !== prevYear) return `${year}년 ${month}월`;
+          return `${month}월`;
+        });
 
-  //       // const chartLabels = result.chartData.length > 0 && Array.isArray(result.chartData[0].x)
-  //       // ? result.chartData[0].x.filter(label => {
-  //       //     const month = parseInt(label.replace('월', ''));
-  //       //     return month >= startMonth && month <= endMonth;
-  //       //   })
-  //       // : [];
+        const predictionChartJsData = {
+          labels: allX,
+          datasets: []
+        };
 
-  //       console.log("chartData", result.chartData);
+        const categoryMap = {
+          '생산': { color: '#5C6BC0', fill: 'rgba(92, 107, 192, 0.1)' },
+          '판매': { color: '#7CB342', fill: 'rgba(124, 179, 66, 0.1)' },
+          '수입': { color: '#FF8A65', fill: 'rgba(255, 138, 101, 0.1)' }
+        };
 
+        selectedCategories.forEach(category => {
+          const pastTrace = pastTraces.find(t => t.name.includes(category));
+          const predictTrace = predictTraces.find(t => t.name.includes(category));
 
-  //       const formattedDatasets = result.chartData.map(trace => {
-  //           const isBar = trace.type === 'bar';
-  //           const categoryMatch = trace.name.match(/\(([^)]+)\)/);
-  //           const category = categoryMatch ? categoryMatch[1] : '생산';
-  //           const styles = isBar ? barStyles[category] : lineStyles[category];
-  //           return { ...trace, ...styles, label: trace.name, data: trace.y };
-  //       });
-  //       setChartData({ labels: chartLabels, datasets: formattedDatasets });
-
-  //     } else { // '예측' case
-  //       const pastTraces = result.chartData.filter(t => t.name.startsWith('과거'));
-  //       const predictTraces = result.chartData.filter(t => t.name.startsWith('예측'));
-        
-  //       const allX = [...new Set([...pastTraces.flatMap(t => t.x), ...predictTraces.flatMap(t => t.x)])].sort();
-  //       const ticktext = allX.map((label, index) => {
-  //         const [year, month] = label.split('-');
-  //         if (index === 0) return `${year}년 ${month}월`;
-  //         const [prevYear] = allX[index - 1].split('-');
-  //         if (year !== prevYear) return `${year}년 ${month}월`;
-  //         return `${month}월`;
-  //       });
-
-  //       const predictionChartJsData = {
-  //         labels: allX,
-  //         datasets: []
-  //       };
-
-  //       const categoryMap = {
-  //         '생산': { color: '#5C6BC0', fill: 'rgba(92, 107, 192, 0.1)' },
-  //         '판매': { color: '#7CB342', fill: 'rgba(124, 179, 66, 0.1)' },
-  //         '수입': { color: '#FF8A65', fill: 'rgba(255, 138, 101, 0.1)' }
-  //       };
-
-  //       selectedCategories.forEach(category => {
-  //         const pastTrace = pastTraces.find(t => t.name.includes(category));
-  //         const predictTrace = predictTraces.find(t => t.name.includes(category));
-
-  //         if (pastTrace && predictTrace) {
-  //           const { color, fill } = categoryMap[category];
+          if (pastTrace && predictTrace) {
+            const { color, fill } = categoryMap[category];
             
-  //           const pastDataMap = new Map(pastTrace.x.map((date, i) => [date, pastTrace.y[i]]));
-  //           const pastY = allX.map(label => pastDataMap.get(label) || null).slice(0, pastTrace.x.length);
+            const pastDataMap = new Map(pastTrace.x.map((date, i) => [date, pastTrace.y[i]]));
+            const pastY = allX.map(label => pastDataMap.get(label) || null).slice(0, pastTrace.x.length);
 
-  //           const predictDataMap = new Map(predictTrace.x.map((date, i) => [date, predictTrace.y[i]]));
-  //           const predictedY = allX.map(label => predictDataMap.get(label) || null).slice(pastTrace.x.length);
+            const predictDataMap = new Map(predictTrace.x.map((date, i) => [date, predictTrace.y[i]]));
+            const predictedY = allX.map(label => predictDataMap.get(label) || null).slice(pastTrace.x.length);
 
-  //           // Past data connected to predicted
-  //           predictionChartJsData.datasets.push({
-  //             label: `과거 ${category}`,
-  //             data: [...pastY.slice(0, -1), pastY[pastY.length-1], predictedY[0], ...Array(predictedY.length - 1).fill(null)],
-  //             borderColor: color,
-  //             backgroundColor: color,
-  //             fill: false,
-  //             type: 'line',
-  //             tension: 0.1,
-  //             pointRadius: 6,
-  //             pointHoverRadius: 7,
-  //             borderWidth:3.5,
-  //           });
+            // Past data connected to predicted
+            predictionChartJsData.datasets.push({
+              label: `과거 ${category}`,
+              data: [...pastY.slice(0, -1), pastY[pastY.length-1], predictedY[0], ...Array(predictedY.length - 1).fill(null)],
+              borderColor: color,
+              backgroundColor: color,
+              fill: false,
+              type: 'line',
+              tension: 0.1,
+              pointRadius: 6,
+              pointHoverRadius: 7,
+              borderWidth:3.5,
+            });
 
-  //           // Predicted data
-  //           predictionChartJsData.datasets.push({
-  //             label: `예측 ${category}`,
-  //             data: [...Array(pastY.length).fill(null), ...predictedY],
-  //             borderColor: color,
-  //             backgroundColor: 'transparent',
-  //             borderDash: [5,5],
-  //             fill: false,
-  //             type: 'line',
-  //             tension: 0.1,
-  //             pointRadius: 12,
-  //             pointHoverRadius: 15,
-  //             pointBorderWidth: 5,
-  //             pointBorderColor: color,
-  //           });
+            // Predicted data
+            predictionChartJsData.datasets.push({
+              label: `예측 ${category}`,
+              data: [...Array(pastY.length).fill(null), ...predictedY],
+              borderColor: color,
+              backgroundColor: 'transparent',
+              borderDash: [5,5],
+              fill: false,
+              type: 'line',
+              tension: 0.1,
+              pointRadius: 12,
+              pointHoverRadius: 15,
+              pointBorderWidth: 5,
+              pointBorderColor: color,
+            });
 
-  //           // Confidence Interval - upper bound
-  //           predictionChartJsData.datasets.push({
-  //             label: `신뢰구간(${category})`,
-  //             data: [...Array(pastY.length).fill(null), ...predictedY.map(y => y ? y * 1.2 : null)],
-  //             borderColor: 'transparent',
-  //             backgroundColor: 'transparent',
-  //             pointRadius: 0,
-  //             fill: false,
-  //           });
+            // Confidence Interval - upper bound
+            predictionChartJsData.datasets.push({
+              label: `신뢰구간(${category})`,
+              data: [...Array(pastY.length).fill(null), ...predictedY.map(y => y ? y * 1.2 : null)],
+              borderColor: 'transparent',
+              backgroundColor: 'transparent',
+              pointRadius: 0,
+              fill: false,
+            });
 
-  //           // Confidence Interval - lower bound
-  //           predictionChartJsData.datasets.push({
-  //             label: `신뢰구간(${category})`,
-  //             data: [...Array(pastY.length).fill(null), ...predictedY.map(y => y ? y * 0.8 : null)],
-  //             borderColor: 'transparent',
-  //             backgroundColor: fill,
-  //             pointRadius: 0,
-  //             fill: '-1', // Fill to previous dataset (upper bound)
-  //           });
-  //         }
-  //       });
+            // Confidence Interval - lower bound
+            predictionChartJsData.datasets.push({
+              label: `신뢰구간(${category})`,
+              data: [...Array(pastY.length).fill(null), ...predictedY.map(y => y ? y * 0.8 : null)],
+              borderColor: 'transparent',
+              backgroundColor: fill,
+              pointRadius: 0,
+              fill: '-1', // Fill to previous dataset (upper bound)
+            });
+          }
+        });
 
-  //       const predictionChartJsOptions = {
-  //         responsive: true,
-  //         maintainAspectRatio: false,
-  //         elements: {
-  //             line: {
-  //                 borderWidth: 8
-  //             }
-  //         },
-  //         plugins: {
-  //           legend: {
-  //             position: 'top',
-  //             align: 'end',
-  //             onClick: function(e, legendItem, legend) {
-  //                 const chart = legend.chart;
-  //                 const index = legendItem.datasetIndex;
-  //                 const meta = chart.getDatasetMeta(index);
-  //                 const newHiddenState = meta.hidden === null ? !chart.data.datasets[index].hidden : null;
-  //                 const groupStartIndex = Math.floor(index / 4) * 4;
-  //                 const linkedIndices = [groupStartIndex, groupStartIndex + 1, groupStartIndex + 2, groupStartIndex + 3];
-  //                 linkedIndices.forEach(function(i) {
-  //                     const datasetMeta = chart.getDatasetMeta(i);
-  //                     if (datasetMeta) {
-  //                         datasetMeta.hidden = newHiddenState;
-  //                     }
-  //                 });
-  //                 chart.update();
-  //             },
-  //             labels: {
-  //                 filter: function(legendItem) {
-  //                     return !legendItem.text.includes('신뢰구간');
-  //                 }
-  //             }
-  //           },
-  //           tooltip: {
-  //             mode: 'index',
-  //             intersect: false,
-  //           },
-  //           datalabels: {
-  //             display: function(context) {
-  //               const datasetLabel = context.dataset.label;
-  //               return (datasetLabel.includes('과거') || datasetLabel.includes('예측'));
-  //             },
-  //             align: 'top',
-  //             color: 'black',
-  //             padding:{bottom:15},
-  //             font: {
-  //               size: 15
-  //             },
-  //             formatter: Math.round
-  //           }
-  //         },
-  //         scales: {
-  //           x: {
-  //             ticks: {
-  //                 callback: function(value, index) {
-  //                     return ticktext[index];
-  //                 },
-  //                 font: {
-  //                     weight: 'bold'
-  //                 }
-  //             }
-  //           },
-  //           y: {
-  //             title: {
-  //                 display: true,
-  //                 text: '단위(톤)',
-  //                 font: {
-  //                     size: 15
-  //                 }
-  //             }
-  //           },
-  //         },
-  //       };
+        const predictionChartJsOptions = {
+          responsive: true,
+          maintainAspectRatio: false,
+          elements: {
+              line: {
+                  borderWidth: 8
+              }
+          },
+          plugins: {
+            legend: {
+              position: 'top',
+              align: 'end',
+              onClick: function(e, legendItem, legend) {
+                  const chart = legend.chart;
+                  const index = legendItem.datasetIndex;
+                  const meta = chart.getDatasetMeta(index);
+                  const newHiddenState = meta.hidden === null ? !chart.data.datasets[index].hidden : null;
+                  const groupStartIndex = Math.floor(index / 4) * 4;
+                  const linkedIndices = [groupStartIndex, groupStartIndex + 1, groupStartIndex + 2, groupStartIndex + 3];
+                  linkedIndices.forEach(function(i) {
+                      const datasetMeta = chart.getDatasetMeta(i);
+                      if (datasetMeta) {
+                          datasetMeta.hidden = newHiddenState;
+                      }
+                  });
+                  chart.update();
+              },
+              labels: {
+                  filter: function(legendItem) {
+                      return !legendItem.text.includes('신뢰구간');
+                  }
+              }
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false,
+            },
+            datalabels: {
+              display: function(context) {
+                const datasetLabel = context.dataset.label;
+                return (datasetLabel.includes('과거') || datasetLabel.includes('예측'));
+              },
+              align: 'top',
+              color: 'black',
+              padding:{bottom:15},
+              font: {
+                size: 15
+              },
+              formatter: Math.round
+            }
+          },
+          scales: {
+            x: {
+              ticks: {
+                  callback: function(value, index) {
+                      return ticktext[index];
+                  },
+                  font: {
+                      weight: 'bold'
+                  }
+              }
+            },
+            y: {
+              title: {
+                  display: true,
+                  text: '단위(톤)',
+                  font: {
+                      size: 15
+                  }
+              }
+            },
+          },
+        };
         
-  //       setChartData(predictionChartJsData);
-  //       setChartOptions(predictionChartJsOptions);
-  //     }
+        setChartData(predictionChartJsData);
+        setChartOptions(predictionChartJsOptions);
+      }
 
-  //   } catch (err) {
-  //     setError(err.message || '데이터를 가져오는 중 오류가 발생했습니다')
-  //     setTableData([])
-  //     setChartData(null)
-  //   } finally {
-  //     setLoading(false)
-  //   }
-  // }
+    } catch (err) {
+      setError(err.message || '데이터를 가져오는 중 오류가 발생했습니다')
+      setTableData([])
+      setChartData(null)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   // 선택 초기화
   function resetAll() {
@@ -564,11 +382,11 @@ async function fetchData() {
 
     window.open(`${API_BASE}/api/download/excel?${params.toString()}`, '_blank');
   }
-  
+
   const toggleChatbot = () => {
     setChatbotOpen(!isChatbotOpen);
   };
-  
+
   return (
     <div className="app-container">
       <Header />
@@ -606,7 +424,7 @@ async function fetchData() {
           </h2>
           <div className="chart-description">
             {selectedAnalysis === '통계' ? 
-              '• 올해 데이터: 선 그래프  • 전년 데이터: 막대 그래프 ' :
+              '  • 선택기간: 막대 그래프            • 전년동기: 선 그래프 ' :
               '• 실제 데이터: 실선 • 예측 데이터: 점선 + 신뢰구간'
             }
           </div>
@@ -615,7 +433,7 @@ async function fetchData() {
             analysisType={selectedAnalysis}
             options={chartOptions}
             selectedCategories={appliedCategories}
-            />
+          />
           {selectedAnalysis === '통계' &&(
             <>
             
@@ -670,5 +488,4 @@ async function fetchData() {
       {isChatbotOpen && <ChatbotWindow onClose={toggleChatbot} />}
     </div>
   );
-
 }

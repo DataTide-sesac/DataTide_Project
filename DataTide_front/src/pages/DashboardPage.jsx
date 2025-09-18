@@ -77,6 +77,13 @@ export default function DashboardPage() {
       } catch (error) {
         console.error("Failed to fetch items:", error);
         // Optionally set an error state here
+        // 실패했을 때 기본 데이터 강제로 주입
+        const fallbackData = [
+          { name: "Calamari", kr_name: "오징어" },
+          { name: "CutlassFish", kr_name: "갈치" },
+          { name: "Mackerel", kr_name: "고등어" }
+        ];
+        setFishItems(fallbackData);
       }
     };
 
@@ -244,7 +251,7 @@ export default function DashboardPage() {
             // Confidence Interval - upper bound
             predictionChartJsData.datasets.push({
               label: `신뢰구간(${category})`,
-              data: [...Array(pastY.length).fill(null), ...predictedY.map(y => y ? y * 1.2 : null)],
+              data: [...Array(pastY.length).fill(null), ...predictedY.map(y => y ? y * 1.1: null)],
               borderColor: 'transparent',
               backgroundColor: 'transparent',
               pointRadius: 0,
@@ -254,7 +261,7 @@ export default function DashboardPage() {
             // Confidence Interval - lower bound
             predictionChartJsData.datasets.push({
               label: `신뢰구간(${category})`,
-              data: [...Array(pastY.length).fill(null), ...predictedY.map(y => y ? y * 0.8 : null)],
+              data: [...Array(pastY.length).fill(null), ...predictedY.map(y => y ? y * 0.9 : null)],
               borderColor: 'transparent',
               backgroundColor: fill,
               pointRadius: 0,
@@ -425,7 +432,7 @@ export default function DashboardPage() {
           <div className="chart-description">
             {selectedAnalysis === '통계' ? 
               '  • 선택기간: 막대 그래프            • 전년동기: 선 그래프 ' :
-              '• 실제 데이터: 실선 • 예측 데이터: 점선 + 신뢰구간'
+              '• 실제 데이터: 실선 • 예측 데이터: 점선 (신뢰구간 ±10%)'
             }
           </div>
           <ChartComponent 
@@ -439,7 +446,7 @@ export default function DashboardPage() {
             
             {bumpChartData && (
               <section className="chart-section">
-                <h3>📊 품목 순위 변화 (Bump Chart)</h3>
+                <h2>📊 품목 순위 변화 (Bump Chart)</h2>
                 <BumpChartComponent data={bumpChartData} />
               </section>
             )}

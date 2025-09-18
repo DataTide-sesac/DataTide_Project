@@ -248,20 +248,6 @@ function getChangeClass(value) {
   return ''
 }
 
-function convertToCSV(data) {
-  const headers = ['년도', '월', '품목', '지역', '생산량', '판매량', '수입량', '전년생산량', '전년판매량', '전년수입량', '생산증감률', '판매증감률', '수입증감률']
-  const csvContent = [
-    headers.join(','),
-    ...data.map(row => [
-      row.year, row.month, row.item, row.location,
-      row.production, row.sales, row.imports,
-      row.prevProduction, row.prevSales, row.prevImports,
-      row.productionChange, row.salesChange, row.importsChange
-    ].join(','))
-  ].join('\n')
-  
-  return '\uFEFF' + csvContent // UTF-8 BOM 추가
-}
 
 function downloadFile(content, fileName, contentType) {
   const blob = new Blob([content], { type: contentType })

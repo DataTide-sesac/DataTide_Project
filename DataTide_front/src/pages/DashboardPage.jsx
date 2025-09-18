@@ -7,7 +7,7 @@ import Header from '../components/Header';
 import SearchBar from '../components/SearchBar';
 import ResultsTable from '../components/ResultsTable';
 import ChatbotWindow from '../components/ChatbotWindow'; // Import ChatbotWindow
-import {generateBubbleChartData, generateScatterChartData, generateBumpChartData, generateMockChartData, convertToCSV, downloadFile } from '../utils/index.js';
+import {generateBubbleChartData, generateScatterChartData, generateBumpChartData, convertToCSV, downloadFile } from '../utils/index.js';
 import { fetchFisheriesData, fetchBumpChartData } from '../api';
 import { ANALYSIS_OPTIONS, DATA_CATEGORIES } from '../constants';
 import './DashboardPage.css';
@@ -164,7 +164,7 @@ async function fetchData() {
 
         if (selectedAnalysis === '통계') {
           // Bump Chart를 위한 데이터 API 병렬 호출
-          const bumpResult = await fetchBumpChartData(period);
+          const bumpResult = await fetchBumpChartData(selectedItem, period);
           const finalBumpData = generateBumpChartData(bumpResult, period);
           setBumpChartData(finalBumpData);
 
@@ -625,8 +625,8 @@ async function fetchData() {
                 <BumpChartComponent data={bumpChartData} />
               </section>
             )}
-
-            {/* 스켈터 차트 */}
+            {/* 
+            스켈터 차트
             {scatterChartData && (
               <section className="chart-section">
                 <h3>📊 산포도 (Scatter Chart)</h3>
@@ -634,13 +634,13 @@ async function fetchData() {
               </section>
             )}
 
-            {/* 버블 차트 */}
+            버블 차트
             {bubbleChartData && (
               <section className="chart-section">
                 <h3>📊 포도송이 (Bubble Chart)</h3>
                 <BubbleChartComponent data={bubbleChartData} />
               </section>
-            )}
+            )} */}
             
             </>
           )}

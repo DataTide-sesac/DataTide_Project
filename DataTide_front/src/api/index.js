@@ -28,10 +28,13 @@ export async function fetchFisheriesData(params) {
   return handleApiResponse(response);
 }
 
-export async function fetchBumpChartData(period) {
+export async function fetchBumpChartData(item_code,period) {
   const queryParams = new URLSearchParams();
+  queryParams.append('item_code', item_code);
   queryParams.append('start_year', period.startYear);
   queryParams.append('end_year', period.endYear);
+  queryParams.append('start_month', period.startMonth);
+  queryParams.append('end_month', period.endMonth);
   
   const response = await fetch(`${API_BASE}/api/analysis/bump-chart?${queryParams}`);
   return handleApiResponse(response);

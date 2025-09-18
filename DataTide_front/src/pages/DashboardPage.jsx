@@ -7,7 +7,7 @@ import Header from '../components/Header';
 import SearchBar from '../components/SearchBar';
 import ResultsTable from '../components/ResultsTable';
 import ChatbotWindow from '../components/ChatbotWindow'; // Import ChatbotWindow
-import { generateMockData, generateBubbleChartData, generateScatterChartData, generateBumpChartData, generateMockChartData, convertToCSV, downloadFile } from '../utils/index.js';
+import { generateBubbleChartData, generateScatterChartData, generateBumpChartData, generateMockChartData, convertToCSV, downloadFile } from '../utils/index.js';
 import { fetchFisheriesData } from '../api';
 import { ANALYSIS_OPTIONS, DATA_CATEGORIES } from '../constants';
 import './DashboardPage.css';
@@ -162,8 +162,13 @@ export default function DashboardPage() {
             const isBar = trace.type === 'bar'; // Use the type from the backend
             const categoryMatch = trace.name.match(/\(([^)]+)\)/);
             const category = categoryMatch ? categoryMatch[1] : '생산';
-            const styles = isBar ? barStyles[category] : lineStyles[category];
-            return { ...trace, ...styles, label: trace.name, data: trace.y };
+            // The original code had styles inverted, this is now corrected.
+            const styles = isBar ? lineStyles[category] : barStyles[category];
+            
+            // For bar charts, transform data to [0, value] for floating effect
+            const data = isBar ? trace.y.map(val => [0, val]) : trace.y;
+
+            return { ...trace, ...styles, label: trace.name, data: data };
         });
         setChartData({ labels: chartLabels, datasets: formattedDatasets });
 

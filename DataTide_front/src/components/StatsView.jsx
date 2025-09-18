@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import ChartComponent from './ChartComponent'
 import { fetchStatsDataApi, getExcelDownloadUrl } from '../api';
+import { scales } from 'chart.js';
 
 export default function StatsView({ selectedItems, selectedLocation }) {
   const [yearRange, setYearRange] = useState({ start: 2015, end: 2024 })
@@ -26,37 +27,18 @@ export default function StatsView({ selectedItems, selectedLocation }) {
       setLoading(true)
       setError('')
 
-      // 🔥 실제 API 호출 부분 - api/index.js의 함수를 호출하도록 수정
-      
+      // 실제 API 호출
       const result = await fetchStatsDataApi({
         selectedItems,
         selectedLocation,
         yearRange
       });
+      const realStatsData = result.statsData || [];
+      setStatsData(realStatsData);
 
-      const newChartData = {
-                  labels: statsData.map(item => `${item.year}-${item.month}`),
-                  datasets: [
-                    {
-                      label: '생산량',
-                      data: statsData.map(item => item.production),
-                      backgroundColor: 'rgba(255, 99, 132, 0.5)',
-                      borderColor: 'rgb(255, 99, 132)',
-                      barPercentage: 0.8,
-                    },
-                    // ... 판매량, 수입량 데이터셋 추가
-                  ],
-                };
-      setStatsData(result.statsData || []);
-      setChartData(result.newChartData|| null);
-      
-
-      // 임시 모킹 데이터 (실제 API 연결 전까지 사용)
-      // const mockStatsData = generateMockStatsData()
-      // const mockChartData = generateMockChartData()
-
-      // setStatsData(mockStatsData)
-      // setChartData(mockChartData)
+      // 차트 데이터 가공 및 설정
+      const processedChartData = processDataForChart(realStatsData);
+      setChartData(processedChartData);
 
     } catch (err) {
       setError(err.message || '데이터를 가져오는 중 오류가 발생했습니다')
@@ -236,12 +218,70 @@ function generateMockStatsData() {
   return mockData
 }
 
-function generateMockChartData() {
+var option = {
+  scales: {
+    xAxes: [{
+      id: "bar-x-axis1",
+      stacked: true,
+      barThickness: 30,     
+    }, {
+      id: "bar-x-axis2",
+      stacked: true,
+      display: false,      
+      barThickness: 10,
+    }, {
+      id: "bar-x-axis3",
+      stacked: true,    
+      barThickness: 30,
+      display: false
+    }],
+  },
+};
+
+function processDataForChart(statsData) {
+  // 데이터를 월별로 정렬
+  console.log("로오오ㅗ그");
+  const sortedData = [...statsData].sort((a, b) => {
+    if (a.year !== b.year) return a.year - b.year;
+    return a.month - b.month;
+  });
+
+  // X축 레이블과 각 데이터셋의 데이터를 추출
+  const labels = sortedData.map(d => `${d.year}년 ${d.month}월`);
+  const productionData = sortedData.map(d => d.production);
+  const salesData = sortedData.map(d => d.sales);
+  const importsData = sortedData.map(d => d.imports);
+
   return {
-    current: [650, 720, 680, 590, 750, 820, 890, 760, 640, 710, 780, 850],
-    previous: [600, 680, 720, 650, 700, 780, 820, 740, 690, 650, 720, 800],
-    labels: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
-  }
+    labels: labels,
+    datasets: [
+      {
+        label: '생산량',
+        data: productionData,
+        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+        borderColor: 'rgb(255, 99, 132)',
+        barPercentage: 0.8, // 가장 넓은 막대
+        //stack: 'A', // 겹치기를 위한 스택 ID
+      },
+      {
+        label: '판매량',
+        data: salesData,
+        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+        borderColor: 'rgb(54, 162, 235)',
+        barPercentage: 0.5, // 중간 너비 막대
+        //stack: 'A', // 겹치기를 위한 스택 ID
+      },
+      {
+        label: '수입량',
+        data: importsData,
+        backgroundColor: 'rgba(75, 192, 192, 0.9)',
+        borderColor: 'rgb(75, 192, 192)',
+        barPercentage: 0.2, // 가장 좁은 막대
+        //stack: 'A', // 겹치기를 위한 스택 ID
+      }
+    ],
+    options : option
+  };
 }
 
 // 유틸리티 함수들

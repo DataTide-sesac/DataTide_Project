@@ -1,15 +1,37 @@
+# main.py
+import os
 from fastapi import FastAPI
-from routers import sample, items, rag # rag 라우터 import
+from fastapi.middleware.cors import CORSMiddleware
+from DataTide_back.api.router import api_router
+from .services.rag_service import initialize_llm
+from dotenv import load_dotenv # Add this line
+
+load_dotenv() # Add this line
+print(f"OPENAI_API_KEY loaded: {os.getenv('OPENAI_API_KEY')}") # Debug print
 
 app = FastAPI()
 
-# /api/sample 경로로 라우터 포함
-app.include_router(sample.router, prefix="/api/sample", tags=["sample"])
-# /api/items 경로로 라우터 포함
-app.include_router(items.router, prefix="/api/items", tags=["items"])
-# /api/rag 경로로 라우터 포함
-app.include_router(rag.router, prefix="/api/rag", tags=["rag"])
+@app.on_event("startup")
+async def startup_event():
+    """
+    Application startup event handler.
+    Initializes the RAG pipeline.
+    """
+    print("Application startup: Initializing LLM...")
+    initialize_llm()
+    print("Application startup: LLM initialization complete.")
 
-@app.get("/")
-def read_root():
-    return {"message": "FastAPI server is running"}
+# CORS 미들웨어 추가
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 모든 출처 허용
+    allow_credentials=True,
+    allow_methods=["*"],  # 모든 HTTP 메서드 허용
+    allow_headers=["*"],  # 모든 헤더 허용
+)
+
+app.include_router(api_router, prefix="/api")
+
+@app.get("/", tags=["Root"])
+async def read_root():
+    return {"message": "DataTide Backend API에 오신걸 환영합니다!"}

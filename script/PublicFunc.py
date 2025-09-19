@@ -6,8 +6,10 @@ import tabula as tbl
 import os
 class PublicFunc():
 
+
     # 상대경로/파일이름.확장자
     # csv파일 읽기, encoding이 utf-8이 아닐경우 지정해 줄것. 한국어는 cp949가 많다고 함.
+
     @staticmethod
     def ReadCSV(filePath, fileName, skiprows=0, encoding='utf-8-sig'):
         try:
@@ -23,8 +25,9 @@ class PublicFunc():
             print(f"{e}, ValueError")
             return None
         return df
-    
+
     # 폴더 읽기
+
     @staticmethod
     def ReadFold(filePath):
         folder_path = filePath
@@ -33,6 +36,7 @@ class PublicFunc():
         files = [f for f in items if os.path.isfile(os.path.join(folder_path,f))]
 
         return files
+
 
     # Excel 파일 읽기, encoding이 utf-8이 아닐경우 지정해 줄것. 한국어는 cp949가 많다고 함.
     @staticmethod
@@ -55,6 +59,7 @@ class PublicFunc():
         return df
 
     
+
     # pdf 추출 / Type = month / year
     @staticmethod
     def ReadPDF(filePath, fileName, type='month'):
@@ -96,6 +101,7 @@ class PublicFunc():
             print(f"오류가 발생했습니다: {e}")
         
         
+
     # 라벨 달기
     # data : csv,xlsx파일
     # colList : List 형태로 올 것
@@ -113,6 +119,7 @@ class PublicFunc():
             print(f"{e}, ValueError")
             return data
         return data
+
 
     # 결측치 제거
     # 0으로 바꾸는 것이 아닌 NaN값 삭제함.
@@ -147,6 +154,7 @@ class PublicFunc():
             return data
         return data
 
+
     # concat data / list
     # 반드시 리스트 형태로 넣어 줄 것
     @staticmethod
@@ -169,6 +177,7 @@ class PublicFunc():
                 print(f"Index {i}: Type: {type(item)}, {item.shape}")
 
             print("------ 구조확인 -----")
+
             return pd.concat(df_list, ignore_index=True, axis=axis)
             
         except TypeError as e:
@@ -178,6 +187,7 @@ class PublicFunc():
             print(f"{e}, ValueError")
             return pd.DataFrame()
     
+
     # boxplot, figsize : 튜플, vert : 방향
     @staticmethod
     def ShowBoxplot(data,figsize=(8,6),vert=True):
@@ -192,6 +202,7 @@ class PublicFunc():
             print(f"{e}, Index Error")
         except ValueError as e:
             print(f"{e}, ValueError")
+
 
     # 이상치의 하한과 상한 반환
     @staticmethod
@@ -209,6 +220,7 @@ class PublicFunc():
             print(f"{e}, ValueError")
 
         return lower_bound, upper_bound
+
 
     # 이상치 대체
     @staticmethod
@@ -228,15 +240,18 @@ class PublicFunc():
             return data
         return data
 
-    # 열 추가
+
+    #열 추가
     @staticmethod
-    def AddColumns(df,index=0,column='',value=''):
+    def AddColumns(df,index=0,before='',after=''):
         try:
-            df.insert(index,column,value)
+            df.insert(index,before,after)
         except TypeError as e:
             print(f'{e}, TyperError')
 
-    # 저장
+    #저장
+
+
     @staticmethod
     def SaveCSV(df,fileName='',encoding='utf-8-sig'):
         try:

@@ -25,6 +25,7 @@ HOST = "localhost"
 PORT = 3306
 DB = os.getenv("MYSQL_DATABASE")
 
+
 db_con = f"mysql+pymysql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DB}"
 # print(db_con)
 

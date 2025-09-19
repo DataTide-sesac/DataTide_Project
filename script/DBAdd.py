@@ -273,16 +273,15 @@ def RetailAdd(filePath):
 
 if __name__ == '__main__':
     # 필요한 것만 주석 해제해서 쓰기
-    # filePath='./DataSet/Total'
 
+    filePath='../DataSet/Total'
 
-    # DropTables()
-    # CreateTables()
+    DropTables()
+    CreateTables()
 
-    # GroundWeatherAdd(f'{filePath}/GroundWeather')
-    # LocationAdd(f'{filePath}/SeaWeather')
-    # SeaWeatherAdd(f'{filePath}/SeaWeather')
-    # ItemAdd(f'{filePath}/FishData')
-    # RetailAdd(f'{filePath}/FishData')
+    GroundWeatherAdd(f'{filePath}/GroundWeather')
+    LocationAdd(f'{filePath}/SeaWeather')
+    SeaWeatherAdd(f'{filePath}/SeaWeather')
+    ItemAdd(f'{filePath}/FishData')
+    RetailAdd(f'{filePath}/FishData')
     pass
-

@@ -20,7 +20,7 @@
     - DataTide_front
   - **실행 방법**
     - cd DataTide_front
-    - *(처음 실행할 시)* npm install
+    - *(처음 실행할 시)* npm install --prefix DataTide_front
     - npm run dev
 
 ---
@@ -35,6 +35,7 @@
     - DataTide_back
   - **실행 방법**
     - cd DataTide_back
+        - *(처음 실행할 시)* pip install -r requirements.txt
     - python -m uvicorn main:app --reload
 
 ---
@@ -94,12 +95,19 @@
 ---
 
 ## 🗂️ ERD (Entity Relationship Diagram)
+<<<<<<< HEAD
+> [!WARNING]
+> 현재 DB 모델이 대규모로 리팩토링되어 아래 ERD는 최신이 아닙니다. 빠른 시일 내에 업데이트가 필요합니다.
+
+![00_ERD_4](https://github.com/user-attachments/assets/013de0ff-6f5e-4b7c-8ea2-9e5d69d1fba7)
+=======
 ![00_ERD_5](https://github.com/user-attachments/assets/3eafeb39-5945-40e5-b2ec-88789c95d15f)
 
 ---
 
 ## 🔵 랭그래프 (Lang Graph)
 <img width="189" height="531" alt="LangGraph" src="https://github.com/user-attachments/assets/bf59a0ab-13f0-4bc4-9c0a-eadf428cc69c" />
+>>>>>>> main
 
 
 ---
@@ -107,7 +115,7 @@
 ## ⚙️ 개발 환경
 
 - **파이썬 버전** : 3.10.18
-  - **데이터 관련 라이브러리** : sqlalchemy pymysql numpy pandas matplotlib seaborn tqdm
+  - **데이터 관련 라이브러리** : pymysql numpy pandas matplotlib seaborn tqdm
   - **AI 관련 라이브러리** : torch torchvision torchaudio scikit-learn
   - **웹 관련 라이브러리** : fastapi
 

@@ -2,13 +2,8 @@ from pydantic import BaseModel
 from typing import List
 
 class RagQueryRequest(BaseModel):
-    query: str
+    message: str
 
-class SourceDocument(BaseModel):
-    source: str
-    content: str
-
-class RagQueryResponse(BaseModel):
-    query: str
+# Simplified schema for LLM direct response
+class LLMResponse(BaseModel):
     answer: str
-    source_documents: List[SourceDocument]

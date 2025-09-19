@@ -1,27 +1,77 @@
 # services/rag_service.py
+import os
+from langchain_community.chat_models import ChatOpenAI
+import pandas as pd
+from langchain_experimental.agents.agent_toolkits import create_pandas_dataframe_agent
+from langchain.agents.agent_types import AgentType
+from datetime import datetime
 
-def get_rag_response(query: str) -> dict:
+# --- Global variable for the LLM -- -
+llm = None
+
+def initialize_llm():
     """
-    주어진 쿼리에 대해 RAG 모델을 호출하고 응답을 반환하는 서비스 함수입니다.
-    실제 구현에서는 이곳에 LangChain, LlamaIndex 또는 직접 구현한 RAG 파이프라인 코드가 들어갑니다.
+    Initializes the LLM.
+    This should be called once at application startup.
     """
-    print(f"RAG 모델 호출: '{query}'")
+    global llm
 
-    # --- 할일:여기에 실제 RAG 파이프라인 로직 구현 ---
-    # 1. 쿼리 전처리 Query Pre-processing
-    # 2. Vector DB / Retriever에서 관련 문서 검색
-    # 3. LLM에 검색된 문서와 쿼리를 함께 전달하여 답변 생성
-    # -----------------------------------------
+    # --- Load environment variables ---
+    
+    openai_api_key = os.getenv("OPENAI_API_KEY")
 
-    # 아래는 예시 응답입니다.
-    example_response = {
-        "query": query,
-        "answer": f"'{query}'에 대한 답변입니다.",
-        "source_documents": [
-            {"source": "doc_1.pdf", "content": "관련 문서 1의 내용..."},
-            {"source": "doc_2.txt", "content": "관련 문서 2의 내용..."},
-        ]
-    }
+    # Get the directory where the current script is located
+    script_dir = os.path.dirname(os.path.abspath(__file__))
 
-    print("RAG 모델 응답 수신")
-    return example_response
+    # Construct the full path to the CSV files
+    df1_path = os.path.join(script_dir, "read_sql_1.csv")
+    df2_path = os.path.join(script_dir, "read_sql_2.csv")
+
+    df1 = pd.read_csv(df1_path)  # CSV 파일을 읽습니다.
+    print(df1.head())
+    df2 = pd.read_csv(df2_path)  # CSV 파일을 읽습니다.
+    print(df2.head())
+
+    df = pd.concat([df1, df2], ignore_index=True)
+    print(df.head())
+
+    # --- Initialize LLM ---
+    llm = create_pandas_dataframe_agent(
+    ChatOpenAI(model="gpt-4.1-mini", temperature=0),
+    df,
+    verbose=False,
+    agent_type=AgentType.OPENAI_FUNCTIONS,
+    allow_dangerous_code=True,
+)
+    print("LLM is ready.")
+
+def get_llm_response(query: str) -> dict:
+    """
+    Gets a response from the LLM for a given query.
+    """
+    global llm
+    if not llm:
+        return {"answer": "LLM이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요."}
+    
+    current_time = f"{datetime.now().year}년 "
+    current_time += f"{datetime.now().month}월"
+
+    prompt = f"""
+        품목에는 대상이, 날짜는 해당 기록의 날짜가, 생산량, 수입량, 판매량을 행 기준으로 파악하면 돼.
+        만약 해당 내용에 대한 질문이 아니라면 저희는 품목당 날짜에 따른 생산, 수입, 판매량만 알려주는 챗봇이라 모른다고 답해줘.
+        단위는 톤입니다. 대답은 친절히.
+        만약 답을 찾을 수 없다면, 모른다고 답하세요.
+        필요하다면 다음의 대화 기록을 참고하여 질문에 답변하세요.
+
+        현재 날짜: {current_time}
+
+        질문: {query}
+    """
+    
+    try:
+        response = llm.invoke({"input": prompt})
+        print(response)
+        return {"answer": response['output']}
+    except Exception as e:
+        print(f"Error during LLM query: {e}")
+        return {"error": "LLM에서 답변을 가져오는 데 실패했습니다."}

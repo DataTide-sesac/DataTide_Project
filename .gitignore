@@ -9,7 +9,6 @@ __pycache__/
 env/
 venv/
 .env
-
 *.egg-info/
 .pytest_cache/
 
@@ -21,6 +20,9 @@ venv/
 .DS_Store
 .Trashes
 Thumbs.db
+
+#front
+node_modules/
 
 # Specific to this project
 *.zip

@@ -94,23 +94,6 @@ export default function DashboardPage() {
     setChartData(null);
   }, [selectedAnalysis]);
 
-  useEffect(() => {
-  const bubbleData = generateBubbleChartData();
-  setBubbleChartData(bubbleData);
-                    }, []);
-
-  useEffect(() => {
-  const bumpData = generateBumpChartData();
-  setBumpChartData(bumpData);
-                    }, []);
-  
-  //// 스켈터 차트
-  useEffect(() => {
-  const scatterData = generateScatterChartData();
-  setScatterChartData(scatterData);
-                    }, []);
-  ////
-
   // 검색 가능 여부 확인
   const canSearch = useMemo(() => {
     return selectedItem && selectedAnalysis && selectedCategories.length > 0

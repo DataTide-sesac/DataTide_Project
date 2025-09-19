@@ -75,6 +75,17 @@ export default function ChartComponent({ data, analysisType, options }) {
     },
   };
 
+  // 통계용 x축 라벨 포맷
+  const formattedTickLabels = (() => {
+    if (!data || !data.labels || !Array.isArray(data.labels)) return [];
+    return data.labels.map((label, index) => {
+      const [year, month] = label.split('-');
+      if (index === 0) return `${year}년 ${month}월`;
+      const [prevYear] = data.labels[index - 1].split('-');
+      return year !== prevYear ? `${year}년 ${month}월` : `${month}월`;
+    });
+  })();
+
   const statisticsOptions = {
     ...commonOptions,
     scales: {
@@ -82,6 +93,12 @@ export default function ChartComponent({ data, analysisType, options }) {
       x: {
         ...commonOptions.scales.x,
         stacked: false,
+        ticks: {
+        ...commonOptions.scales.x.ticks,
+        callback: function(value, index){
+          return formattedTickLabels[index] || '';
+        }
+      }
       },
       y: {
         ...commonOptions.scales.y,

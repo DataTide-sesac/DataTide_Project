@@ -9,7 +9,6 @@ from langchain.agents.agent_types import AgentType
 llm = None
 
 def initialize_llm():
-    return
     """
     Initializes the LLM.
     This should be called once at application startup.
@@ -17,8 +16,9 @@ def initialize_llm():
     global llm
 
     # --- Load environment variables ---
-    
+
     openai_api_key = os.getenv("OPENAI_API_KEY")
+    print("API키",openai_api_key)
 
     # Get the directory where the current script is located
     script_dir = os.path.dirname(os.path.abspath(__file__))

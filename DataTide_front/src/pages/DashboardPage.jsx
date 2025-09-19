@@ -267,6 +267,20 @@ export default function DashboardPage() {
               }
           },
           plugins: {
+            title: {
+              display: true,
+              text: '   단위(톤)',
+              align: 'start', // 왼쪽 정렬
+              position: 'top',
+              padding: {
+                top: 20,
+
+              },
+              font: {
+                size: 16,
+                weight: 'bold'
+              }
+            },
             legend: {
               position: 'top',
               align: 'end',
@@ -322,12 +336,12 @@ export default function DashboardPage() {
             },
             y: {
               title: {
-                  display: true,
-                  text: '단위(톤)',
-                  font: {
-                      size: 15
-                  }
-              }
+                display: true,
+                // text: '단위(톤)',
+                font: {
+                  size: 15
+                },
+              },
             },
           },
         };

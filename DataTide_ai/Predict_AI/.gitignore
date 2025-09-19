@@ -1,4 +1,8 @@
 sales/wandb
+<<<<<<< HEAD
 sales/__pycache__
 production/wandb
 *.csv
+=======
+production/wandb
+>>>>>>> main

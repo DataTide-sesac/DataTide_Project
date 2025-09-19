@@ -16,7 +16,24 @@ import matplotlib.pyplot as plt
 import wandb
 
 # --- 환경변수 불러오기 ---
+<<<<<<< HEAD
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../../..", ".env"))
+=======
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../..", ".env"))
+
+# 프로젝트명, 엔티티(계정명 또는 팀명), 하이퍼파라미터 기록
+wandb.init(
+    project="DataTide_sales",   # 원하는 프로젝트 이름
+    entity=os.getenv("WANDB_ENTITY"),       # 본인 계정명
+    config={
+        "epochs": 40,
+        "learning_rate": 1e-3,
+        "batch_size": 32,
+        "window_size": 6,
+        "hidden_dim": 64
+    }
+)
+>>>>>>> main
 
 # ======================
 # 1. MySQL 연결
@@ -28,11 +45,17 @@ HOST = "localhost"
 PORT = 3306
 DB = os.getenv("MYSQL_DATABASE")
 
+<<<<<<< HEAD
 db_con = f"mysql+pymysql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DB}"
 # print(db_con)
 
 # SQLAlchemy 엔진 생성
 engine = create_engine(db_con)
+=======
+
+# SQLAlchemy 엔진 생성
+engine = create_engine(f"mysql+pymysql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DB}")
+>>>>>>> main
 
 # ======================
 # 2. 테이블 불러오기
@@ -95,6 +118,7 @@ class LSTMModel(nn.Module):
     def __init__(self, input_dim, hidden_dim=64, output_dim=2, num_layers=2):
         super(LSTMModel, self).__init__()
         self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, batch_first=True)
+<<<<<<< HEAD
         self.relu = nn.ReLU()
 
         self.fc = nn.Linear(hidden_dim, output_dim)
@@ -110,12 +134,20 @@ class LSTMModel(nn.Module):
         # out = self.relu(out)
         # out = self.fc2(out)  # 마지막 hidden state
 
+=======
+        self.fc = nn.Linear(hidden_dim, output_dim)
+
+    def forward(self, x):
+        _, (h_n, _) = self.lstm(x)
+        out = self.fc(h_n[-1])  # 마지막 hidden state
+>>>>>>> main
         return out
 
 class SimpleRNNModel(nn.Module):
     def __init__(self, input_dim, hidden_dim=64, output_dim=2, num_layers=2):
         super().__init__()
         self.rnn = nn.RNN(input_dim, hidden_dim, num_layers, batch_first=True)
+<<<<<<< HEAD
         self.relu = nn.ReLU()
 
         self.fc = nn.Linear(hidden_dim, output_dim)
@@ -130,12 +162,20 @@ class SimpleRNNModel(nn.Module):
         # out = self.fc1(h_n[-1])
         # out = self.relu(out)
         # out = self.fc2(out)  # 마지막 hidden state
+=======
+        self.fc = nn.Linear(hidden_dim, output_dim)
+
+    def forward(self, x):
+        _, h_n = self.rnn(x)
+        out = self.fc(h_n[-1])
+>>>>>>> main
         return out
 
 class GRUModel(nn.Module):
     def __init__(self, input_dim, hidden_dim=64, output_dim=2, num_layers=2):
         super().__init__()
         self.gru = nn.GRU(input_dim, hidden_dim, num_layers, batch_first=True)
+<<<<<<< HEAD
         self.relu = nn.ReLU()
 
         self.fc = nn.Linear(hidden_dim, output_dim)
@@ -150,6 +190,13 @@ class GRUModel(nn.Module):
         # out = self.fc1(h_n[-1])
         # out = self.relu(out)
         # out = self.fc2(out)  # 마지막 hidden state
+=======
+        self.fc = nn.Linear(hidden_dim, output_dim)
+
+    def forward(self, x):
+        _, h_n = self.gru(x)
+        out = self.fc(h_n[-1])
+>>>>>>> main
         return out
 
 # feature embedding → Transformer Encoder → FC regression head
@@ -159,21 +206,28 @@ class TransformerEncoderModel(nn.Module):
         self.input_fc = nn.Linear(input_dim, d_model)
         encoder_layer = nn.TransformerEncoderLayer(d_model=d_model, nhead=nhead, batch_first=True)
         self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
+<<<<<<< HEAD
         self.relu = nn.ReLU()
 
         self.fc = nn.Linear(d_model, output_dim)
         self.fc1 = nn.Linear(d_model, 64)
         self.fc2 = nn.Linear(64, output_dim)
+=======
+        self.fc = nn.Linear(d_model, output_dim)
+>>>>>>> main
 
     def forward(self, x):
         x = self.input_fc(x)
         x = self.transformer(x)
         # 마지막 시점 선택
         out = self.fc(x[:, -1, :])
+<<<<<<< HEAD
 
         # out = self.fc1(x[:, -1, :])
         # out = self.relu(out)
         # out = self.fc2(out)  # 마지막 hidden state
+=======
+>>>>>>> main
         return out
     
 # ======================
@@ -184,8 +238,11 @@ def train_and_evaluate(model, train_loader, val_loader, epochs=40, lr=1e-3, mode
     optimizer = optim.Adam(model.parameters(), lr=lr)
 
     best_rmse = float("inf")  # 아주 큰 값으로 초기화
+<<<<<<< HEAD
     best_mae = float("inf")  # 아주 큰 값으로 초기화
     best_r2 = float("inf")  # 아주 큰 값으로 초기화
+=======
+>>>>>>> main
     best_state = None
 
     for epoch in range(epochs):
@@ -234,15 +291,22 @@ def train_and_evaluate(model, train_loader, val_loader, epochs=40, lr=1e-3, mode
         # ✅ 가장 좋은 모델 저장
         if rmse < best_rmse:
             best_rmse = rmse
+<<<<<<< HEAD
             best_mae = mae
             best_r2 = r2
+=======
+>>>>>>> main
             best_state = model.state_dict()
             torch.save(best_state, f"{model_name}_sales.pth")
             print(f"  👉 Best model saved (epoch {epoch+1}, RMSE={rmse:.2f})")
 
 
     # 최종 성능 리턴
+<<<<<<< HEAD
     return best_rmse, best_mae, best_r2
+=======
+    return best_rmse, mae, r2
+>>>>>>> main
 
 # ======================
 # 7. 실행
@@ -278,6 +342,7 @@ results = {}
 
 for name, model in models.items():
     print(f"\n===== Training {name} =====")
+<<<<<<< HEAD
     # 프로젝트명, 엔티티(계정명 또는 팀명), 하이퍼파라미터 기록
     wandb.init(
         project="DataTide_sales_compare_model_1hidden_2",   # 원하는 프로젝트 이름
@@ -293,6 +358,8 @@ for name, model in models.items():
         name=name,
         reinit=True   # run 새로 시작
     )
+=======
+>>>>>>> main
     rmse, mae, r2 = train_and_evaluate(model, train_loader, val_loader, 
                                        epochs=wandb.config.epochs, 
                                        lr=wandb.config.learning_rate, 

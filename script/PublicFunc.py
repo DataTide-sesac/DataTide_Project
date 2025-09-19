@@ -6,8 +6,13 @@ import tabula as tbl
 import os
 class PublicFunc():
 
+<<<<<<< HEAD
     #상대경로/파일이름.확장자
     #csv파일 읽기, encoding이 utf-8이 아닐경우 지정해 줄것. 한국어는 cp949가 많다고 함.
+=======
+    # 상대경로/파일이름.확장자
+    # csv파일 읽기, encoding이 utf-8이 아닐경우 지정해 줄것. 한국어는 cp949가 많다고 함.
+>>>>>>> main
     @staticmethod
     def ReadCSV(filePath, fileName, skiprows=0, encoding='utf-8-sig'):
         try:
@@ -24,7 +29,11 @@ class PublicFunc():
             return None
         return df
     
+<<<<<<< HEAD
     #폴더 읽기
+=======
+    # 폴더 읽기
+>>>>>>> main
     @staticmethod
     def ReadFold(filePath):
         folder_path = filePath
@@ -34,7 +43,11 @@ class PublicFunc():
 
         return files
 
+<<<<<<< HEAD
     #Excel 파일 읽기, encoding이 utf-8이 아닐경우 지정해 줄것. 한국어는 cp949가 많다고 함.
+=======
+    # Excel 파일 읽기, encoding이 utf-8이 아닐경우 지정해 줄것. 한국어는 cp949가 많다고 함.
+>>>>>>> main
     @staticmethod
     def ReadExcel(filePath, fileName,sheetname=0 ,skiprows=0):
         try:
@@ -55,7 +68,11 @@ class PublicFunc():
         return df
 
     
+<<<<<<< HEAD
     #pdf 추출 / Type = month / year
+=======
+    # pdf 추출 / Type = month / year
+>>>>>>> main
     @staticmethod
     def ReadPDF(filePath, fileName, type='month'):
         typeDic = {'month':27,'year':13}
@@ -96,7 +113,11 @@ class PublicFunc():
             print(f"오류가 발생했습니다: {e}")
         
         
+<<<<<<< HEAD
     #라벨 달기
+=======
+    # 라벨 달기
+>>>>>>> main
     # data : csv,xlsx파일
     # colList : List 형태로 올 것
     @staticmethod
@@ -114,8 +135,13 @@ class PublicFunc():
             return data
         return data
 
+<<<<<<< HEAD
     #결측치 제거
     #0으로 바꾸는 것이 아닌 NaN값 삭제함.
+=======
+    # 결측치 제거
+    # 0으로 바꾸는 것이 아닌 NaN값 삭제함.
+>>>>>>> main
     @staticmethod
     def IsNullDel(df, thresh=1, axis=0):
         try:
@@ -130,8 +156,13 @@ class PublicFunc():
         
         return df
 
+<<<<<<< HEAD
     #None값 대체
     #data 에는 None값을 대체할 열을 대입(ex: 3번째 열 대체 -> a[a['열이름']] )
+=======
+    # None값 대체
+    # data 에는 None값을 대체할 열을 대입(ex: 3번째 열 대체 -> a[a['열이름']] )
+>>>>>>> main
     @staticmethod
     def ChangeNull(data,value):
         try:
@@ -147,8 +178,13 @@ class PublicFunc():
             return data
         return data
 
+<<<<<<< HEAD
     #concat data / list
     #반드시 리스트 형태로 넣어 줄 것
+=======
+    # concat data / list
+    # 반드시 리스트 형태로 넣어 줄 것
+>>>>>>> main
     @staticmethod
     def MixData(data,axis=0):
         try:
@@ -169,11 +205,14 @@ class PublicFunc():
                 print(f"Index {i}: Type: {type(item)}, {item.shape}")
 
             print("------ 구조확인 -----")
+<<<<<<< HEAD
             # temp = None
             # temp = pd.DataFrame()
             # for item in data:
             #     item = pd.DataFrame([item]) if isinstance(item, dict) else pd.DataFrame(item) 
             #     temp = pd.concat([temp,item], ignore_index=True)
+=======
+>>>>>>> main
             return pd.concat(df_list, ignore_index=True, axis=axis)
             
         except TypeError as e:
@@ -183,7 +222,11 @@ class PublicFunc():
             print(f"{e}, ValueError")
             return pd.DataFrame()
     
+<<<<<<< HEAD
     #boxplot, figsize : 튜플, vert : 방향
+=======
+    # boxplot, figsize : 튜플, vert : 방향
+>>>>>>> main
     @staticmethod
     def ShowBoxplot(data,figsize=(8,6),vert=True):
         try:
@@ -198,7 +241,11 @@ class PublicFunc():
         except ValueError as e:
             print(f"{e}, ValueError")
 
+<<<<<<< HEAD
     #이상치의 하한과 상한 반환
+=======
+    # 이상치의 하한과 상한 반환
+>>>>>>> main
     @staticmethod
     def OutFiliersIqr(data):
         try:
@@ -215,7 +262,11 @@ class PublicFunc():
 
         return lower_bound, upper_bound
 
+<<<<<<< HEAD
     #이상치 대체
+=======
+    # 이상치 대체
+>>>>>>> main
     @staticmethod
     def ChangeIqr(data,lb,ub):
         data = data.copy()
@@ -233,6 +284,7 @@ class PublicFunc():
             return data
         return data
 
+<<<<<<< HEAD
     #열 추가
     @staticmethod
     def AddColumns(df,index=0,before='',after=''):
@@ -242,6 +294,17 @@ class PublicFunc():
             print(f'{e}, TyperError')
 
     #저장
+=======
+    # 열 추가
+    @staticmethod
+    def AddColumns(df,index=0,column='',value=''):
+        try:
+            df.insert(index,column,value)
+        except TypeError as e:
+            print(f'{e}, TyperError')
+
+    # 저장
+>>>>>>> main
     @staticmethod
     def SaveCSV(df,fileName='',encoding='utf-8-sig'):
         try:

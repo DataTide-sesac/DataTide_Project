@@ -79,7 +79,7 @@ export default function BumpChartComponent({ data }) {
 
   // 라벨 개수에 따라 동적으로 폰트 크기를 계산합니다.
   // 기본 14px, 8개 초과 시 1개마다 1px씩 감소, 최소 8px
-  const dynamicFontSize = Math.max(8, 14 - Math.max(0, tickCount - 8));
+  const dynamicFontSize = Math.max(4, 22 - Math.max(0, tickCount - 4));
 
   return (
     <div style={{ height: 400 }}>

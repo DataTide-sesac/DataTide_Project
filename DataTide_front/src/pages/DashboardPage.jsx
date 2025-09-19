@@ -94,23 +94,6 @@ export default function DashboardPage() {
     setChartData(null);
   }, [selectedAnalysis]);
 
-  useEffect(() => {
-  const bubbleData = generateBubbleChartData();
-  setBubbleChartData(bubbleData);
-                    }, []);
-
-  useEffect(() => {
-  const bumpData = generateBumpChartData();
-  setBumpChartData(bumpData);
-                    }, []);
-  
-  //// 스켈터 차트
-  useEffect(() => {
-  const scatterData = generateScatterChartData();
-  setScatterChartData(scatterData);
-                    }, []);
-  ////
-
   // 검색 가능 여부 확인
   const canSearch = useMemo(() => {
     return selectedItem && selectedAnalysis && selectedCategories.length > 0
@@ -127,7 +110,7 @@ export default function DashboardPage() {
         return;
       }
       const totalMonths = (period.endYear - period.startYear) * 12 + (period.endMonth - period.startMonth) + 1;
-      if (totalMonths > 13) {
+      if (totalMonths > 12) {
         alert('최대 1년까지 조회 가능합니다.');
         return;
       }
@@ -373,28 +356,6 @@ export default function DashboardPage() {
     setError('')
   }
 
-  // CSV 다운로드
-  function downloadCSV() {
-    const csvContent = convertToCSV(tableData)
-    downloadFile(csvContent, 'fisheries_data.csv', 'text/csv')
-  }
-
-  // Excel 다운로드
-  function downloadExcel() {
-    const params = new URLSearchParams();
-    params.append('type', selectedAnalysis);
-    params.append('items', selectedItem);
-
-    if (selectedAnalysis === '예측') {
-      params.append('base_date', '2025-07-30');
-    } else if (selectedAnalysis === '통계') {
-      params.append('start', period.startYear);
-      params.append('end', period.endYear);
-    }
-
-    window.open(`${API_BASE}/api/download/excel?${params.toString()}`, '_blank');
-  }
-
   const toggleChatbot = () => {
     setChatbotOpen(!isChatbotOpen);
   };
@@ -425,66 +386,63 @@ export default function DashboardPage() {
 
       {/* 차트 영역 */}
       {chartData && (
-        <section className="chart-section">
-          <h2>
-            📈 {fishItems.find(f => f.name === selectedItem)?.kr_name} {selectedAnalysis}
-            {selectedAnalysis === '통계' && (
-              period.startYear === period.endYear
-                ? ` (${period.startYear}년)`
-                : ` (${period.startYear}~${period.endYear}년)`
-            )}
-          </h2>
-          <div className="chart-description">
-            {selectedAnalysis === '통계' ? 
-              '  • 선택기간: 막대 그래프            • 전년동기: 선 그래프 ' :
-              '• 실제 데이터: 실선 • 예측 데이터: 점선 (신뢰구간 ±10%)'
-            }
-          </div>
-          <ChartComponent 
-            data={chartData} 
-            analysisType={selectedAnalysis}
-            options={chartOptions}
-            selectedCategories={appliedCategories}
-          />
-          {selectedAnalysis === '통계' &&(
-            <>
+        <>
+          <section className="chart-section">
+            <h2>
+              📈 {fishItems.find(f => f.name === selectedItem)?.kr_name} {selectedAnalysis}
+              {selectedAnalysis === '통계' && (
+                period.startYear === period.endYear
+                  ? ` (${period.startYear}년)`
+                  : ` (${period.startYear}~${period.endYear}년)`
+              )}
+            </h2>
+            <div className="chart-description">
+              {selectedAnalysis === '통계' ? 
+                '  • 선택기간: 막대 그래프            • 전년동기: 선 그래프 ' :
+                '• 실제 데이터: 실선 • 예측 데이터: 점선 (신뢰구간 ±10%)'
+              }
+            </div>
+            <ChartComponent 
+              data={chartData} 
+              analysisType={selectedAnalysis}
+              options={chartOptions}
+              selectedCategories={appliedCategories}
+            />
+          </section>
+
+          {/* BumpChart 섹션 - 여기가 문제였던 부분 */}
+          {selectedAnalysis === '통계' && bumpChartData && (
+            <section className="chart-section">
+              <h2>📊 주요 수산물 생산 순위 변동</h2>
+              <BumpChartComponent data={bumpChartData} />
+            </section>
             
-            {bumpChartData && (
-              <section className="chart-section">
-                <h2>📊 주요 수산물 생산 순위 변동</h2>
-                <BumpChartComponent data={bumpChartData} />
-              </section>
-            )}
-            {/* 
+          )}
+        </>
+      )}
+
+            {/*
             스켈터 차트
             {scatterChartData && (
               <section className="chart-section">
-                <h3>📊 산포도 (Scatter Chart)</h3>
-                <ScatterChartComponent data={scatterChartData} />
+              <h3>📊 산포도 (Scatter Chart)</h3>
+              <ScatterChartComponent data={scatterChartData} />
               </section>
-            )}
-
-            버블 차트
-            {bubbleChartData && (
-              <section className="chart-section">
+              )}
+              
+              버블 차트
+              {bubbleChartData && (
+                <section className="chart-section">
                 <h3>📊 포도송이 (Bubble Chart)</h3>
                 <BubbleChartComponent data={bubbleChartData} />
-              </section>
-            )} */}
-            
-            </>
-          )}
-        </section>
-      )}
-
+                </section>
+                )} */}
 
       <ResultsTable 
         tableData={tableData}
         loading={loading}
         selectedItem={fishItems.find(f => f.name === selectedItem)?.kr_name}
         selectedAnalysis={selectedAnalysis}
-        downloadCSV={downloadCSV}
-        downloadExcel={downloadExcel}
         apiBaseUrl={API_BASE}
         selectedCategories={selectedCategories}
       />

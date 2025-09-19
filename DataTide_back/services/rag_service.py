@@ -17,8 +17,9 @@ def initialize_llm():
     global llm
 
     # --- Load environment variables ---
-    
+
     openai_api_key = os.getenv("OPENAI_API_KEY")
+    print("API키",openai_api_key)
 
     # Get the directory where the current script is located
     script_dir = os.path.dirname(os.path.abspath(__file__))

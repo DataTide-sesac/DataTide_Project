@@ -8,9 +8,10 @@ __pycache__/
 .Python
 env/
 venv/
-
+.env
 *.egg-info/
 .pytest_cache/
+node_modules/
 
 # IDEs
 .vscode/

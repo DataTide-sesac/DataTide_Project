@@ -35,7 +35,7 @@ export default function DashboardPage() {
     startYear: new Date().getFullYear(),
     startMonth: 1,
     endYear: new Date().getFullYear(),
-    endMonth: 12
+    endMonth: 7
   });
 
   const currentYear = new Date().getFullYear();

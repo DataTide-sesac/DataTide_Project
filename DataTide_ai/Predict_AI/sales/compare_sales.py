@@ -319,4 +319,3 @@ def drawHitmap():
     plt.yticks(rotation=0)
     plt.tight_layout()      # 레이블 겹침 방지. 다시 그려라
     plt.show()
-

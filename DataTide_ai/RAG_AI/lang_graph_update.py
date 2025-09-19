@@ -77,4 +77,3 @@ while True:
     if len(chat_history) > 3:
         chat_history.pop(0)
     break
-

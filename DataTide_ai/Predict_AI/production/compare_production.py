@@ -18,7 +18,7 @@ from sklearn.preprocessing import LabelEncoder
 import joblib
 
 # --- 환경변수 불러오기 ---
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../../..", ".env"))
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../../../DataTide_front", ".env"))
 
 # ======================
 # 1. MySQL 연결
@@ -399,4 +399,3 @@ def drawHitmap():
     plt.yticks(rotation=0)
     plt.tight_layout()      # 레이블 겹침 방지. 다시 그려라
     plt.show()
-

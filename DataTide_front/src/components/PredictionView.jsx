@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import ChartComponent from './ChartComponent'
+import { fetchPredictionDataApi, getExcelDownloadUrl } from '../api';
 
-export default function PredictionView({ selectedItems, selectedLocation, apiBase }) {
+export default function PredictionView({ selectedItems, selectedLocation }) {
   const [predictionData, setPredictionData] = useState([])
   const [chartData, setChartData] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -19,25 +20,6 @@ export default function PredictionView({ selectedItems, selectedLocation, apiBas
       setLoading(true)
       setError('')
 
-      // 🔥 실제 API 호출 부분 - 여기서 AI 예측 데이터를 서버에서 가져옴
-      /*
-      const params = new URLSearchParams()
-      params.append('items', selectedItems.join(','))
-      if (selectedLocation) params.append('location', selectedLocation)
-      params.append('base_date', baseDate)
-      params.append('type', 'prediction')
-
-      const response = await fetch(`${apiBase}/api/prediction-data?${params}`)
-      if (!response.ok) throw new Error(`API 오류: ${response.status}`)
-      const result = await response.json()
-      */
-
-      // 임시 모킹 데이터 (실제로는 위 API 호출 결과를 사용)
-      const mockPredictionData = generateMockPredictionData()
-      const mockChartData = generateMockPredictionChartData()
-
-      setPredictionData(mockPredictionData)
-      setChartData(mockChartData)
 
     } catch (err) {
       setError(err.message || '예측 데이터를 가져오는 중 오류가 발생했습니다')
@@ -54,7 +36,12 @@ export default function PredictionView({ selectedItems, selectedLocation, apiBas
 
   // Excel 다운로드
   function downloadExcel() {
-    window.open(`${apiBase}/api/download/excel?type=prediction&items=${selectedItems.join(',')}&location=${selectedLocation}&base_date=${baseDate}`, '_blank')
+    const url = getExcelDownloadUrl('prediction', { 
+      selectedItems, 
+      selectedLocation, 
+      baseDate 
+    });
+    window.open(url, '_blank');
   }
 
   return (

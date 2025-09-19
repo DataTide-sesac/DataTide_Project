@@ -1,42 +1,118 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react';
+import { Bar, Line } from 'react-chartjs-2';
+import ChartDataLabels from 'chartjs-plugin-datalabels'; //데이터 숫자 표기
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+} from 'chart.js';
+import { isValidChartData} from '../utils/index';
 
-export default function ChartComponent({ data, type }) {
-  // 실제로는 Plotly.js나 Chart.js를 사용하여 구현
-  // 여기서는 차트가 들어갈 자리만 표시
+// Register Chart.js components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+  ChartDataLabels //데이터 숫자 표기
+);
+
+export default function ChartComponent({ data, analysisType, options }) {
+
+  // --- Unified Chart.js Options ---
+  const commonOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top',
+        align: 'end',
+        labels: {
+          font: {
+            size: 14,
+          },
+        },
+      },
+      title: {
+        display: false,
+      },
+      tooltip: {
+        mode: 'index',
+        intersect: false,
+      },
+      datalabels: {
+        display: false,
+      },
+    },
+    scales: {
+      x: {
+        ticks: {
+          font: {
+            size: 14,
+            weight: 'bold'
+          },
+        },
+      },
+      y: {
+        ticks: {
+          callback: function(value) {
+            return value + '톤';
+          }
+        }
+      },
+    },
+  };
+
+  const statisticsOptions = {
+    ...commonOptions,
+    scales: {
+      ...commonOptions.scales,
+      x: {
+        ...commonOptions.scales.x,
+        stacked: true,
+      },
+      y: {
+        ...commonOptions.scales.y,
+        stacked: true,
+      },
+    }
+  };
 
   return (
     <div className="chart-container">
       <div className="chart-placeholder">
-        {type === 'comparison' ? (
-          <div className="comparison-chart">
-            <h4>📊 전년 대비 통계 차트</h4>
-            <p>• 올해 데이터: 선 그래프 (파란색)</p>
-            <p>• 작년 데이터: 막대 그래프 (회색)</p>
-            <div className="chart-mock">
-              [여기에 Plotly.js 차트가 렌더링됩니다]
-              <br/>
-              선그래프(올해) + 막대그래프(작년) 조합형 차트
+        {analysisType === '통계' ? (
+          isValidChartData(data) ? (
+            <div className="comparison-chart" style={{height: '500px'}}>
+              <Bar options={statisticsOptions} data={data} />
             </div>
-          </div>
+          ) : (
+            <p>통계 데이터를 불러오는 중이거나 데이터가 없습니다.</p>
+          )
         ) : (
-          <div className="prediction-chart">
-            <h4>🔮 AI 예측 차트</h4>
-            <p>• 과거 데이터: 실선 (검은색)</p>
-            <p>• 예측 데이터: 점선 (빨간색) + 신뢰구간</p>
-            <div className="chart-mock">
-              [여기에 Plotly.js 예측 차트가 렌더링됩니다]
-              <br/>
-              실제데이터(실선) + 예측데이터(점선) + 신뢰구간
+          isValidChartData(data) ? (
+            <div className="prediction-chart" style={{height: '500px'}}>
+              <Line options={options || commonOptions} data={data} />
             </div>
-          </div>
+          ) : (
+            <p>예측 데이터를 불러오는 중이거나 데이터가 없습니다.</p>
+          )
         )}
       </div>
-
-      {/* 🔥 차트 데이터 출처 표시 */}
       <div className="chart-data-source">
-        <p><strong>📡 차트 데이터:</strong> {type === 'comparison' ? '시계열 통계 분석 결과' : 'LSTM 예측 모델 출력'}</p>
-        <p><strong>🔄 실시간 연동:</strong> 서버 DB에서 자동 업데이트</p>
       </div>
     </div>
-  )
+  );
 }

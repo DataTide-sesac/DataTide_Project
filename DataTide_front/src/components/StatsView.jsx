@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import ChartComponent from './ChartComponent'
+import { fetchStatsDataApi, getExcelDownloadUrl } from '../api';
 
-export default function StatsView({ selectedItems, selectedLocation, apiBase }) {
+export default function StatsView({ selectedItems, selectedLocation }) {
   const [yearRange, setYearRange] = useState({ start: 2015, end: 2024 })
   const [statsData, setStatsData] = useState([])
   const [chartData, setChartData] = useState(null)
@@ -25,21 +26,18 @@ export default function StatsView({ selectedItems, selectedLocation, apiBase }) 
       setLoading(true)
       setError('')
 
-      // 🔥 실제 API 호출 부분 - 여기서 시계열 데이터를 서버에서 가져옴
+      // 🔥 실제 API 호출 부분 - api/index.js의 함수를 호출하도록 수정
       /*
-      const params = new URLSearchParams()
-      params.append('items', selectedItems.join(','))
-      if (selectedLocation) params.append('location', selectedLocation)
-      params.append('start_year', yearRange.start)
-      params.append('end_year', yearRange.end)
-      params.append('type', 'stats')
-
-      const response = await fetch(`${apiBase}/api/stats-data?${params}`)
-      if (!response.ok) throw new Error(`API 오류: ${response.status}`)
-      const result = await response.json()
+      const result = await fetchStatsDataApi({
+        selectedItems,
+        selectedLocation,
+        yearRange
+      });
+      setStatsData(result.statsData || []);
+      setChartData(result.chartData || null);
       */
 
-      // 임시 모킹 데이터 (실제로는 위 API 호출 결과를 사용)
+      // 임시 모킹 데이터 (실제 API 연결 전까지 사용)
       const mockStatsData = generateMockStatsData()
       const mockChartData = generateMockChartData()
 
@@ -61,8 +59,12 @@ export default function StatsView({ selectedItems, selectedLocation, apiBase }) 
 
   // Excel 다운로드
   function downloadExcel() {
-    // 실제로는 서버에서 Excel 파일 생성 후 다운로드
-    window.open(`${apiBase}/api/download/excel?type=stats&items=${selectedItems.join(',')}&location=${selectedLocation}&start=${yearRange.start}&end=${yearRange.end}`, '_blank')
+    const url = getExcelDownloadUrl('stats', {
+      selectedItems,
+      selectedLocation,
+      yearRange
+    });
+    window.open(url, '_blank');
   }
 
   return (
@@ -107,8 +109,8 @@ export default function StatsView({ selectedItems, selectedLocation, apiBase }) 
       {/* 차트 영역 */}
       {chartData && (
         <section className="chart-section">
-          <h3>📈 전년 대비 통계 (올해: 선그래프, 작년: 막대그래프)</h3>
-          <ChartComponent data={chartData} type="comparison" />
+
+          <ChartComponent data={chartData} analysisType="통계" />
         </section>
       )}
 

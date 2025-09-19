@@ -2,7 +2,6 @@ import PublicFunc as pf
 from datetime import datetime
 func = pf.PublicFunc()
 
-<<<<<<< HEAD
 def FishDataCreate(filePath,fileName,fishName):
     df = func.ReadCSV(filePath,fileName)
     df = df.loc[:,['날짜','생산','수입','소비','수출']]
@@ -15,7 +14,7 @@ def FishDataCreate(filePath,fileName,fishName):
     df['생산'] = df['생산'].str.replace('-','0').astype(int)
     df['소비'] = df['소비'].str.replace('-','0').astype(int)
     df['수출'] = df['수출'].str.replace('-','0').astype(int)
-=======
+
 # 물고기 데이터 전처리
 def FishDataCreate(filePath,fileName,fishName):
     df = func.ReadCSV(filePath,fileName)
@@ -25,7 +24,7 @@ def FishDataCreate(filePath,fileName,fishName):
     for type in typeList:
         df[type] = df[type].str.replace(',','')
         df[type] = df[type].str.replace('-','0').astype(int)
->>>>>>> main
+
 
 
     df['판매'] = df[['소비','수출']].sum(axis=1).astype(int)

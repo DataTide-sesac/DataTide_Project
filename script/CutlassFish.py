@@ -1,7 +1,6 @@
 import PublicFunc as pf
 import pandas as pd
 
-<<<<<<< HEAD
 filePath = './data/fish/Cutlassfish'
 fileName = ['Cutlassfish_201501_201508.xlsx',
             'Cutlassfish_201509_201608.xlsx',
@@ -33,7 +32,7 @@ func.AddLabels(df,listCutlassFishLabel)
 
 print(df.shape)
 func.SaveCSV(df,'cutl.csv')
-=======
+
 func = pf.PublicFunc()
 
 # 갈치
@@ -61,5 +60,5 @@ def CreateCutlassFish(filePath):
 
 if __name__ == '__main__':
     filePath = './data/fish/Cutlassfish'
+
     CreateCutlassFish(filePath)
->>>>>>> main

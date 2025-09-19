@@ -19,19 +19,13 @@ load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../../..", ".en
 # 1. MySQL 연결
 # ======================
 # 본인 환경에 맞게 수정하세요
-DB_USER = os.getenv("MYSQL_USER")
-DB_PASSWORD = os.getenv("MYSQL_PASSWORD")
-DB_HOST = "localhost"
+USER = os.getenv("MYSQL_USER")
+PASSWORD = os.getenv("MYSQL_PASSWORD")
+HOST = "localhost"
 PORT = 3306
-DB_NAME = os.getenv("MYSQL_DATABASE")
+DB = os.getenv("MYSQL_DATABASE")
 
-user = 'team_dt'
-password = 'dt_1234'
-host = 'localhost'
-port = 3306
-database = 'datatide_db'
-
-db_con = f'mysql+pymysql://{user}:{password}@{host}:{port}/{database}'
+db_con = f"mysql+pymysql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DB}"
 # print(db_con)
 
 # SQLAlchemy 엔진 생성
@@ -91,8 +85,8 @@ print(f"총 조합 개수: {len(monthly_item_combo)} (월 수: {len(monthly_avg_
 
 df = pd.concat([past_month, monthly_item_combo], ignore_index=True)
 # 날짜 정렬 
-df["month_date"] = pd.to_datetime(df["month_date"])
-df = df.sort_values(["month_date"]).reset_index(drop=True)
+df["month_date"] = pd.to_datetime(df["month_date"]) 
+df = df.sort_values(["month_date"]).reset_index(drop=True) 
 df["month_num"] = df["month_date"].dt.year * 12 + df["month_date"].dt.month 
 df = pd.get_dummies(df, columns=['item_name']) 
 
@@ -301,7 +295,7 @@ def predictAdd(results_df: pd.DataFrame):
                     
                     FOREIGN KEY (item_pk) REFERENCES item(item_pk),
                     UNIQUE KEY uniq_item_month (item_pk, month_date)
-                ); 
+                );
                 '''))
 
     # --- 기존 테이블 불러오기 ---

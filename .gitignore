@@ -29,8 +29,9 @@ gemini.md
 ENV/
 env.bak/
 venv.bak/
+
 .log
-<<<<<<< HEAD
+
 *.exe
 # 가상환경venv
 *.dll
@@ -38,5 +39,10 @@ venv.bak/
 site-packages/
 DataTideV/
 DataTideV/Lib/site-packages/
-=======
->>>>>>> main
+
+*.log
+*.pyc
+*.clip
+script/__pycache__/PublicFunc.cpython-310.pyc
+DataTide_ai/Predict_AI/sales/compare_sales.csv
+DataTide_ai/Predict_AI/sales/test_1.py

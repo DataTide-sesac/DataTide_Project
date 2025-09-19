@@ -1,5 +1,5 @@
 import PublicFunc as pf
-<<<<<<< HEAD
+
 func = pf.PublicFunc()
 
 def SeaWeather(filePath):
@@ -70,7 +70,7 @@ if __name__ == '__main__':
     # GroundWeather(f'{filePath}/GroundWeather')
     # SeaWeatherTotal(f'{filePath}/SeaWeather')
     pass
-=======
+
 import pandas as pd
 
 func = pf.PublicFunc()
@@ -222,4 +222,3 @@ if __name__ == '__main__':
     # MixAllData(f'{filePath}/SeaWather')
     #MergeRainSnow(filePath)
     pass
->>>>>>> main

@@ -12,17 +12,11 @@ import langchain
 
 # 시간 라이브러리
 from datetime import datetime, timedelta
-<<<<<<< HEAD
 import os, pickle, time, hashlib
 import re
 import numpy as np
 import json, requests
 from typing import Any, Dict, Optional
-=======
-import os, pickle, time
-import numpy as np
-import json, requests
->>>>>>> main
 from tempfile import tempdir
 from dotenv import load_dotenv
 
@@ -39,12 +33,8 @@ from langchain.chat_models import init_chat_model
 
 # --- 환경변수 불러오기 ---
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../..", ".env"))
-<<<<<<< HEAD
 openai_api_key = os.getenv("OPENAI_API_KEY3")
 openai_api_key2 = os.getenv("OPENAI_API_KEY2")
-=======
-openai_api_key = os.getenv("OPENAI_API_KEY2")
->>>>>>> main
 
 mysql_user = os.getenv("MYSQL_USER")
 mysql_password = os.getenv("MYSQL_PASSWORD")
@@ -135,11 +125,7 @@ model = ChatOpenAI(
     model="gpt-4.1-mini",
     temperature=0,
     openai_api_key=openai_api_key,
-<<<<<<< HEAD
     max_tokens=512  # 답변 길이를 늘려줍니다.
-=======
-    max_tokens=256  # 답변 길이를 늘려줍니다.
->>>>>>> main
 )
 
 # 동일한 세팅의 llm을 LLMMathChain에게 전달
@@ -212,25 +198,17 @@ def analyze_data(query: str) -> str:
                 if len(values) > 1:
                     result += f"  표준편차: {statistics.stdev(values):.2f}\n"
         
-<<<<<<< HEAD
         # ✅ 캐시 저장 추가
         final_result = result if result != "=== 데이터 분석 결과 ===\n" else "분석할 수 있는 숫자 데이터를 찾을 수 없습니다."
         cache.set(query, {"result": final_result}, "analyze")
         
-=======
->>>>>>> main
         return result if result != "=== 데이터 분석 결과 ===\n" else "분석할 수 있는 숫자 데이터를 찾을 수 없습니다."
         
     except Exception as e:
         return f"데이터 분석 오류: {str(e)}"
 
-<<<<<<< HEAD
 tools = [math_tool]
 # tools = [math_tool, analyze_data]
-=======
-# tools = [math_tool]
-tools = [math_tool, analyze_data]
->>>>>>> main
 print(tools[0].name, tools[0].description)
 
 # model(생각할 llm, agent의 두뇌),
@@ -238,10 +216,7 @@ print(tools[0].name, tools[0].description)
 # prompt(agent가 판단할 때 어떤 기준이 있다면? 이걸 프롬프트가 담고 있다.)
 prompt = ChatPromptTemplate.from_messages([
     ('system', '''당신은 품목당(갈치, 오징어, 고등어) 날짜에 따른 생산, 수입, 판매량 데이터베이스 전문가입니다.
-<<<<<<< HEAD
     단위는 톤입니다.
-=======
->>>>>>> main
     만약 해당 내용에 대한 질문이 아니라면 저희는 품목당 날짜에 따른 생산, 수입, 판매량만 알려주는 챗봇이라 모른다고 답해줘.
     대답은 친절하게 해주세요.
     다음 도구들을 활용할 수 있어:
@@ -265,11 +240,7 @@ agent_executor = AgentExecutor(agent=agent, tools=tools)
 qa_chain = RetrievalQA.from_chain_type(
     llm=model,
     chain_type="stuff",
-<<<<<<< HEAD
     retriever=vectorstore.as_retriever(search_kwargs={"k": 1}),
-=======
-    retriever=vectorstore.as_retriever(search_kwargs={"k": 30}),
->>>>>>> main
     return_source_documents=True,
 )
 
@@ -289,19 +260,12 @@ class AgentState(TypedDict):
 # ==========================================
 
 class SmartCache:
-<<<<<<< HEAD
     def __init__(self, cache_dir="cache", expire_hours=12, use_json=True):
         self.cache_dir = cache_dir
         self.expire_hours = expire_hours
         self.use_json = use_json  # JSON vs Pickle 선택
         self.memory_cache = {}
 
-=======
-    def __init__(self, cache_dir="cache", expire_hours=12):
-        self.cache_dir = cache_dir
-        self.expire_hours = expire_hours
-        self.memory_cache = {}
->>>>>>> main
         self.access_count = 0
         self.last_cleanup = datetime.now()
         self.running = False
@@ -313,7 +277,6 @@ class SmartCache:
         if not os.path.exists(cache_dir):
             os.makedirs(cache_dir)
 
-<<<<<<< HEAD
         # 메타데이터 파일 경로
         self.metadata_file = os.path.join(cache_dir, "cache_metadata.json")
         # 기존 캐시 로드
@@ -323,8 +286,6 @@ class SmartCache:
         print(f"저장 형식: {'JSON' if use_json else 'Pickle'}")
         print(f"기존 캐시: {len(self.memory_cache)}개")
 
-=======
->>>>>>> main
         print(f"🗄️ 스마트 캐시 초기화: {cache_dir}, 만료: {expire_hours}시간")
         
         # 🔥 백그라운드 정리 스레드 시작
@@ -339,7 +300,6 @@ class SmartCache:
         self.cleanup_thread.start()
         print("🧵 백그라운드 캐시 정리 스레드 시작")
     
-<<<<<<< HEAD
     def _get_cache_key(self, query: str, context_type: str = "rag") -> str:
         """캐시 키 생성"""
         # 쿼리를 해시화해서 파일명으로 사용
@@ -444,8 +404,6 @@ class SmartCache:
         except Exception as e:
             print(f"파일 삭제 오류 ({cache_key}): {e}")
     
-=======
->>>>>>> main
     def _background_worker(self):
         """백그라운드에서 주기적으로 캐시 정리"""
         while self.running:
@@ -502,7 +460,6 @@ class SmartCache:
                             cleaned_count += 1
                         except:
                             pass
-<<<<<<< HEAD
 
         # 고아 파일들 정리 (메모리에는 없지만 디스크에 있는 파일)
         extension = ".json" if self.use_json else ".pkl"
@@ -548,11 +505,6 @@ class SmartCache:
         except Exception as e:
             print(f"캐시 요약 저장 오류: {e}")
     
-=======
-        
-        return cleaned_count
-    
->>>>>>> main
     def stop_cleanup(self):
         """캐시 정리 스레드 중지"""
         self.running = False
@@ -563,7 +515,6 @@ class SmartCache:
     def __del__(self):
         """캐시 객체 소멸됨"""
         self.stop_cleanup()
-<<<<<<< HEAD
     
     def clear_all(self):
         """모든 캐시 삭제"""
@@ -574,8 +525,6 @@ class SmartCache:
             self._delete_file(key)
         
         print(f"모든 캐시 삭제 완료: {len(cache_keys)}개")
-=======
->>>>>>> main
         
     def _normalize_query(self, query):
         """질문을 정규화해서 유사한 질문들을 같게 만듦"""        
@@ -665,17 +614,11 @@ class SmartCache:
     
     def get(self, query, context_type="rag"):
         """개선된 캐시 조회 - 유사한 질문도 찾음"""
-<<<<<<< HEAD
-=======
-        self.access_count += 1
-        
->>>>>>> main
         # 1. 기존 방식으로 정확한 캐시 확인
         cache_key = self._get_cache_key(query, context_type)
         if cache_key in self.memory_cache:
             cached_data = self.memory_cache[cache_key]
             if not self._is_expired(cached_data['timestamp']):
-<<<<<<< HEAD
                 print(f"💾 정확한 캐시 히트: {query[:30]}...")
                 return cached_data
             else:
@@ -702,22 +645,6 @@ class SmartCache:
                 return similar_cache
         
         # 4. 디스크 캐시 확인 (기존 코드와 동일)
-=======
-                # 🔥 100번 접근마다 지연 정리 실행
-                if self.access_count % 100 == 0:
-                    import threading
-                    threading.Thread(target=self._light_cleanup, daemon=True).start()
-
-                print(f"💾 정확한 캐시 히트: {query[:30]}...")
-                return cached_data
-        
-        # 2. 유사한 질문의 캐시 확인
-        similar_cache = self._find_similar_cache(query)
-        if similar_cache and not self._is_expired(similar_cache['timestamp']):
-            return similar_cache
-        
-        # 2. 디스크 캐시 확인 (기존 코드와 동일)
->>>>>>> main
         cache_file = os.path.join(self.cache_dir, f"{cache_key}.pkl")
         if os.path.exists(cache_file):
             try:
@@ -747,40 +674,12 @@ class SmartCache:
         }
         
         self.memory_cache[cache_key] = cached_data
-<<<<<<< HEAD
 
         # 파일에 저장
         self._save_to_file(cache_key, cached_data)
 
         print(f"💾 스마트 캐시 저장: {query[:30]}...")
     
-=======
-        print(f"💾 스마트 캐시 저장: {query[:30]}...")
-    
-    def _light_cleanup(self):
-        """지연 정리: 일부 캐시만 확인해서 정리"""
-        current_time = datetime.now()
-        
-        # 최근 5분 내에 정리했으면 스킵
-        if current_time - self.last_cleanup < timedelta(minutes=5):
-            return
-        
-        cleaned_count = 0
-        checked_count = 0
-        
-        # 메모리 캐시 일부만 확인 (최대 50개)
-        cache_items = list(self.memory_cache.items())
-        for key, cached_data in cache_items[:50]:
-            checked_count += 1
-            if self._is_expired(cached_data['timestamp']):
-                del self.memory_cache[key]
-                cleaned_count += 1
-        
-        if cleaned_count > 0:
-            print(f"🐌 지연 정리: {checked_count}개 확인, {cleaned_count}개 삭제")
-        
-        self.last_cleanup = current_time
->>>>>>> main
 
 # 전역 캐시 인스턴스
 cache = SmartCache(cache_dir="lang_cache", expire_hours=12)
@@ -791,11 +690,7 @@ def classify_query_node(state: AgentState):
     query = state["query"]
     
     # 계산/분석이 필요한 키워드들
-<<<<<<< HEAD
     analysis_keywords = ['최대', '최소', '평균', '합계', '분석', '통계', '계산', '비교', '총합', '가장', '차이']
-=======
-    analysis_keywords = ['최대', '최소', '평균', '합계', '분석', '통계', '계산', '비교', '총합', '가장']
->>>>>>> main
     # search_keywords = ['찾아', '검색', '언제', '어떤', '몇', '얼마']
     search_keywords = []
     
@@ -819,23 +714,15 @@ def get_time(state: AgentState):
 
     return state
 
-<<<<<<< HEAD
-=======
-
->>>>>>> main
 def rag_node(state: AgentState):
     """RAG 검색 노드"""
     print("📚 RAG 검색 시작...")
 
     # 🔥 캐시 확인 (새로 추가된 부분)
-<<<<<<< HEAD
     if state["needs_agent"]:
         cached_result = cache.get(query, "agent")
     else:
         cached_result = cache.get(query, "rag")
-=======
-    cached_result = cache.get(query, "rag")
->>>>>>> main
     if cached_result:
         print("💾 RAG 캐시 히트!")
         state["rag_result"] = cached_result["result"]
@@ -849,13 +736,8 @@ def rag_node(state: AgentState):
         # RAG 프롬프트 구성
         rag_prompt = f"""
             당신은 품목당(갈치, 오징어, 고등어) 날짜에 따른 생산, 수입, 판매량 데이터베이스 전문가입니다.
-<<<<<<< HEAD
             단위는 톤입니다.
             만약 해당 내용에 대한 질문이 아니라면 저희는 품목당 날짜에 따른 생산, 수입, 판매량만 알려주는 챗봇이라 모른다고 답해줘.
-=======
-            만약 해당 내용에 대한 질문이 아니라면 저희는 품목당 날짜에 따른 생산, 수입, 판매량만 알려주는 챗봇이라 모른다고 답해줘.
-            대답은 친절하게 해주세요.
->>>>>>> main
             필요하다면 다음의 대화 기록을 참고하여 질문에 답변하세요.
             만약 답을 찾을 수 없다면, 모른다고 답하세요.
 
@@ -866,7 +748,6 @@ def rag_node(state: AgentState):
 
             질문: {state["query"]}
         """
-<<<<<<< HEAD
 
         # if state["needs_agent"]:
         if True:
@@ -959,11 +840,6 @@ def rag_node(state: AgentState):
         else:
             response = qa_chain.invoke({"query": rag_prompt})
             state["rag_result"] = response["result"]
-=======
-        
-        response = qa_chain.invoke({"query": rag_prompt})
-        state["rag_result"] = response['result']
->>>>>>> main
         state["source_documents"] = response.get('source_documents', [])
         
         print(f"✅ RAG 검색 완료: {len(state['source_documents'])}개 문서 참조")
@@ -1001,7 +877,6 @@ def agent_node(state: AgentState):
         # 대화 기록을 문자열로 변환
         history_str = "\n".join([f"Human: {q}\nAI: {a}" for q, a in state["chat_history"]])
 
-<<<<<<< HEAD
         # 만약 추가적인 데이터 분석이 필요하다면 analyze_data 도구를 사용하고,
         agent_input = f"""
         아래 검색 결과를 바탕으로 필요한 분석이나 계산을 수행해주세요.
@@ -1010,24 +885,11 @@ def agent_node(state: AgentState):
         현재 시각: {state["current_time"]}
 
         검색 결과: {state["rag_result"]}
-=======
-        agent_input = f"""
-        현재 시각: {state["current_time"]}
-
-        검색 결과: {texts}
->>>>>>> main
         
         원래 사용자 질문: {query}
 
         대화 기록:
         {history_str}
-<<<<<<< HEAD
-=======
-        
-        위 검색 결과를 바탕으로 필요한 분석이나 계산을 수행해주세요.
-        만약 추가적인 데이터 분석이 필요하다면 analyze_data 도구를 사용하고,
-        수학 계산이 필요하다면 calculator 도구를 사용해주세요.
->>>>>>> main
         """
         
         response = agent_executor.invoke({"input": agent_input})
@@ -1050,7 +912,6 @@ def agent_node(state: AgentState):
 def combine_results_node(state: AgentState):
     """결과 통합 노드"""
     print("🔗 결과 통합 중...")
-<<<<<<< HEAD
 
     state["final_answer"] = f"""{state["agent_result"]}
 
@@ -1093,17 +954,6 @@ RAG:
     #                         {'role':'system', 'content':sys_prompt}])
 
     # state["final_answer"] = response.content
-=======
-    
-    if state["needs_agent"] and state["agent_result"] and "오류" not in state["agent_result"]:
-        # Agent 결과가 있는 경우
-        state["final_answer"] = f"""{state["agent_result"]}
-
-{state["rag_result"]}"""
-    else:
-        # RAG만 사용하는 경우
-        state["final_answer"] = state["rag_result"]
->>>>>>> main
     
     print("✅ 결과 통합 완료")
     return state
@@ -1127,7 +977,6 @@ workflow.add_node("agent", agent_node)
 workflow.add_node("combine", combine_results_node)
 
 # 엣지 추가
-<<<<<<< HEAD
 def workflow_add_edge_1():
     workflow.add_edge(START, "classify")
     workflow.add_edge("classify", "time")
@@ -1143,8 +992,6 @@ def workflow_add_edge_1():
     workflow.add_edge("agent", "combine")
     workflow.add_edge("combine", END)
 
-=======
->>>>>>> main
 def workflow_add_edge_2():
     workflow.add_edge(START, "classify")
     workflow.add_edge("classify", "time")
@@ -1160,7 +1007,6 @@ def workflow_add_edge_2():
     workflow.add_edge("rag", "combine")
     workflow.add_edge("combine", END)
 
-<<<<<<< HEAD
 def workflow_add_edge_3():
     workflow.add_edge(START, "classify")
     workflow.add_edge("classify", "time")
@@ -1170,9 +1016,6 @@ def workflow_add_edge_3():
     workflow.add_edge("combine", END)
 
 workflow_add_edge_3()
-=======
-workflow_add_edge_2()
->>>>>>> main
 
 # 워크플로우 컴파일
 app = workflow.compile()

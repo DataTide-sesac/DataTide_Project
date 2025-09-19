@@ -13,18 +13,12 @@ from dotenv import load_dotenv
 
 import seaborn as sns
 import matplotlib.pyplot as plt
-<<<<<<< HEAD
 import wandb
 from sklearn.preprocessing import LabelEncoder
 import joblib
 
 # --- 환경변수 불러오기 ---
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../../..", ".env"))
-=======
-
-# --- 환경변수 불러오기 ---
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../..", ".env"))
->>>>>>> main
 
 # ======================
 # 1. MySQL 연결
@@ -36,17 +30,11 @@ HOST = "localhost"
 PORT = 3306
 DB = os.getenv("MYSQL_DATABASE")
 
-<<<<<<< HEAD
 db_con = f"mysql+pymysql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DB}"
 # print(db_con)
 
 # SQLAlchemy 엔진 생성
 engine = create_engine(db_con)
-=======
-
-# SQLAlchemy 엔진 생성
-engine = create_engine(f"mysql+pymysql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DB}")
->>>>>>> main
 
 # ======================
 # 2. 테이블 불러오기
@@ -63,7 +51,6 @@ print(item_retail.head())
 # ======================
 # 3. 테이블 머지 (JOIN)
 # ======================
-<<<<<<< HEAD
 def read_df_1():
     item_retail = pd.read_sql("SELECT * FROM item_retail", engine)
     sea_weather = pd.read_sql("SELECT * FROM sea_weather", engine)
@@ -162,34 +149,6 @@ def read_df_3():
     return df
 
 df = read_df_2()
-=======
-# sea_weather wide-format 변환
-sea_weather = sea_weather.merge(location, on="local_pk", how="left")
-sea_weather_wide = sea_weather.pivot(
-    index="month_date", 
-    columns="local_pk", 
-    values=["temperature", "wind", "salinity", "wave_height", "wave_period", "wave_speed", "rain", "snow"]
-)
-
-# 컬럼명 정리
-sea_weather_wide.columns = [f"{var}_loc{loc}" for var, loc in sea_weather_wide.columns]
-sea_weather_wide = sea_weather_wide.reset_index()
-print(sea_weather_wide)
-
-df = item_retail.merge(sea_weather_wide, on="month_date", how="left")
-df = df.merge(ground_weather, on="month_date", how="left")
-df = df.merge(item, on="item_pk", how="left")
-
-# 날짜 정렬
-df["month_date"] = pd.to_datetime(df["month_date"])
-df = df.sort_values(["month_date"]).reset_index(drop=True)
-df["month_num"] = df["month_date"].dt.year * 12 + df["month_date"].dt.month
-df = pd.get_dummies(df, columns=['item_name'])
-
-print("Merged DataFrame:")
-print(df.head())
-df.to_csv("compare_production.csv", index=False, encoding="utf-8-sig")
->>>>>>> main
 
 # ======================
 # 4. 시계열 윈도우 데이터셋 생성
@@ -280,7 +239,6 @@ class TransformerEncoderModel(nn.Module):
 # ======================
 # 6. 학습 루프
 # ======================
-<<<<<<< HEAD
 def train_and_evaluate(model, train_loader, val_loader, epochs=40, lr=1e-3, model_name="model.pth"):
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
@@ -290,12 +248,6 @@ def train_and_evaluate(model, train_loader, val_loader, epochs=40, lr=1e-3, mode
     best_r2 = float("inf")  # 아주 큰 값으로 초기화
     best_state = None
 
-=======
-def train_and_evaluate(model, train_loader, val_loader, epochs=40, lr=1e-3):
-    criterion = nn.MSELoss()
-    optimizer = optim.Adam(model.parameters(), lr=lr)
-
->>>>>>> main
     for epoch in range(epochs):
         model.train()
         train_loss = 0
@@ -322,7 +274,6 @@ def train_and_evaluate(model, train_loader, val_loader, epochs=40, lr=1e-3):
         mae = mean_absolute_error(y_true, y_pred)
         r2 = r2_score(y_true, y_pred)
 
-<<<<<<< HEAD
         avg_train_loss = train_loss / len(train_loader)
         avg_val_loss = val_loss / len(val_loader)
 
@@ -352,13 +303,6 @@ def train_and_evaluate(model, train_loader, val_loader, epochs=40, lr=1e-3):
 
     # 최종 성능 리턴
     return best_rmse, best_mae, best_r2
-=======
-        print(f"Epoch {epoch+1}/{epochs} | Train Loss: {train_loss/len(train_loader):.4f} | "
-              f"Val Loss: {val_loss/len(val_loader):.4f} | RMSE: {rmse:.2f} | MAE: {mae:.2f} | R²: {r2:.2f}")
-
-    # 최종 성능 리턴
-    return rmse, mae, r2
->>>>>>> main
 
 # ======================
 # 7. 실행
@@ -366,7 +310,6 @@ def train_and_evaluate(model, train_loader, val_loader, epochs=40, lr=1e-3):
 
 # # 사용할 컬럼 정의 (예시)
 target_cols = ["production"]
-<<<<<<< HEAD
 feature_cols = [x for x in df.columns if x not in ["month_date", "production", "sales", "item_pk", "retail_pk", "item_pk", "local_pk", "sea_pk",
                                                    "item_name", "local_name"]]
 
@@ -386,25 +329,6 @@ def do_pca():
 
     # shape 확인
     print(X_pca.shape)  # (num_samples, 20)
-=======
-feature_cols = [x for x in df.columns if x not in ["month_date", "production", "sales", "ground_pk", "item_pk", "retail_pk", "item_pk", "local_pk", "sea_pk"]]
-
-from sklearn.decomposition import PCA
-X = df[feature_cols].values  # sklearn은 numpy 입력
-
-# 표준화 (TimeSeriesDataset에서도 StandardScaler 했지만 PCA용 별도)
-from sklearn.preprocessing import StandardScaler
-scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)
-print("X_scaled의 shape:", X_scaled.shape)
-
-# PCA 적용
-pca = PCA(n_components=21)  # 원하는 주성분 개수
-X_pca = pca.fit_transform(X_scaled)
-
-# shape 확인
-print(X_pca.shape)  # (num_samples, 20)
->>>>>>> main
 
 # # Dataset 준비
 # dataset = TimeSeriesDataset(df, feature_cols, target_cols, window_size=6)
@@ -433,7 +357,6 @@ results = {}
 
 for name, model in models.items():
     print(f"\n===== Training {name} =====")
-<<<<<<< HEAD
     # 프로젝트명, 엔티티(계정명 또는 팀명), 하이퍼파라미터 기록
     wandb.init(
         project="DataTide_production_compare_model_3",   # 원하는 프로젝트 이름
@@ -454,16 +377,12 @@ for name, model in models.items():
                                        epochs=wandb.config.epochs, 
                                        lr=wandb.config.learning_rate, 
                                        model_name=name)
-=======
-    rmse, mae, r2 = train_and_evaluate(model, train_loader, val_loader, epochs=40, lr=1e-3)
->>>>>>> main
     results[name] = {"RMSE": rmse, "MAE": mae, "R2": r2}
 
 print("\n===== Model Comparison =====")
 for name, metric in results.items():
     print(f"{name}: RMSE={metric['RMSE']:.2f}, MAE={metric['MAE']:.2f}, R²={metric['R2']:.2f}")
 
-<<<<<<< HEAD
 def drawHitmap():
     # 히트맵.
     correlation_matrix = df[feature_cols + target_cols].corr()     # 데이터 프레임이 corr 이라는 함수가 있어서 상관계수를 계산한다.
@@ -480,21 +399,3 @@ def drawHitmap():
     plt.yticks(rotation=0)
     plt.tight_layout()      # 레이블 겹침 방지. 다시 그려라
     plt.show()
-=======
-# 히트맵.
-correlation_matrix = df[feature_cols + target_cols].corr()     # 데이터 프레임이 corr 이라는 함수가 있어서 상관계수를 계산한다.
-print(correlation_matrix[:10])
-
-# 2. 히트맵 그리기
-annot = False    # 차트에 줄 속성. 히트맵의 셀에 값을 표시한다. False면 표시 안 함.
-cmap = 'coolwarm'   # 히트맵에서 가장 많이 사용하는 색상. 양의관계는 빨간색, 음의관계는 파란색
-fmt = '.2f'     # 표시될 숫자의 소수점 자리수 지정
-sns.heatmap(correlation_matrix,
-            annot=annot, cmap=cmap, fmt=fmt, 
-            linewidths=.5)      # 셀 사이에 선 추가
-plt.xticks(rotation=45, ha='right')     #  x축 레이블 회전
-plt.yticks(rotation=0)
-plt.tight_layout()      # 레이블 겹침 방지. 다시 그려라
-plt.show()
->>>>>>> main
-

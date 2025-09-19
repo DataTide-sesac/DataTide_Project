@@ -1,7 +1,6 @@
 import PublicFunc as pf
 import pandas as pd
 
-<<<<<<< HEAD
 filePath = './data/fish/Mackerel'
 fileName = ['mackerel_201501_201508.xlsx',
             'mackerel_201509_201608.xlsx',
@@ -33,7 +32,7 @@ func.AddLabels(df,listMackerelLabel)
 
 print(df.shape)
 func.SaveCSV(df,'MackerelAll.csv')
-=======
+
 func = pf.PublicFunc()
 
 # 고등어
@@ -63,4 +62,3 @@ if __name__ == '__main__':
     filePath = './data/fish/Mackerel'
     
     CreateMackerel(filePath)
->>>>>>> main

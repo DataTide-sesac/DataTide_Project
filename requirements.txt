@@ -44,6 +44,8 @@ langchain-experimental
 tiktoken
 sentence-transformers
 langgraph
+langchain_experimental
+tabulate
 
 # 토큰화
 tiktoken
@@ -65,6 +67,12 @@ cryptography
 
 # xlsx 의 데이터를 추출하는 라이브러리
 openpyxl
+<<<<<<< HEAD
+=======
+
+# 테이블 데이터 -> xlsx의 형태로 바꾸는 라이브러리
+xlsx
+>>>>>>> c90279f5da7e8cb158a0ae440f854550da6bd109
 
 # 환경변수 불러오기
 python-dotenv

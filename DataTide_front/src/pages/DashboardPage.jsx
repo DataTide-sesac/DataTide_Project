@@ -124,6 +124,10 @@ export default function DashboardPage() {
         alert('최대 1년까지 조회 가능합니다.');
         return;
       }
+      if (period.endYear >= 2025 && period.endMonth>=8){
+        alert(`${period.endYear}년 ${period.endMonth}월 이후의 데이터는 제공하지 않습니다.`);
+        return;
+      }
     }
 
     try {
@@ -367,8 +371,8 @@ export default function DashboardPage() {
   function resetAll() {
     setSelectedItem('')
     setSelectedAnalysis('')
-    setSelectedCategories([])
-    setPeriod({ startYear: 2015, startMonth: 1, endYear: 2024, endMonth: 12 })
+    setSelectedCategories(['생산','판매','수입'])
+    setPeriod({ startYear: 2025, startMonth: 1, endYear: 2025, endMonth: 7 })
     setTableData([])
     setChartData(null)
     setError('')

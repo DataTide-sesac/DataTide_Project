@@ -159,14 +159,14 @@ export default function DashboardPage() {
 
         // --- 기존 로직 ---
         const barStyles = {
-          '생산': { type: 'bar', order: 1, backgroundColor: '#006AC0', borderColor:'#ffffffff', borderWidth: 1 },
-          '판매': { type: 'bar', order: 1, backgroundColor: '#FFDE47', borderColor:'#ffffffff', borderWidth: 1 },
-          '수입': { type: 'bar', order: 1, backgroundColor: '#FF8410', borderColor:'#ffffffff', borderWidth: 1 },
+          '생산': { type: 'bar', order: 1, backgroundColor: '#006AC0', borderColor:'#ffffffff', borderWidth: 1, barPercentage: 1.5 },
+          '판매': { type: 'bar', order: 2, backgroundColor: '#FFDE47', borderColor:'#ffffffff', borderWidth: 1, barPercentage: 1.5 },
+          '수입': { type: 'bar', order: 2, backgroundColor: '#FF8410', borderColor:'#ffffffff', borderWidth: 1, barPercentage: 1.5 },
         };
         const lineStyles = {
-          '생산': { type: 'line', tension:0.35, fill:true, order: 2, borderColor: '#ffffffff', backgroundColor: '#4acfc683', borderWidth: 1 },
-          '판매': { type: 'line', tension:0.35, fill:true, order: 3, borderColor: '#ffffffff' , backgroundColor: '#b5e7f1da', borderWidth: 1},
-          '수입': { type: 'line', tension:0.35, fill:true, order: 2, borderColor: '#ffffffff', backgroundColor:'#4fade0bb', borderWidth: 1},
+          '생산': { type: 'line', tension:0.35, fill:true, order: 3, borderColor: '#ffffffff', backgroundColor: '#4acfc683', borderWidth: 1 },
+          '판매': { type: 'line', tension:0.35, fill:true, order: 4, borderColor: '#ffffffff' , backgroundColor: '#b5e7f1da', borderWidth: 1},
+          '수입': { type: 'line', tension:0.35, fill:true, order: 3, borderColor: '#ffffffff', backgroundColor:'#4fade0bb', borderWidth: 1},
         };
 
         // Use labels from the API response
@@ -177,7 +177,7 @@ export default function DashboardPage() {
             const categoryMatch = trace.name.match(/\(([^)]+)\)/);
             const category = categoryMatch ? categoryMatch[1] : '생산';
             // The style logic is now corrected to match the intended chart type.
-            const styles = isBar ? lineStyles[category] : barStyles[category];
+            const styles = isBar ? lineStyles[category] : barStyles[category]; 
             
             // For bar charts, transform data to [0, value] for floating effect
             const data = isBar ? trace.y.map(val => [0, val]) : trace.y;

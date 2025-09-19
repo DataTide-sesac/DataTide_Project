@@ -120,7 +120,7 @@ export default function DashboardPage() {
         return;
       }
       const totalMonths = (period.endYear - period.startYear) * 12 + (period.endMonth - period.startMonth) + 1;
-      if (totalMonths > 13) {
+      if (totalMonths > 12) {
         alert('최대 1년까지 조회 가능합니다.');
         return;
       }
@@ -425,58 +425,58 @@ export default function DashboardPage() {
       />
 
       {/* 차트 영역 */}
-      {chartData && (
-        <section className="chart-section">
-          <h2>
-            📈 {fishItems.find(f => f.name === selectedItem)?.kr_name} {selectedAnalysis}
-            {selectedAnalysis === '통계' && (
-              period.startYear === period.endYear
-                ? ` (${period.startYear}년)`
-                : ` (${period.startYear}~${period.endYear}년)`
+            {chartData && (
+              <>
+                <section className="chart-section">
+                  <h2>
+                    📈 {fishItems.find(f => f.name === selectedItem)?.kr_name} {selectedAnalysis}
+                    {selectedAnalysis === '통계' && (
+                      period.startYear === period.endYear
+                        ? ` (${period.startYear}년)`
+                        : ` (${period.startYear}~${period.endYear}년)`
+                    )}
+                  </h2>
+                  <div className="chart-description">
+                    {selectedAnalysis === '통계' ? 
+                      '  • 선택기간: 막대 그래프            • 전년동기: 선 그래프 ' :
+                      '• 실제 데이터: 실선 • 예측 데이터: 점선 (신뢰구간 ±10%)'
+                    }
+                  </div>
+                  <ChartComponent 
+                    data={chartData} 
+                    analysisType={selectedAnalysis}
+                    options={chartOptions}
+                    selectedCategories={appliedCategories}
+                  />
+                </section>
+      
+                {/* BumpChart 섹션 - 여기가 문제였던 부분 */}
+                {selectedAnalysis === '통계' && bumpChartData && (
+                  <section className="chart-section">
+                    <h2>📊 주요 수산물 생산 순위 변동</h2>
+                    <BumpChartComponent data={bumpChartData} />
+                  </section>
+                  
+                )}
+              </>
             )}
-          </h2>
-          <div className="chart-description">
-            {selectedAnalysis === '통계' ? 
-              '  • 선택기간: 막대 그래프            • 전년동기: 선 그래프 ' :
-              '• 실제 데이터: 실선 • 예측 데이터: 점선 (신뢰구간 ±10%)'
-            }
-          </div>
-          <ChartComponent 
-            data={chartData} 
-            analysisType={selectedAnalysis}
-            options={chartOptions}
-            selectedCategories={appliedCategories}
-          />
-          {selectedAnalysis === '통계' &&(
-            <>
-            
-            {bumpChartData && (
-              <section className="chart-section">
-                <h2>📊 품목 순위 변화 (Bump Chart)</h2>
-                <BumpChartComponent data={bumpChartData} />
-              </section>
-            )}
-            {/* 
-            스켈터 차트
-            {scatterChartData && (
-              <section className="chart-section">
-                <h3>📊 산포도 (Scatter Chart)</h3>
-                <ScatterChartComponent data={scatterChartData} />
-              </section>
-            )}
-
-            버블 차트
-            {bubbleChartData && (
-              <section className="chart-section">
-                <h3>📊 포도송이 (Bubble Chart)</h3>
-                <BubbleChartComponent data={bubbleChartData} />
-              </section>
-            )} */}
-            
-            </>
-          )}
-        </section>
-      )}
+      
+                  {/*
+                  스켈터 차트
+                  {scatterChartData && (
+                    <section className="chart-section">
+                    <h3>📊 산포도 (Scatter Chart)</h3>
+                    <ScatterChartComponent data={scatterChartData} />
+                    </section>
+                    )}
+                    
+                    버블 차트
+                    {bubbleChartData && (
+                      <section className="chart-section">
+                      <h3>📊 포도송이 (Bubble Chart)</h3>
+                      <BubbleChartComponent data={bubbleChartData} />
+                      </section>
+                      )} */}
 
 
       <ResultsTable 

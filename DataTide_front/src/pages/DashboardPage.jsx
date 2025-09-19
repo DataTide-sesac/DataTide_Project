@@ -256,7 +256,7 @@ export default function DashboardPage() {
             // Confidence Interval - upper bound
             predictionChartJsData.datasets.push({
               label: `신뢰구간(${category})`,
-              data: [...Array(pastY.length).fill(null), ...predictedY.map(y => y ? y * 1.2 : null)],
+              data: [...Array(pastY.length).fill(null), ...predictedY.map(y => y ? y * 1.1: null)],
               borderColor: 'transparent',
               backgroundColor: 'transparent',
               pointRadius: 0,
@@ -266,7 +266,7 @@ export default function DashboardPage() {
             // Confidence Interval - lower bound
             predictionChartJsData.datasets.push({
               label: `신뢰구간(${category})`,
-              data: [...Array(pastY.length).fill(null), ...predictedY.map(y => y ? y * 0.8 : null)],
+              data: [...Array(pastY.length).fill(null), ...predictedY.map(y => y ? y * 0.9 : null)],
               borderColor: 'transparent',
               backgroundColor: fill,
               pointRadius: 0,
@@ -437,7 +437,7 @@ export default function DashboardPage() {
           <div className="chart-description">
             {selectedAnalysis === '통계' ? 
               '  • 선택기간: 막대 그래프            • 전년동기: 선 그래프 ' :
-              '• 실제 데이터: 실선 • 예측 데이터: 점선 + 신뢰구간'
+              '• 실제 데이터: 실선 • 예측 데이터: 점선 (신뢰구간 ±10%)'
             }
           </div>
           <ChartComponent 
@@ -451,7 +451,7 @@ export default function DashboardPage() {
             
             {bumpChartData && (
               <section className="chart-section">
-                <h3>📊 품목 순위 변화 (Bump Chart)</h3>
+                <h2>📊 주요 수산물 생산 순위 변동</h2>
                 <BumpChartComponent data={bumpChartData} />
               </section>
             )}

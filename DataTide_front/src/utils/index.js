@@ -22,7 +22,6 @@ export function generateMockData() {
   return data
 }
 
-
 function generatePredictionChartData() {
   const now = new Date();
   const pastX = [];
@@ -129,9 +128,6 @@ export function generateBumpChartData(result, period, allItems = null) {
   }
 
 
-
-
-
 //// 산포도 차트
 export function generateScatterChartData(){
   const now = new Date();
@@ -187,6 +183,14 @@ export function generateScatterChartData(){
       }
     ]
 
+  // const data = Object.entries(predictionMockData).map(([key, values]) => ({
+  // id: key,
+  // data: values.map((value, idx) => ({
+  //   x: idx,           // 또는 months[idx]가 숫자로 변환 가능한 경우
+  //   y: value
+  //   }))
+  // }));
+
   return predictionMockData;
 }
 ////
@@ -202,6 +206,12 @@ export function generateBubbleChartData(){
     months.push(`${d.getFullYear()}년 ${d.getMonth() + 1}월`);
   }
 
+  // 데이터 예시: 고등어, 오징어, 갈치 3개 품목
+  // const predictionMockData = {
+  //   '고등어': [1, 3, 2, 2, 3, 2],
+  //   '오징어': [2, 1, 3, 3, 1, 1],
+  //   '갈치': [3, 2, 1, 1, 2, 3],
+  // };
 
   const predictionMockData =
     [
@@ -259,9 +269,114 @@ export function generateBubbleChartData(){
       }
     ]
 
+  // const data = Object.entries(predictionMockData).map(([key, values]) => ({
+  // id: key,
+  // data: values.map((value, idx) => ({
+  //   x: idx,           // 또는 months[idx]가 숫자로 변환 가능한 경우
+  //   y: value
+  //   }))
+  // }));
+
   return predictionMockData;
 }
 ////
+
+export function generateMockChartData({ analysisType, period, selectedCategories }) {
+  if (analysisType === '통계') {
+    const { startYear, endYear, startMonth, endMonth } = period;
+    const allMonths = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+    
+    const fullYData = {
+      current: {
+        '생산': [25, 18, 27, 38, 33, 49, 36, 40, 43, 37, 44, 47],
+        '판매': [21, 16, 25, 33, 28 , 43, 32, 35, 38, 31, 39, 41],
+        '수입': [18, 13, 22, 27, 24, 38, 29, 33, 35, 28, 36, 39]
+      },
+      previous: {
+        '생산': [18, 12, 20, 30, 25, 40, 28, 32, 35, 28, 35, 38],
+        '판매': [15, 10, 18, 25, 20, 35, 25, 28, 30, 25, 30, 33],
+        '수입': [12, 8, 15, 20, 18, 30, 22, 25, 28, 22, 28, 30]
+      }
+    };
+
+    let monthLabels = [];
+    const yData = { current: {}, previous: {} };
+    ['생산', '판매', '수입'].forEach(cat => {
+        yData.current[cat] = [];
+        yData.previous[cat] = [];
+    });
+
+    if (startYear === endYear) {
+        monthLabels = allMonths.slice(startMonth - 1, endMonth);
+        ['생산', '판매', '수입'].forEach(cat => {
+            yData.current[cat] = fullYData.current[cat].slice(startMonth - 1, endMonth);
+            yData.previous[cat] = fullYData.previous[cat].slice(startMonth - 1, endMonth);
+        });
+    } else { 
+        monthLabels.push(...allMonths.slice(startMonth - 1));
+        ['생산', '판매', '수입'].forEach(cat => {
+            yData.current[cat].push(...fullYData.current[cat].slice(startMonth - 1));
+            yData.previous[cat].push(...fullYData.previous[cat].slice(startMonth - 1));
+        });
+        monthLabels.push(...allMonths.slice(0, endMonth));
+        ['생산', '판매', '수입'].forEach(cat => {
+            yData.current[cat].push(...fullYData.current[cat].slice(0, endMonth));
+            yData.previous[cat].push(...fullYData.previous[cat].slice(0, endMonth));
+        });
+    }
+
+    // Prepend previous month's data to connect the line graph
+    if (startMonth > 1) {
+      const prevMonthLabel = allMonths[startMonth - 2];
+      monthLabels.unshift(prevMonthLabel);
+
+      ['생산', '판매', '수입'].forEach(cat => {
+        const prevMonthData = fullYData.previous[cat][startMonth - 2];
+        yData.current[cat].unshift(prevMonthData);
+        yData.previous[cat].unshift(null); // Add null to bar data to keep it aligned
+      });
+    }
+
+    const datasets = [
+      { type: 'line', tension:0.35, fill:true, order: 2, label: `${startYear === endYear ? endYear : `${startYear}~${endYear}`} 생산`, data: yData.current['생산'], borderColor: '#ffffffff', backgroundColor: '#4acfc6ff',borderWidth: 1 }, //#c2dcffff
+      { type: 'line', tension:0.35, fill:true, order: 2, label: `${startYear === endYear ? endYear : `${startYear}~${endYear}`} 판매`, data: yData.current['판매'], borderColor: '#ffffffff' , backgroundColor: '#b5e7f1ff',borderWidth: 1}, //a3e9b5ff
+      { type: 'line', tension:0.35, fill:true, order: 2, label: `${startYear === endYear ? endYear : `${startYear}~${endYear}`} 수입`, data: yData.current['수입'], borderColor: '#ffffffff',backgroundColor:'#abcddfff',borderWidth: 1},//F57C00 31326F #fdeebfff
+      { type: 'bar', order: 1, label: `${startYear === endYear ? endYear - 1 : `${startYear - 1}~${endYear - 1}`} 생산`, data: yData.previous['생산'], backgroundColor: '#006AC0', borderColor:'#ffffffff', borderWidth: 1 }, //'#34345fff'
+      { type: 'bar', order: 1, label: `${startYear === endYear ? endYear - 1 : `${startYear - 1}~${endYear - 1}`} 판매`, data: yData.previous['판매'], backgroundColor: '#FFDE47', borderColor:'#ffffffff', borderWidth: 1 }, //'#4d8d8bff'
+      { type: 'bar', order: 1, label: `${startYear === endYear ? endYear - 1 : `${startYear - 1}~${endYear - 1}`} 수입`, data: yData.previous['수입'], backgroundColor: '#FF8410', borderColor:'#ffffffff', borderWidth: 1 }, //'#6bd4a1ff'
+    ];
+    
+    const filteredDatasets = datasets.filter(dataset => {
+      const category = dataset.label.split(' ').pop();
+      return selectedCategories.includes(category);
+    });
+
+    return {
+      labels: monthLabels,
+      datasets: filteredDatasets,
+    };
+  }
+
+  // For prediction chart, keep original Plotly data structure
+  if (analysisType === '예측') {
+    const { pastX, predictedX, predictionMockData } = generatePredictionChartData();
+    const predictionData = [];
+    selectedCategories.forEach(category => {
+      const categoryData = predictionMockData[category];
+      if (categoryData) {
+        const { pastY, predictedY, color, fill } = categoryData;
+        const pastXConnected = [...pastX, predictedX[0]];
+        const pastYConnected = [...pastY, predictedY[0]];
+        predictionData.push({ x: pastXConnected, y: pastYConnected, name: `과거 데이터 ${category}`, type: 'scatter', mode: 'lines', line: { color: color } });
+        predictionData.push({ x: predictedX, y: predictedY, name: `예측 데이터 ${category}`, type: 'scatter', mode: 'lines', line: { color: color, dash: 'dash' } });
+        predictionData.push({ x: [...predictedX, ...[...predictedX].reverse()], y: [...predictedY.map(y => y - 2), ...[...predictedY].reverse().map(y => y + 2)], fill: 'toself', fillcolor: fill, line: { color: 'transparent' }, name: `신뢰구간 ${category}`, showlegend: false, type: 'scatter' });
+      }
+    });
+    return predictionData;
+  }
+
+  return [];
+}
 
 export function formatNumber(value) {
   if (value === null || value === undefined || isNaN(value)) return '-'
@@ -280,17 +395,30 @@ export function getChangeClass(value) {
   return ''
 }
 
-export function convertToCSV(data) {
-  const headers = ['기간', '생산량', '판매량', '수입량']
-  const csvContent = [
-    headers.join(','),
-    ...data.map(row => [
-      row.period, row.production, row.sales, row.imports
-    ].join(','))
-  ].join('')
+// export function convertToCSV(data) {
+//   const headers = ['기간', '생산량', '판매량', '수입량']
+//   const csvContent = [
+//     headers.join(','),
+//     ...data.map(row => [
+//       row.period, row.production, row.sales, row.imports
+//     ].join(','))
+//   ].join('\r\n')
   
-  return '\uFEFF' + csvContent
-}
+//   return '\uFEFF' + csvContent
+// }
+export function convertToCSV(data) {
+    const headers = ['년월', '품목','생산량', '판매량', '수입량(톤)','전년생산량','전년판매량','전년수입량','생산증감률(%)','판매증감률','수입증감률']
+    const csvContent = [
+      headers.join(','),
+      ...data.map(row => [
+        row.yearMonth, row.item, row.location,
+        row.production, row.sales, row.imports,
+        row.dataType, row.confidence || ''
+      ].join(','))
+    ].join('\\r\\n')  // <--- 이 부분을 '\\n'에서 '\\r\\n'으로 수정
+
+    return '\\uFEFF' + csvContent
+  }
 
 export function downloadFile(content, fileName, contentType) {
   const blob = new Blob([content], { type: contentType })

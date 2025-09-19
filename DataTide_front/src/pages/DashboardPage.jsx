@@ -273,8 +273,7 @@ export default function DashboardPage() {
               align: 'start', // 왼쪽 정렬
               position: 'top',
               padding: {
-                top: 20,
-
+                top: 10,
               },
               font: {
                 size: 16,

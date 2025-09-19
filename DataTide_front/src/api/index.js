@@ -21,7 +21,7 @@ export async function fetchFisheriesData(params) {
     queryParams.append('start_month', params.period.startMonth);
     queryParams.append('end_month', params.period.endMonth);
   } else {
-    queryParams.append('base_date', params.base_date);
+    queryParams.append('base_date', '2025-07-30');
   }
   
   const response = await fetch(`${API_BASE}/api/fisheries-analysis?${queryParams}`);
@@ -87,7 +87,5 @@ export async function sendChatbotMessage(message) {
     },
     body: JSON.stringify({ message: message }),
   });
-
   return handleApiResponse(response);
 }
-

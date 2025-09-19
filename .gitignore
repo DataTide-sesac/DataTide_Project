@@ -8,9 +8,6 @@ __pycache__/
 .Python
 env/
 venv/
-.env
-.env.*
-
 
 *.egg-info/
 .pytest_cache/
@@ -24,9 +21,6 @@ venv/
 .Trashes
 Thumbs.db
 
-#front
-node_modules/
-
 # Specific to this project
 *.zip
 *.npz
@@ -35,7 +29,9 @@ gemini.md
 ENV/
 env.bak/
 venv.bak/
+
 .log
+
 *.exe
 # 가상환경venv
 *.dll
@@ -43,3 +39,10 @@ venv.bak/
 site-packages/
 DataTideV/
 DataTideV/Lib/site-packages/
+
+*.log
+*.pyc
+*.clip
+script/__pycache__/PublicFunc.cpython-310.pyc
+DataTide_ai/Predict_AI/sales/compare_sales.csv
+DataTide_ai/Predict_AI/sales/test_1.py

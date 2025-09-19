@@ -395,30 +395,17 @@ export function getChangeClass(value) {
   return ''
 }
 
-// export function convertToCSV(data) {
-//   const headers = ['기간', '생산량', '판매량', '수입량']
-//   const csvContent = [
-//     headers.join(','),
-//     ...data.map(row => [
-//       row.period, row.production, row.sales, row.imports
-//     ].join(','))
-//   ].join('\r\n')
-  
-//   return '\uFEFF' + csvContent
-// }
 export function convertToCSV(data) {
-    const headers = ['년월', '품목','생산량', '판매량', '수입량(톤)','전년생산량','전년판매량','전년수입량','생산증감률(%)','판매증감률','수입증감률']
-    const csvContent = [
-      headers.join(','),
-      ...data.map(row => [
-        row.yearMonth, row.item, row.location,
-        row.production, row.sales, row.imports,
-        row.dataType, row.confidence || ''
-      ].join(','))
-    ].join('\\r\\n')  // <--- 이 부분을 '\\n'에서 '\\r\\n'으로 수정
-
-    return '\\uFEFF' + csvContent
-  }
+  const headers = ['기간', '생산량', '판매량', '수입량']
+  const csvContent = [
+    headers.join(','),
+    ...data.map(row => [
+      row.period, row.production, row.sales, row.imports
+    ].join(','))
+  ].join('')
+  
+  return '\uFEFF' + csvContent
+}
 
 export function downloadFile(content, fileName, contentType) {
   const blob = new Blob([content], { type: contentType })

@@ -25,13 +25,8 @@ HOST = "localhost"
 PORT = 3306
 DB = os.getenv("MYSQL_DATABASE")
 
-user = 'team_dt'
-password = 'dt_1234'
-host = 'localhost'
-port = 3306
-database = 'datatide_db'
 
-db_con = f'mysql+pymysql://{user}:{password}@{host}:{port}/{database}'
+db_con = f"mysql+pymysql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DB}"
 # print(db_con)
 
 # SQLAlchemy 엔진 생성

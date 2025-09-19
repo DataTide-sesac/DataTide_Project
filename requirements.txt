@@ -1,3 +1,5 @@
+# Python 환경: 3.10.18
+
 torch
 torchvision
 torchaudio
@@ -6,9 +8,15 @@ pandas
 scikit-learn
 matplotlib
 seaborn
+
 tqdm
 fastapi
 IPython
+tabula
+
+IPython
+@nivo/bump
+@nivo/scatterplot
 
 # 실험 편의
 tqdm
@@ -23,13 +31,21 @@ requests
 sqlalchemy
 pymysql
 mysql-connector-python
+
+# SQL 보안문제 발생 시
+cryptography
+
+# LLM
 langchain
 openai
 langchain-community
 langchain-huggingface
+langchain-experimental
 tiktoken
 sentence-transformers
 langgraph
+langchain_experimental
+tabulate
 
 # 토큰화
 tiktoken
@@ -47,3 +63,29 @@ cryptography
 
 # 환경변수 불러오기
 python-dotenv
+cryptography
+
+# xlsx 의 데이터를 추출하는 라이브러리
+openpyxl
+<<<<<<< HEAD
+=======
+
+# 테이블 데이터 -> xlsx의 형태로 바꾸는 라이브러리
+xlsx
+>>>>>>> c90279f5da7e8cb158a0ae440f854550da6bd109
+
+# 환경변수 불러오기
+python-dotenv
+annotated-types==0.7.0
+anyio==4.10.0
+click==8.2.1
+fastapi==0.116.1
+h11==0.16.0
+idna==3.10
+pydantic==2.11.7
+pydantic_core==2.33.2
+sniffio==1.3.1
+starlette==0.47.3
+typing-inspection==0.4.1
+typing_extensions==4.15.0
+uvicorn==0.35.0

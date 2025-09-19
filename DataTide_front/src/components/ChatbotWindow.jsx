@@ -56,7 +56,7 @@ export default function ChatbotWindow({ onClose }) {
   return (
     <div className="chatbot-window">
       <div className="chatbot-header">
-        <h3>DataTide 챗봇</h3>
+        <h3>Datatide 챗봇</h3>
         <button onClick={onClose} className="close-btn">&times;</button>
       </div>
       <div className="chatbot-messages">

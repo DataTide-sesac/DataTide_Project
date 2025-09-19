@@ -1,57 +1,74 @@
 import React from 'react';
 import { ResponsiveBump } from '@nivo/bump';
 
-const getStartOrder = (series) => {
-  return [...series].sort((a, b) => {
-    const ay = a.points?.[0]?.y || 0;
-    const by = b.points?.[0]?.y || 0;
-    return ay - by;
-  });
-};
+// 이 컴포넌트는 차트 끝에 품목명을 표시하는 역할을 합니다.
+// const CustomEndLabel = ({ series }) => (
+//   <g>
+//     {Array.isArray(series) &&
+//       series.map(line => {
+//         if (!line.points || line.points.length === 0) {
+//           return null;
+//         }
+//         const lastPoint = line.points[line.points.length - 1];
+//         const firstPoint = line.points[0];
 
-const CustomEndLabel = ({ series }) => {
-  if (!Array.isArray(series)) return null;
-
-  // 시작 위치(y) 기준 정렬
-  const sortedByStart = getStartOrder(series);
-
-  // 정렬된 시리즈를 기반으로 라벨 렌더링
-  return (
-    <g>
-      {sortedByStart.map(line => {
-        if (!line.points || line.points.length === 0) return null;
-
-        // 라벨을 시작점 기준으로 붙임
+//         return (
+//           <text
+//             key={line.id}
+//             x={firstPoint.x - 80} // 라인 끝에서 약간의 여백을 줍니다.
+//             y={lastPoint.y}
+//             alignmentBaseline="middle"
+//             fontSize={14} // 폰트 크기를 적절하게 조절합니다.
+//             fill={line.color}
+//             fontWeight="bold"
+//           >
+//             {line.id}
+//           </text>
+//         );
+//       })}
+//   </g>
+// );
+const CustomEndLabel = ({ series }) => (
+  <g>
+    {Array.isArray(series) &&
+      series.map(line => {
+        if (!line.points || line.points.length === 0) {
+          return null;
+        }
+        const lastPoint = line.points[line.points.length - 1];
         const firstPoint = line.points[0];
 
-        // 텍스트 위치: 시작점 기준 (x, y)
+        // 텍스트 위치
         const x = firstPoint.x - 40;
-        const y = firstPoint.y;
+        const y = lastPoint.y;
 
-        // 텍스트 내용
+        // 텍스트 내용 및 스타일
         const text = line.id;
-
-        // 스타일
         const fontSize = 20;
+
+        // rect 크기 (대략적인 width, height, padding)
+        // width는 글자 수 * 글자당 평균 폭 (약 8px 정도) + 좌우 padding (16px)
         const rectWidth = text.length * 15 + 20;
-        const rectHeight = fontSize + 15;
+        const rectHeight = fontSize + 15; // 폰트 크기 + 상하 패딩
 
         return (
           <g key={line.id} transform={`translate(${x}, ${y})`}>
+            {/* 배경 rect */}
             <rect
-              x={-rectWidth}
-              y={-rectHeight / 2}
+              x={-rectWidth}  // 텍스트 기준으로 왼쪽으로 위치 이동
+              y={-rectHeight / 2} // 텍스트 중앙 맞춤
               width={rectWidth}
               height={rectHeight}
-              fill="white"
-              stroke={line.color}
+              fill="white" // 배경색 (원하는 색으로 변경 가능)
+              stroke={line.color} // 테두리 색
               strokeWidth={1}
-              rx={4}
+              rx={4} // 모서리 둥글게
               ry={4}
               opacity={0.8}
             />
+            {/* 텍스트 */}
             <text
-              x={-rectWidth / 2}
+              x={-rectWidth / 2}  // rect 중앙에 텍스트 배치
               y={0}
               alignmentBaseline="middle"
               textAnchor="middle"
@@ -64,9 +81,9 @@ const CustomEndLabel = ({ series }) => {
           </g>
         );
       })}
-    </g>
-  );
-};
+  </g>
+);
+
 
 export default function BumpChartComponent({ data }) {
   // 데이터가 없거나, 데이터 형식이 올바르지 않으면 차트를 렌더링하지 않습니다.
@@ -79,7 +96,7 @@ export default function BumpChartComponent({ data }) {
 
   // 라벨 개수에 따라 동적으로 폰트 크기를 계산합니다.
   // 기본 14px, 8개 초과 시 1개마다 1px씩 감소, 최소 8px
-  const dynamicFontSize = Math.max(4, 22 - Math.max(0, tickCount - 4));
+  const dynamicFontSize = Math.max(8, 14 - Math.max(0, tickCount - 8));
 
   return (
     <div style={{ height: 400 }}>

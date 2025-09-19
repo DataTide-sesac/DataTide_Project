@@ -90,15 +90,24 @@
 ---
 
 ## ⚙️ 워크 플로우
-![00_워크플로우_1](https://github.com/user-attachments/assets/ddab7376-647b-44c3-aa76-29a554bd6886)
+<img width="786" height="825" alt="00_워크플로우_2" src="https://github.com/user-attachments/assets/be0bee73-f4fc-4f25-8c8d-eebd98971a8d" />
 
 ---
 
 ## 🗂️ ERD (Entity Relationship Diagram)
+<<<<<<< HEAD
 > [!WARNING]
 > 현재 DB 모델이 대규모로 리팩토링되어 아래 ERD는 최신이 아닙니다. 빠른 시일 내에 업데이트가 필요합니다.
 
 ![00_ERD_4](https://github.com/user-attachments/assets/013de0ff-6f5e-4b7c-8ea2-9e5d69d1fba7)
+=======
+![00_ERD_5](https://github.com/user-attachments/assets/3eafeb39-5945-40e5-b2ec-88789c95d15f)
+
+---
+
+## 🔵 랭그래프 (Lang Graph)
+<img width="189" height="531" alt="LangGraph" src="https://github.com/user-attachments/assets/bf59a0ab-13f0-4bc4-9c0a-eadf428cc69c" />
+>>>>>>> main
 
 
 ---

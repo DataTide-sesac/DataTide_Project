@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import ChartComponent from './ChartComponent'
 import { fetchPredictionDataApi, getExcelDownloadUrl } from '../api';
+import * as XLSX from 'xlsx';
 
 export default function PredictionView({ selectedItems, selectedLocation }) {
   const [predictionData, setPredictionData] = useState([])
@@ -28,21 +29,71 @@ export default function PredictionView({ selectedItems, selectedLocation }) {
     }
   }
 
-  // CSV 다운로드
-  function downloadCSV() {
-    const csvContent = convertToPredictionCSV(predictionData)
-    downloadFile(csvContent, 'prediction_data.csv', 'text/csv')
-  }
 
-  // Excel 다운로드
-  function downloadExcel() {
-    const url = getExcelDownloadUrl('prediction', { 
-      selectedItems, 
-      selectedLocation, 
-      baseDate 
-    });
-    window.open(url, '_blank');
-  }
+
+  function handleDownloadCSV() {
+        const headers = [];
+        // 현재 테이블에 보이는 헤더를 동적으로 생성
+        const headerElements = document.querySelectorAll('.data-table thead th');
+        headerElements.forEach(th => headers.push(`"${th.textContent}"`));
+  
+        const rows = [];
+        // 현재 테이블에 보이는 데이터를 동적으로 생성
+        const rowElements = document.querySelectorAll('.data-table tbody tr');
+        rowElements.forEach(tr => {
+          const rowData = [];
+          tr.querySelectorAll('td').forEach(td => {
+            // 쉼표가 포함된 숫자를 처리하기 위해 큰따옴표로 감싸기
+            rowData.push(`"${td.textContent}"`);
+          });
+          rows.push(rowData.join(','));
+        });
+  
+        const csvContent = [headers.join(','), ...rows].join('\r\n');
+  
+        // 파일 다운로드 실행
+        const BOM = '\uFEFF';
+        const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8-sig;' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'Fish_data.csv';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }
+  
+      function handleDownloadXLSX() {
+        // 1) 테이블 헤더 가져오기
+        const headers = [];
+        document.querySelectorAll('.data-table thead th').forEach(th => {
+          headers.push(th.textContent.trim());
+        });
+  
+        // 2) 테이블 바디 데이터 가져오기
+        const data = [];
+        document.querySelectorAll('.data-table tbody tr').forEach(tr => {
+          const row = [];
+          tr.querySelectorAll('td').forEach(td => {
+            row.push(td.textContent.trim());
+          });
+          data.push(row);
+        });
+  
+        // 3) 헤더 + 데이터 합치기
+        const worksheetData = [headers, ...data];
+  
+        // 4) 워크시트 생성
+        const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+  
+        // 5) 워크북 생성 및 워크시트 추가
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+  
+        // 6) 파일 저장 (xlsx 확장자)
+        XLSX.writeFile(workbook, 'Fish_data.xlsx');
+      }
 
   return (
     <div className="prediction-view">
@@ -80,10 +131,10 @@ export default function PredictionView({ selectedItems, selectedLocation }) {
         <div className="table-header">
           <h3>📋 예측 데이터 ({predictionData.length}건)</h3>
           <div className="download-buttons">
-            <button className="btn-download" onClick={downloadCSV}>
+            <button className="btn-download" onClick={handleDownloadCSV}>
               📄 CSV 다운로드
             </button>
-            <button className="btn-download" onClick={downloadExcel}>
+            <button className="btn-download" onClick={handleDownloadXLSX}>
               📗 Excel 다운로드
             </button>
           </div>
@@ -95,12 +146,10 @@ export default function PredictionView({ selectedItems, selectedLocation }) {
               <tr>
                 <th>년월</th>
                 <th>품목</th>
-                <th>지역</th>
                 <th>생산량(톤)</th>
-                <th>판매량(톤)</th>
                 <th>수입량(톤)</th>
+                <th>판매량(톤)</th>
                 <th>데이터 타입</th>
-                <th>신뢰도</th>
               </tr>
             </thead>
             <tbody>
@@ -117,8 +166,8 @@ export default function PredictionView({ selectedItems, selectedLocation }) {
                     <td>{row.item}</td>
                     <td>{row.location}</td>
                     <td>{formatNumber(row.production)}</td>
-                    <td>{formatNumber(row.sales)}</td>
                     <td>{formatNumber(row.imports)}</td>
+                    <td>{formatNumber(row.sales)}</td>
                     <td>
                       <span className={`data-type ${row.dataType === '예측' ? 'prediction' : 'actual'}`}>
                         {row.dataType}
@@ -147,80 +196,8 @@ export default function PredictionView({ selectedItems, selectedLocation }) {
   )
 }
 
-// 예측 데이터 모킹 함수
-function generateMockPredictionData() {
-  const data = []
-  const items = ['고등어', '갈치']
-  const months = [
-    // 과거 6개월 (실제 데이터)
-    { yearMonth: '2025-01', dataType: '실제', confidence: null },
-    { yearMonth: '2025-02', dataType: '실제', confidence: null },
-    { yearMonth: '2025-03', dataType: '실제', confidence: null },
-    { yearMonth: '2025-04', dataType: '실제', confidence: null },
-    { yearMonth: '2025-05', dataType: '실제', confidence: null },
-    { yearMonth: '2025-06', dataType: '실제', confidence: null },
-    { yearMonth: '2025-07', dataType: '실제', confidence: null },
-    // 미래 6개월 (예측 데이터)
-    { yearMonth: '2025-08', dataType: '예측', confidence: 89 },
-    { yearMonth: '2025-09', dataType: '예측', confidence: 87 },
-    { yearMonth: '2025-10', dataType: '예측', confidence: 85 },
-    { yearMonth: '2025-11', dataType: '예측', confidence: 82 },
-    { yearMonth: '2025-12', dataType: '예측', confidence: 79 },
-    { yearMonth: '2026-01', dataType: '예측', confidence: 76 }
-  ]
-
-  items.forEach(item => {
-    months.forEach(month => {
-      data.push({
-        yearMonth: month.yearMonth,
-        item,
-        location: '부산',
-        production: Math.floor(Math.random() * 1000) + 500,
-        sales: Math.floor(Math.random() * 800) + 400,
-        imports: Math.floor(Math.random() * 300) + 100,
-        dataType: month.dataType,
-        confidence: month.confidence
-      })
-    })
-  })
-
-  return data
-}
-
-function generateMockPredictionChartData() {
-  return {
-    actual: [650, 720, 680, 590, 750, 820, 890], // 과거 7개월
-    predicted: [760, 640, 710, 780, 850, 920], // 미래 6개월
-    labels: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월']
-  }
-}
-
-function convertToPredictionCSV(data) {
-  const headers = ['년월', '품목', '지역', '생산량', '판매량', '수입량', '데이터타입', '신뢰도']
-  const csvContent = [
-    headers.join(','),
-    ...data.map(row => [
-      row.yearMonth, row.item, row.location,
-      row.production, row.sales, row.imports,
-      row.dataType, row.confidence || ''
-    ].join(','))
-  ].join('\n')
-  
-  return '\uFEFF' + csvContent
-}
-
 // 유틸리티 함수들 (동일)
 function formatNumber(value) {
   if (value === null || value === undefined || isNaN(value)) return '-'
   return new Intl.NumberFormat('ko-KR').format(value)
-}
-
-function downloadFile(content, fileName, contentType) {
-  const blob = new Blob([content], { type: contentType })
-  const url = window.URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = fileName
-  link.click()
-  window.URL.revokeObjectURL(url)
 }

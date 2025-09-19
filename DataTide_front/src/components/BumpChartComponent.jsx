@@ -81,6 +81,7 @@ export default function BumpChartComponent({ data }) {
   // 기본 14px, 8개 초과 시 1개마다 1px씩 감소, 최소 8px
   const dynamicFontSize = Math.max(4, 22 - Math.max(0, tickCount - 4));
 
+
   return (
     <div style={{ height: 400 }}>
       <ResponsiveBump
@@ -124,6 +125,7 @@ export default function BumpChartComponent({ data }) {
         }}
         enableGridX ={false}
         enableGridY ={false}
+
         layers={['grid','axes', 'lines','points', CustomEndLabel]}
       />
     </div>
